@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/plugins/Build_Radial_Graph" >
+        <file>icon.png</file>
+    </qresource>
+</RCC>
