@@ -26,32 +26,25 @@ import os
 
 from qgis.PyQt import uic
 from qgis.PyQt import QtWidgets
-from .MyClasses import RadialCity2ver
 
-# This loads your .ui file so that PyQt can populate your plugin with the elements from Qt Designer
+from .RadialCity2ver import GraphRadialCity
+
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'Build_Radial_Graph_dialog_base.ui'))
-
 
 class GraphOfRadialCityDialog(QtWidgets.QDialog, FORM_CLASS):
     def __init__(self, parent=None):
         """Constructor."""
         super(GraphOfRadialCityDialog, self).__init__(parent)
-        # Set up the user interface from Designer through FORM_CLASS.
-        # After self.setupUi() you can access any designer object by doing
-        # self.<objectname>, and you can use autoconnect slots - see
-        # http://qt-project.org/doc/qt-4.8/designer-using-a-ui-file.html
-        # #widgets-and-dialogs-with-auto-connect
         self.setupUi(self)
         self.Btn_sel_dir.clicked.connect(self.getDirectory)
-        self.button_box.accepted.connect(self.accept)
+        self.button_box.accepted.connect(self.buildCity)
 
     def getDirectory(self):
         self.Path = QtWidgets.QFileDialog.getExistingDirectory(self, "Select Directory")
         self.lEdt_Path.setText(self.Path)
 
-    def accept(self):
-        s = RadialCity2ver.GraphRadialCity(int(self.lEdt_numb.text()), int(self.lEdt_dist.text()))
-        s.CreateRadialGraph()
-        s.setPath(self.Path+"\\")
-        s.GraphToGeoPandas()
+    def buildCity(self):
+        s = GraphRadialCity(int(self.lEdt_numb.text()), int(self.lEdt_dist.text()))
+        s.run()
+        self.close()

@@ -1,48 +1,48 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Tue Mar 21 17:59:07 2023
 
-@author: rasin
-"""
-
-import networkx as nx
 import math
 import numpy as np
-from numpy.linalg import norm
-import matplotlib.pyplot as plt
 import pandas as pd
-import geopandas as gpd
 from shapely.geometry import LineString
 
-#некоторые константы
-Lmin =800
-
-
-
-    
-    
+from qgis.PyQt.QtCore import QVariant
+from qgis.core import (
+    QgsProject, 
+    QgsVectorFileWriter, 
+    QgsVectorLayer, 
+    QgsFeature, 
+    QgsGeometry, 
+    QgsPointXY, 
+    QgsField
+)
 
 class GraphRadialCity:
-    
-    _MinDistRadial = 100#расстояние между городами на одном радиусе
-    _Lmin =800#наименьшая длина главной окружности
-    _min_dist_between_circles = 10  # расстяоние между окружностями, чтобы не налезали друг на друга
-    
+    """
+    Пример для запуска программы:
+
+    s = GraphRadialCity(4, 50)
+    s.CreateRadialGraph()
+    """
+
+    _MinDistRadial = 100 # расстояние между городами на одном радиусе
+    _Lmin =800 # наименьшая длина главной окружности
+    _min_dist_between_circles = 10 # расстяоние между окружностями, чтобы не налезали друг на друга
+
     _zero = 1.e-10
 
-    '''Массивы, которые ниже в предыдущей реализации массивы с суффиком sec использовалсь 
+    '''Массивы, которые ниже в предыдущей реализации массивы с суффиком sec использовалсь
     для вершин промежуточных слоев, для главных слоев без суффикса. Сводный массив с суффиком All.
     Сейчас временно используются только массивы, в котоырх нет разделения на основные и вспомогательные'''
-    
+
     _nodesID_All = []
-    _nodesID = []#использовалось для вершин главного слоя
-    _nodesID_sec = []#использовалось для вспомогательных вершин
+    _nodesID = [] # использовалось для вершин главного слоя
+    _nodesID_sec = [] # использовалось для вспомогательных вершин
     ###позиции
-    _pos_All=[]
-    _pos =[]
+    _pos_All = []
+    _pos = []
     _pos_x_All = []
     _pos_y_All = []
-    _pos_x = [] 
+    _pos_x = []
     _pos_y = []
     _pos_sec_x = []
     _pos_sec_y = []
@@ -54,8 +54,8 @@ class GraphRadialCity:
     _distance_nodes_All = []
     _distance_nodes = []
     _distance_nodes_sec = []
-    _radiuses_main_circles = []  # радиусы основных окружностей
-    _nNodes_In_main_circles = []  # количество вершин в основных окружностях
+    _radiuses_main_circles = [] # радиусы основных окружностей
+    _nNodes_In_main_circles = [] # количество вершин в основных окружностях
     ####ребра
     ###радиальные
     _edgesID_All = []
@@ -76,17 +76,13 @@ class GraphRadialCity:
     _typeOfCircularLinks = []
     _typeOfLinks_All = []
 
-
-    
-    _Path ="..\\ShapeFiles\\"
+    _Path = '..\\ShapeFiles\\'
 
     _nRadialEdges = 0
 
     def setPath(self, path):
         self._Path = path
 
-
-    
     def __init__(self, nCircles, minDistRadial):
         self._NCircles = nCircles
         N = self._NCircles  # для более короткого обращения
@@ -99,8 +95,7 @@ class GraphRadialCity:
         self._PowerOfTwo = 2 ** np.arange(N + 3)
         self._PowerOfTwo = self._PowerOfTwo.astype(int)  # было странное поведение (тип intc)
         ####################################################################################################
-
-        #следующий аттрибут --- шаг между вспомогательными кругами
+        # следующий аттрибут --- шаг между вспомогательными кругами
         #self._stepOfRadiusOfSecCircles = (self._Lmin) / (4 * math.pi)  # надо поделить еще на 2
         self._stepOfRadiusOfSecCircles = self._MinDistRadial/(4*np.sin(math.pi/self._PowerOfTwo[3]))#случай если расстояние не радиус, а длина промежутка
 
@@ -115,11 +110,6 @@ class GraphRadialCity:
         self._nCircularEdges = self._nAllNodes - 1#ребер на кругах столько же сколько вершин, и вычитаем 1(для центральной)
         self._nAllEdges = self._nRadialEdges + self._nCircularEdges
 
-
-
-        ###############################################################
-        ###############################################################
-        ###############################################################
         '''Массив self._allangels используется для более эффективного
         вычиcления значений при использовании python'''
         start_angle = math.pi/(2 ** (N+1))
@@ -139,19 +129,18 @@ class GraphRadialCity:
         self._distance_edges_All = np.empty(self._nAllEdges)
         self._azimuth_edges_All = np.empty(self._nAllEdges)
         self._typeOfLinks_All = [None] * self._nAllEdges
-        
-    def CreateRadialGraph(self):   
+
+    def CreateRadialGraph(self):
         N = self._NCircles
-        nMainNodes = (2 * self._PowerOfTwo[N+2] - 7)#количество элементов 
+        nMainNodes = (2 * self._PowerOfTwo[N+2] - 7)#количество элементов
         #в основном слое
         radiuses = (self._MinDistRadial/(2*np.sin(math.pi/self._PowerOfTwo[3:N+3])))
-        '''Массив radiuses хранит радиусы всех основных кругов. При вычислении
-        используется broadcasting. Радиус начального нулевого круга мы не храним'''
-
+        # Массив radiuses хранит радиусы всех основных кругов. При вычислении
+        # используется broadcasting. Радиус начального нулевого круга мы не храним
 
         #self.CreateRadialGraphWithGivenRadiuses(radiuses)#радиусы уже подобраны
         #self.AddSecondaryLayers()
-        '''Рисуем вершины основного слоя.'''
+        # Рисуем вершины основного слоя.
         #сначала нулевую вершину
         self._pos_x_All[0] = self._pos_y_All[0] = 0.0
         self._distance_nodes_All[0] = self._azimuth_nodes_All[0] = 0.0
@@ -167,7 +156,7 @@ class GraphRadialCity:
             self.CreateEqualiteralNodesOnCircle(radiuses[i], i+3, indexes, indexes)
             startNodeID =stopNodeID
             #первый элемент соответствует 3-й степени
-        
+
         #строим радиусы для промежуточных слоев
 
         '''Количество промежуточных кругов. Всего кругов внутри большого круга 2^N. Выбрасываем
@@ -184,7 +173,7 @@ class GraphRadialCity:
         radius =stepSecCircles
         #radiusSec[0] = radius
         self.CreateEqualiteralNodesOnCircle(radius, 2, indexes, indexes)
-        radius += stepSecCircles#сейчас на втором круге, но там основной 
+        radius += stepSecCircles#сейчас на втором круге, но там основной
         #и он не рисуется
         startNodeID = stopNodeID
         for i in range(3, N+2):#вершин столько же сколько на меньшем круге
@@ -238,7 +227,6 @@ class GraphRadialCity:
             nSmaller = nBigger
             startEdgeID = stopEdgeID'''
 
-
         #Осталось добавить круговые ребра
         #ОСНОВНОй СЛОЙ
         nCircularEdges = len(self._nodesID_All) - 1
@@ -277,19 +265,17 @@ class GraphRadialCity:
                 startNodeID = stopNodeID
                 startEdgeID = stopEdgeID
 
-
-    """Метод def CreateEqualiteralNodesOnCircles(self, radius, powerOfTwo):  
-    вычисляет координаты и аттрибуты вершин расположенных на окружности радиуса radius.
-    По умолчанию количество точек на круге --- степень двойки, поэтому передается не само
-    количество, а степень powerOfTwo.
-    
-    indexes --- массив индексов, в который записываем данные элементы.
-    
-    Внутри метода для повышения эффективности используется массив всех углов.
-    
-    """
-
     def CreateEqualiteralNodesOnCircle(self, radius, powerOfTwo, indexes, arrID):
+        """Метод def CreateEqualiteralNodesOnCircles(self, radius, powerOfTwo):
+        вычисляет координаты и аттрибуты вершин расположенных на окружности радиуса radius.
+        По умолчанию количество точек на круге --- степень двойки, поэтому передается не само
+        количество, а степень powerOfTwo.
+
+        indexes --- массив индексов, в который записываем данные элементы.
+
+        Внутри метода для повышения эффективности используется массив всех углов.
+        """
+
         '''добавить проверку
         1) что степень не может быть больше количества кругов.
         2)  что количество индексов равно 2^{powerOfTwo}
@@ -304,26 +290,27 @@ class GraphRadialCity:
         self._distance_nodes_All[indexes] = radius#можно так, просто присваиваем эти значения
         #метод fill не работал (возможно он только со срезами)
         self._azimuth_nodes_All[indexes] = self._arr_angles[::stepInArrAngles]
-    """
+
+    def AddRadialEdgesWithoutSecondary(self, start):
+        """
         AddRadialEdgesWithoutSecondary(self, start):
         добавляет радиальные ребра в случае, если мы рассматриваем их как линки
         между вершинами основных слоев. В базе их концы --- вершины основных слоев.
-        
+
         Метод .AddRadialEdgesWithoutSecondary(self, start): делает аналогичные действия,
         но там концами link могут быть соответствующие вершины дополнительных слоев.
-        
+
         Параметр start используется для передачи номеров ребер, с которых продолжается
-        нумерация. 
-        
-        Не очень хорошо, что в зависимости от того какой метод используется, мы не можем 
+        нумерация.
+
+        Не очень хорошо, что в зависимости от того какой метод используется, мы не можем
         заранее предсказать кол-во ребер, поэтому внутрь процедуры загнали методы для
         выделения памяти и подсчета количество ребер, хотя возможно это лучше делать в основной
         программе (вариант решения проблемы выделить память под максимально возможный случай, а потом
         удалить).
-        
-        Методы возвращает идентификатор номер ребра, с которого можно продолжать нумерацию в основную программу.  
-    """
-    def AddRadialEdgesWithoutSecondary(self, start):
+
+        Методы возвращает идентификатор номер ребра, с которого можно продолжать нумерацию в основную программу.
+        """
         #для более эффективного расходования памяти пересчитываем
         #количество ребер
         self._nRadialEdges = self._nMainNodes + 3 - self._PowerOfTwo[self._NCircles + 2]
@@ -335,7 +322,7 @@ class GraphRadialCity:
         self._typeOfLinks_All = [None] * self._nAllEdges
         self._edges_All = [None] * self._nAllEdges
         self._edgesID_All = np.empty(self._nAllEdges, dtype= int)
-        
+
         stopEdgeID = 0
         startEdgeID = 0
         self.AddRadialEdge(1, 0, 0, 0, "mr")
@@ -360,7 +347,7 @@ class GraphRadialCity:
             nSmaller = nBigger
             startEdgeID = stopEdgeID
         return startEdgeID
-    
+
     def AddRadialEdgesWithSecondary(self, start):
         #для более эффективного расходования памяти пересчитываем
         #количество ребер
@@ -373,28 +360,28 @@ class GraphRadialCity:
         self._typeOfLinks_All = [None] * self._nAllEdges
         self._edges_All = [None] * self._nAllEdges
         self._edgesID_All = np.empty(self._nAllEdges, dtype= int)
-        
+
         stopEdgeID = 0
         startEdgeID = start
         startNodeID = 0
         stopNodeID = 0
         startNodeID_Sec = self._nMainNodes #номер начальной вспомогательной вершины
         stopNodeID_Sec = self._nMainNodes #номер начальной вспомогательной вершины
-        #соединяем вершины первого промежуточного слоя с нулевой вершиной 
+        #соединяем вершины первого промежуточного слоя с нулевой вершиной
         self.AddRadialEdge(startNodeID_Sec, 0, startEdgeID, startEdgeID, "mr")
         startEdgeID += 1
         self.AddRadialEdge(startNodeID_Sec+1, 0, startEdgeID, startEdgeID, "mr")
         startEdgeID += 1
-        
+
         self.AddRadialEdge(startNodeID_Sec+2, 0, startEdgeID, startEdgeID, "mr")
         startEdgeID += 1
-        
+
         self.AddRadialEdge(startNodeID_Sec+3, 0, startEdgeID, startEdgeID, "mr")
         startEdgeID += 1
-        
+
         #elf._distance_nodes_All[0] =
         nSmaller = 4#количество вершин в меньшем слое (в принципе можно вычислять, просто делить пополам)
-        
+
         startNodeID_Sec = self._nMainNodes
         stopNodeID_Sec = startNodeID_Sec + nSmaller
         startNodeID = 1#нумерация вершин 1-го основного круга
@@ -409,24 +396,24 @@ class GraphRadialCity:
             indexesOfBigger = np.arange(startNodeID, stopNodeID)#индексы вершин основного
             indexesOfSmaller =  np.arange(startNodeID_Sec, stopNodeID_Sec)
             stopEdgeID = startEdgeID + nSmaller
-            
+
             self.AddRadialEdgesBetweenCircles(indexesOfBigger, indexesOfSmaller, startEdgeID, stopEdgeID, "mr")
             startEdgeID += nSmaller
             #nSecCircles --- кол-во второстепенных кругов на данной итерации цикла
             #содиняем первый вспомогательный с основным
-            
+
             startNodeID_Sec += nSmaller
-            stopNodeID_Sec = startNodeID_Sec + nNodes 
+            stopNodeID_Sec = startNodeID_Sec + nNodes
             indexesOfBigger = np.arange(startNodeID_Sec, stopNodeID_Sec)#индексы вершин основного
             indexesOfSmaller =  np.arange(startNodeID, stopNodeID)
             stopEdgeID = startEdgeID + nNodes
             self.AddRadialEdgesBetweenCircles(indexesOfBigger, indexesOfSmaller, startEdgeID, stopEdgeID, "mr")
             startEdgeID += nNodes
             nSecCircles = (self._PowerOfTwo[i+1] - self._PowerOfTwo[i])//self._PowerOfTwo[2]-1
-                        
+
             #пробегаем по дополнительным кругам (первый дополнительный мы уже соединили
             #с предыдущим основным, поэтому начинаем со второго)
-            
+
             for j in range(1, nSecCircles):
                 nextStartNodeID_Sec = stopNodeID_Sec
                 stopNodeID_Sec = startNodeID_Sec + nNodes
@@ -439,9 +426,9 @@ class GraphRadialCity:
                 stopNodeID_Sec += nNodes
                 startEdgeID = stopEdgeID
             nSmaller = nNodes
-            startNodeID += nNodes 
-            startEdgeID = stopEdgeID                
-            
+            startNodeID += nNodes
+            startEdgeID = stopEdgeID
+
         #осталось соединить последний дополнительный круг с последним основным
         stopNodeID_Sec = startNodeID_Sec + nNodes
         stopEdgeID = startEdgeID + nNodes
@@ -449,30 +436,29 @@ class GraphRadialCity:
         indSmaller = np.arange(startNodeID_Sec, stopNodeID_Sec)
         stopEdgeID = startEdgeID + nNodes
         self.AddRadialEdgesBetweenCircles(indBigger, indSmaller, startEdgeID, stopEdgeID, "mr")
-        startEdgeID = stopEdgeID    
-            
+        startEdgeID = stopEdgeID
+
         return startEdgeID
 
-    """
-            def AddRadialEdgesBetweenCircles(self, indexesOfBigger, indexesOfSmaller, start, stop):
-            добавляет ребра между соседними главными окружностями, передаются
-            индексы вершин большого слоя и нидексы вершин меньшего слоя
-
-            Поскольку для хранения ребер используются списка, то передававть ребра
-            как индексы бесполезно. Дело в том, что при записи в список (а не в массив numpy)
-            нельзя использовать хаотично расположенные индексы, можно только срезы.
-
-            indexesOfBigger, indexesOfSmaller --- индексы вершин большего и меньшего слоев.
-
-            start, stop --- границы линков для ID (записываем подряд идущие номера). 
-        """
-
     def AddRadialEdgesBetweenCircles(self, indexesOfBigger, indexesOfSmaller, start, stop, type):
+        """
+        def AddRadialEdgesBetweenCircles(self, indexesOfBigger, indexesOfSmaller, start, stop):
+        добавляет ребра между соседними главными окружностями, передаются
+        индексы вершин большого слоя и нидексы вершин меньшего слоя
+
+        Поскольку для хранения ребер используются списка, то передававть ребра
+        как индексы бесполезно. Дело в том, что при записи в список (а не в массив numpy)
+        нельзя использовать хаотично расположенные индексы, можно только срезы.
+
+        indexesOfBigger, indexesOfSmaller --- индексы вершин большего и меньшего слоев.
+
+        start, stop --- границы линков для ID (записываем подряд идущие номера).
+        """
         #проверить, что большой массив в два раза больше
         #у нас два случая (первый --- в большой круге вершин в два раза больше), второй случай  кол-во одинаков
         if (len(indexesOfBigger) == len(indexesOfSmaller)):
             indexes = indexesOfBigger
-        else: 
+        else:
             indexes = indexesOfBigger[::2]
         self._edges_All[start:stop] = zip(indexes, indexesOfSmaller)
         # вычисление расстояния и азимута через среднюю точку
@@ -492,12 +478,12 @@ class GraphRadialCity:
         self._edgesID_All[start:stop] = np.arange(start, stop)
         self._typeOfLinks_All[start:stop] = [type] * (stop - start)
 
-    '''
-    Метод def AddRadialEdge(self, ind1, ind2, indexOfLink, linkID):
-        добавляет одно ребро и его характеристики
-    '''
 
     def AddRadialEdge(self, ind1, ind2, indexOfLink, linkID, type):
+        """
+        Метод def AddRadialEdge(self, ind1, ind2, indexOfLink, linkID):
+        добавляет одно ребро и его характеристики
+        """
         self._edges_All[indexOfLink] = (ind1, ind2)
         middle_point = self.ComputeMiddlePoint(self._nodesID_All[ind1], self._nodesID_All[ind2])
 
@@ -512,20 +498,15 @@ class GraphRadialCity:
         self._edgesID_All[indexOfLink] = linkID
         self._typeOfLinks_All[indexOfLink] = type
 
-    """
-            AddCircularEdges(self, indexes, start, stop, typeOfEdge):
-            добавляет реадиальные ребра одной окружности. 
-            
-            Номера элементов окружности передаются через indexes.
-            
-            Выделение индексов решено поручить основной процедуре, а из нее
-            вызывать данный метод.
-
-                  
-
-            start, stop --- границы линков для ID (записываем подряд идущие номера). 
-        """
     def AddCircularEdges(self, indexes, start, stop, typeOfEdge):
+        """
+        AddCircularEdges(self, indexes, start, stop, typeOfEdge):
+        добавляет реадиальные ребра одной окружности.
+        Номера элементов окружности передаются через indexes.
+        Выделение индексов решено поручить основной процедуре, а из нее
+        вызывать данный метод.
+        start, stop --- границы линков для ID (записываем подряд идущие номера).
+        """
         #проверить, что большой массив в два раза больше
         n = len(indexes)
         self._edges_All[start:stop-1] = zip(self._nodesID_All[indexes[0:n- 1]], self._nodesID_All[indexes[1:n]])
@@ -551,17 +532,10 @@ class GraphRadialCity:
         self._edgesID_All[start:stop] = np.arange(start, stop)
         self._typeOfLinks_All[start:stop]  = [typeOfEdge] * n
 
-    #######################################################################################
-    #######################################################################################
-    #######################################################################################
-    #ВЫЧИСЛИТЕЛЬНЫЕ ПРОЦЕДУРЫ (ЧАСТЬ ПРОЦЕДУР РАБОТАЕТ С МАССИВАМИ)
-
-    """
-        def getAzimuth(self, coord):
-        
-        Вычисляет азимут точки и приводит его к положительному значению
-    """
     def getAzimuth(self, coord):
+        """
+        Вычисляет азимут точки и приводит его к положительному значению
+        """
         #можно использовать функцию arctan2, которая получаем угол со знаком
         ang = np.arctan2(coord[1], coord[0])#это y/x со знаком
         if (ang >= 0):
@@ -569,87 +543,69 @@ class GraphRadialCity:
         else:
             return 2 * math.pi + ang#именно + т.к. число отрицательное
 
-    """
-            def getDistAndAzimuth(self, coord):
-
-            Вычисляет модуль и азимут точки и приводит его к положительному значению
-        """
     def getDistAndAzimuth(self, coord):
+        """
+        Вычисляет модуль и азимут точки и приводит его к положительному значению
+        """
         dist = np.linalg.norm(coord)
         az = np.arctan2(coord[1], coord[0])#это y/x со знаком
         return dist, az
 
-    """
-                def ComputeCoord(self, radius, azimuth):
-
-                Вычисляет декартовы координаты точки
-    """
-
     def ComputeCoord(self, radius, azimuth):
+        """
+        Вычисляет декартовы координаты точки
+        """
         return np.array([radius * np.cos(azimuth), radius * np.sin(azimuth)])
 
 
-    """
+    def ComputeMiddlePoint(self, numPoint1, numPoint2):
+        """
         В функции def ComputeMiddlePoint(self, numPoint1, numPoint2)
-        предпологается, что точки кортежи длины 2. 
-        Вычисляется через исходные координаты. 
+        предпологается, что точки кортежи длины 2.
+        Вычисляется через исходные координаты.
         Передаются идентификаторы точек
         Предполагается, что точки лежат на одной окружности.
-        
-        
-    """
-    def ComputeMiddlePoint(self, numPoint1, numPoint2):
+        """
         coord1 = self._pos_All[numPoint1]
         coord2 = self._pos_All[numPoint2]
         return (coord1 + coord2)/2
 
-    """
-           В функции def ComputeMiddlePointOnArc(self, numPoint1, numPoint2)
-           предпологается, что точки находятся на равном расстоянии от начала координат.
-           Вычисляется точки на окружности соотвествующего радиуса, лежащая на середине дуги.
-           
-           Алгоритм прост: находим середину отрезка, ее азимут и есть азимут точки на окружности,
-           а радиус совпадает с радиусами данных точек.
-           
-           Точки заданы не координатами, а номерами вершин графа, по этим номерам
-           мы получаем координаты.
-
-
-    """
-
     def ComputeMiddlePointOnArc(self, numPoint1, numPoint2):
+        """
+        В функции def ComputeMiddlePointOnArc(self, numPoint1, numPoint2)
+        предпологается, что точки находятся на равном расстоянии от начала координат.
+        Вычисляется точки на окружности соотвествующего радиуса, лежащая на середине дуги.
+
+        Алгоритм прост: находим середину отрезка, ее азимут и есть азимут точки на окружности,
+        а радиус совпадает с радиусами данных точек.
+
+        Точки заданы не координатами, а номерами вершин графа, по этим номерам
+        мы получаем координаты.
+        """
         coord1 = self._pos_All[numPoint1]
         coord2 = self._pos_All[numPoint2]
         middlePoint = (coord1 + coord2)/2
         radius = self._distance_nodes_All[numPoint1]
         return self.ComputeCoord(radius, np.arctan2(middlePoint[1], middlePoint[0]))
 
-    """
-               В функции ComputeMiddlePointForArrOfNums(self, arr_num1, arr_num2)
-               
-               Передаются массивы равных размеров, в каждом из которых значения --- номера точек.
-               Вычисляется массив средних точек.
-
-               (По сути векторизация)
-
-    """
-
     def ComputeMiddlePointForArrOfNums(self, arr_num1, arr_num2):
+        """
+        В функции ComputeMiddlePointForArrOfNums(self, arr_num1, arr_num2)
+        Передаются массивы равных размеров, в каждом из которых значения --- номера точек.
+        Вычисляется массив средних точек.
+        (По сути векторизация)
+        """
         arr_coord1 = self._pos_All[arr_num1]
         arr_coord2 = self._pos_All[arr_num2]
         return (arr_coord1 + arr_coord2)/2
 
-    """
-                   В функции getDistAndAzOfMiddlePoints(self, arr_num1, arr_num2)
-
-                   Передаются массивы равных размеров, в каждом из которых значения --- номера точек.
-                   Вычисляется радиусы и азимуты середин соответствующих отрезков.
-
-                   (По сути векторизация)
-
-        """
-
     def getDistAndAzOfMiddlePoints(self, arr_num1, arr_num2):
+        """
+        В функции getDistAndAzOfMiddlePoints(self, arr_num1, arr_num2)
+        Передаются массивы равных размеров, в каждом из которых значения --- номера точек.
+        Вычисляется радиусы и азимуты середин соответствующих отрезков.
+        (По сути векторизация)
+        """
         middle_Points = self.ComputeMiddlePointForArrOfNums(arr_num1, arr_num2)
 
         x = middle_Points[:, 0]#отделяем координаты точек массивов, чтобы использовать их по отдельности
@@ -658,17 +614,13 @@ class GraphRadialCity:
         arr_az = np.arctan2(y, x)
         return arr_dist, arr_az
 
-    """
-                       В функции getDistBetweenPoints(self, arr_num1, arr_num2)
-
-                       Передаются массивы равных размеров, в каждом из которых значения --- номера точек.
-                       Вычисляется расстояния между соотвествующим парами точек
-
-                       (По сути векторизация)
-
-            """
-
     def getDistBetweenPoints(self, arr_num1, arr_num2):
+        """
+        В функции getDistBetweenPoints(self, arr_num1, arr_num2)
+        Передаются массивы равных размеров, в каждом из которых значения --- номера точек.
+        Вычисляется расстояния между соотвествующим парами точек
+        (По сути векторизация)
+        """
         points_1 = self._pos_All[arr_num1]
         points_2 = self._pos_All[arr_num2]
 
@@ -680,42 +632,143 @@ class GraphRadialCity:
 
         return arr_dist
 
-
-    """
-                фУНКЦИЯ azimuthToDegrees(self, arr):
-                переводит массив радиан, в массив градусов
-
-                
-        """
     def azimuthToDegrees(self, arr):
+        """
+        Функция azimuthToDegrees(self, arr):
+        переводит массив радиан, в массив градусов
+        """
         return (arr * 180.0)/math.pi
 
-    """
-            В функции def MovePoint(self, point, move_x, move_y)
-            производим смещение точки. 
-            
-            Если поумнее все было бы организовано и точки не хранились бы кортежами,
-            а массивами, то можно было бы использовавть встроенные операции.
-    """
-
     def MovePoint(self, point, move_x, move_y):
+        """
+        В функции def MovePoint(self, point, move_x, move_y)
+        производим смещение точки.
+        Если поумнее все было бы организовано и точки не хранились бы кортежами,
+        а массивами, то можно было бы использовавть встроенные операции.
+        """
         return point[0] + move_x, point[1] + move_y
 
     def MovePoint2(self, point, coord):
         return (point[0] + coord[0], point[1] + coord[1])
+
+    def create_nodes_layer(self, nodes_layer_name='rcity_nodes'):
+        #чтобы вывести на карту сдвигаем все коордианты
+        # offsetX = 177500.0
+        # offsetY = 661500.0
+        offsetX = 0.0
+        offsetY = 0.0
+
+        coordOffset_x = self._pos_x_All + offsetX
+        coordOffset_y = self._pos_y_All + offsetY
+        coordOffset = list(zip(coordOffset_x, coordOffset_y))
+        azimuth_nodesAll = (self._azimuth_nodes_All * 180) / (math.pi)
+        my_columns = {'node_ID', 'x', 'y', 'Distance', 'Azimuth'}
         
-
-
-
-
-
-
-
-
-
+        #выводим информацию о вершинах
+        df_nodes = pd.DataFrame({
+            'fid': self._nodesID_All, 
+            'node_id': self._nodesID_All, 
+            'x': coordOffset_x,
+            'y': coordOffset_y, 
+            'distance': self._distance_nodes_All, 
+            'azimuth': azimuth_nodesAll
+        })
         
+        # Create the temporary vector layer for the network's nodes
+        self.nodes_layer = QgsVectorLayer('Point', 'rcity_nodes', 'memory')
+        # Define the attributes of the features
+        provider = self.nodes_layer.dataProvider()
+        provider.addAttributes([
+            QgsField('fid', QVariant.Int),
+            QgsField('node_id', QVariant.Int),
+            QgsField('x', QVariant.Double),
+            QgsField('y', QVariant.Double),
+            QgsField('distance', QVariant.Double),
+            QgsField('azimuth', QVariant.Double),
+        ])
+        self.nodes_layer.updateFields()
+       
+        # Fill the layer with geometric features
+        self.nodes_layer.startEditing()
+       
+        for idx, row in df_nodes.iterrows():
+            feature = QgsFeature()
+            feature.setGeometry(QgsGeometry.fromPointXY(
+                QgsPointXY(row['x'], row['y'])
+            ))
+            feature.setAttributes(row.values.tolist())
+            provider.addFeatures([feature])
+        self.nodes_layer.updateExtents()
+        self.nodes_layer.commitChanges()
 
+        # Add the layer to the current QGIS project
+        QgsProject.instance().addMapLayer(self.nodes_layer)
     
+    def create_edges_layer(self, edges_layer_name='rcity_edges'):
+        # offsetX = 177500.0
+        # offsetY = 661500.0
+        offsetX = 0.0
+        offsetY = 0.0
+        coordOffset_x = self._pos_x_All + offsetX
+        coordOffset_y = self._pos_y_All + offsetY
+        coordOffset = list(zip(coordOffset_x, coordOffset_y))
+        azimuth_nodesAll = (self._azimuth_nodes_All * 180) / (math.pi)
+        
+        df_edges = pd.DataFrame(columns = [
+            'fid' ,'link_id', 
+            'from_node', 'to_node', 
+            'distance', 'azimuth', 
+            'length', 'link_type'
+        ])
+        start_nodes, end_nodes = zip(*self._edges_All)
+        df_edges['from_node'] = start_nodes
+        df_edges['to_node'] = end_nodes
+        df_edges['distance'] = self._distance_edges_All
+        df_edges['azimuth'] = self.azimuthToDegrees(self._azimuth_edges_All)
+        df_edges['length'] = self._lenght_edges_All
+        df_edges['link_type'] = self._typeOfLinks_All
+        df_edges['link_id'] = np.arange(df_edges.shape[0])
+        df_edges['fid'] = df_edges['link_id']
+
+        # Create the temporary vector layer for the network's edges
+        self.edges_layer = QgsVectorLayer('LineString', 'rcity_edges', 'memory')
+        # Define the attributes of the features
+        provider = self.edges_layer.dataProvider()
+        provider.addAttributes([
+            QgsField('fid', QVariant.Int),
+            QgsField('link_id', QVariant.Int),
+            QgsField('from_node', QVariant.Int),
+            QgsField('to_node', QVariant.Int),
+            QgsField('distance', QVariant.Double),
+            QgsField('azimuth', QVariant.Double),
+            QgsField('length', QVariant.Double),
+            QgsField('link_type', QVariant.String)
+        ])
+        self.edges_layer.updateFields()
+       
+        # Fill the layer with geometric features
+        self.edges_layer.startEditing()
+        for idx, row in df_edges.iterrows():
+            feature = QgsFeature()
+            edge_start_xy = coordOffset[row['from_node']]
+            edge_end_xy = coordOffset[row['to_node']]
+            feature.setGeometry(QgsGeometry.fromPolylineXY([
+                QgsPointXY(edge_start_xy[0], edge_start_xy[1]), 
+                QgsPointXY(edge_end_xy[0], edge_end_xy[1])
+            ]))
+            feature.setAttributes(row.values.tolist())
+            provider.addFeatures([feature])
+        self.edges_layer.updateExtents()
+        self.edges_layer.commitChanges()
+
+        # Add the layer to the current QGIS project
+        QgsProject.instance().addMapLayer(self.edges_layer)
+    
+    def run(self):
+        self.CreateRadialGraph()
+        self.create_nodes_layer()
+        self.create_edges_layer()
+
     def GraphToGeoPandas(self):
         #чтобы вывести на карту сдвигаем все коордианты
         offsetX = 177500.0
@@ -724,7 +777,7 @@ class GraphRadialCity:
         coordOffset_x = self._pos_x_All + offsetX
         coordOffset_y = self._pos_y_All + offsetY
         coordOffset = list(zip(coordOffset_x, coordOffset_y))
-        #G = nx.Graph()    
+        #G = nx.Graph()
         #G.add_nodes_from(nodes)
         #pd.set_option('display.float_format', '{:.2f}'.format)
         # здесь нужно будет выводить азимуты в градусах, мы переведем азимуты в градуы
@@ -732,32 +785,30 @@ class GraphRadialCity:
         #azimuth_nodes_sec = (self._azimuth_nodes_sec * 180) / (math.pi)
         azimuth_nodesAll = (self._azimuth_nodes_All * 180) / (math.pi)
         my_columns = {'node_ID', 'x', 'y', 'Distance', 'Azimuth'}
-        #выводим информацию о вершинах
         
-        df_Nodes = pd.DataFrame({'FID': self._nodesID_All, 'NodeID': self._nodesID_All, 'x': coordOffset_x,
-                           'y': coordOffset_y, 'Distance': self._distance_nodes_All, 'Azimuth': azimuth_nodesAll})
+        #выводим информацию о вершинах
+        df_Nodes = pd.DataFrame({
+            'FID': self._nodesID_All, 
+            'NodeID': self._nodesID_All, 
+            'x': coordOffset_x,
+            'y': coordOffset_y, 
+            'Distance': self._distance_nodes_All, 
+            'Azimuth': azimuth_nodesAll
+        })
         #df_Nodes.style.format('{:.2f}')
         gdf_Nodes = gpd.GeoDataFrame(df_Nodes, geometry=gpd.points_from_xy(df_Nodes.x, df_Nodes.y))
         #gdf_Nodes = gdf_Nodes.set_crs("EPSG:2039 - Israel 1993 / Israeli TM Grid")
         #gdf_Nodes.crs = "EPSG:2039 - Israel 1993 / Israeli TM Grid"
         gdf_Nodes.to_file(self._Path+'Nodes.shp')
-        ########################################################
-        ###########################################################
-        ###########################################################
 
-        ########################################################
-        ###########################################################
-        ###########################################################
         #информация о ребрах
         my_columns = ['FID' ,'LinkID', 'FNode', 'TNode', 'Distance', 'Azimuth', 'Length', 'LinkType']
         df_edges = pd.DataFrame(columns = my_columns)
 
         #для более эффективного присваивания в DataFrame делаем unzip списка ребер
         start, terminal = zip(*self._edges_All)
-        '''для копирования в столбцы DataFrame
-                    ребро удобно разбить на две колонки'''        
+        '''для копирования в столбцы DataFrame ребро удобно разбить на две колонки'''
         #terminal2, start2 = zip(*self._circularEdges)#считаем, что ребра идут от больших номеров к меньшим
-
 
         df_edges['FNode'] = start
         df_edges['TNode'] = terminal
@@ -819,26 +870,15 @@ class GraphRadialCity:
         for i in range(len(self._circular_edges)):
             new_row={'id':i, 'start point':self._pos_int[self._circular_edges[i][0]], 'terminal point': self._pos_int[self._circular_edges[i][1]],
                      'type of edge': 'radial'}
-            df_edges=df_edges.append(new_row, ignore_index = True)'''   
-        
+            df_edges=df_edges.append(new_row, ignore_index = True)'''
+
         #df_edges['type of edge'] = 'straight'
-        
+
         #df_edges['start point'].append()
         #df_edges['terminal point'].append(terminal)
-        
-        
+
+
         #lines = df_edges.apply(lambda row: LineString([row['start point'], row['terminal point']]), axis=1)
         #zip(df_edges['start point'], df_edges['terminal point'])
-        
-        #gdf2.to_file('my2geo.geojson', driver='GeoJSON') 
 
-
-        
-
-        
-       
-#Пример дял запуска программы
-
-'''s = GraphRadialCity(4, 50)
-s.CreateRadialGraph()
-s.GraphToGeoPandas()'''
+        #gdf2.to_file('my2geo.geojson', driver='GeoJSON')

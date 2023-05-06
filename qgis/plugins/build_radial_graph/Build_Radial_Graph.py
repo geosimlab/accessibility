@@ -25,9 +25,7 @@ from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction
 
-# Initialize Qt resources from file resources.py
 from .resources import *
-# Import the code for the dialog
 from .Build_Radial_Graph_dialog import GraphOfRadialCityDialog
 import os.path
 
@@ -159,17 +157,13 @@ class GraphOfRadialCity:
 
     def initGui(self):
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
-
         icon_path = ':/plugins/Build_Radial_Graph/icon.png'
         self.add_action(
             icon_path,
-            text=self.tr(u''),
+            text=self.tr(u'Build city'),
             callback=self.run,
             parent=self.iface.mainWindow())
-
-        # will be set False in run()
         self.first_start = True
-
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
@@ -182,19 +176,13 @@ class GraphOfRadialCity:
 
     def run(self):
         """Run method that performs all the real work"""
-
         # Create the dialog with elements (after translation) and keep reference
         # Only create GUI ONCE in callback, so that it will only load when the plugin is started
         if self.first_start == True:
             self.first_start = False
             self.dlg = GraphOfRadialCityDialog()
 
-        # show the dialog
         self.dlg.show()
-        # Run the dialog event loop
         result = self.dlg.exec_()
-        # See if OK was pressed
         if result:
-            # Do something useful here - delete the line containing pass and
-            # substitute with your code.
-            pass
+            self.dlg.close()
