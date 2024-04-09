@@ -1,0 +1,551 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>TAUNetCalcDialogBase</class>
+ <widget class="QDialog" name="TAUNetCalcDialogBase">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>612</width>
+    <height>486</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>TAU Network Calculator</string>
+  </property>
+  <widget class="QGroupBox" name="grpSource">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>50</y>
+     <width>571</width>
+     <height>341</height>
+    </rect>
+   </property>
+   <property name="title">
+    <string>Choice start  point(s) for algorithm</string>
+   </property>
+   <widget class="QWidget" name="widget_rb1" native="true">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>20</y>
+      <width>241</width>
+      <height>251</height>
+     </rect>
+    </property>
+    <widget class="QRadioButton" name="rb_one_point">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>6</y>
+       <width>121</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>One point</string>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QRadioButton" name="rb_one_point_from_layer">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>30</y>
+       <width>121</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>One point from layer</string>
+     </property>
+    </widget>
+    <widget class="QRadioButton" name="rb_many_points_from_layer">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>163</y>
+       <width>130</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Many points from layer</string>
+     </property>
+    </widget>
+    <widget class="QRadioButton" name="rb_many_points_from_PKL">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>192</y>
+       <width>151</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Many points from PKL files</string>
+     </property>
+    </widget>
+    <widget class="QRadioButton" name="rb_many_nearest_points">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>220</y>
+       <width>221</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Many nearest points from point on layer</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="txtSourceID">
+     <property name="geometry">
+      <rect>
+       <x>110</x>
+       <y>6</y>
+       <width>113</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>186965172</string>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QGroupBox" name="groupBox">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>70</y>
+      <width>561</width>
+      <height>111</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string/>
+    </property>
+    <widget class="QComboBox" name="cmbLayers">
+     <property name="geometry">
+      <rect>
+       <x>60</x>
+       <y>10</y>
+       <width>91</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <property name="currentText">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lblLayers">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>10</y>
+       <width>47</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Layer:</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lblResultsByCircle">
+     <property name="geometry">
+      <rect>
+       <x>210</x>
+       <y>70</y>
+       <width>61</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Results:</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lblLat">
+     <property name="geometry">
+      <rect>
+       <x>400</x>
+       <y>44</y>
+       <width>47</width>
+       <height>14</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>lat:</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lblTolerance1">
+     <property name="geometry">
+      <rect>
+       <x>270</x>
+       <y>90</y>
+       <width>211</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Tolerance1</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lblLon">
+     <property name="geometry">
+      <rect>
+       <x>210</x>
+       <y>44</y>
+       <width>47</width>
+       <height>14</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>lon:</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="txtLat">
+     <property name="geometry">
+      <rect>
+       <x>430</x>
+       <y>41</y>
+       <width>113</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="readOnly">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="cmbResultsByCircle">
+     <property name="geometry">
+      <rect>
+       <x>270</x>
+       <y>70</y>
+       <width>271</width>
+       <height>22</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="txtLon">
+     <property name="geometry">
+      <rect>
+       <x>270</x>
+       <y>41</y>
+       <width>113</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="readOnly">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btnGetFeaturesByCircle">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>70</y>
+       <width>191</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Get Features By Circle</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btnSourcePoint">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>40</y>
+       <width>191</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Get Point By Click on Map</string>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QLabel" name="lblLayers_2">
+    <property name="geometry">
+     <rect>
+      <x>180</x>
+      <y>183</y>
+      <width>47</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Layer:</string>
+    </property>
+   </widget>
+   <widget class="QComboBox" name="cmbLayers_2">
+    <property name="geometry">
+     <rect>
+      <x>220</x>
+      <y>183</y>
+      <width>91</width>
+      <height>22</height>
+     </rect>
+    </property>
+    <property name="currentText">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QGroupBox" name="groupBox_2">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>260</y>
+      <width>561</width>
+      <height>71</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string/>
+    </property>
+    <widget class="QComboBox" name="cmbLayers_4">
+     <property name="geometry">
+      <rect>
+       <x>60</x>
+       <y>10</y>
+       <width>91</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <property name="currentText">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lblLayers_4">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>10</y>
+       <width>47</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Layer:</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lblLat_3">
+     <property name="geometry">
+      <rect>
+       <x>400</x>
+       <y>44</y>
+       <width>47</width>
+       <height>14</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>lat:</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lblTolerance1_3">
+     <property name="geometry">
+      <rect>
+       <x>270</x>
+       <y>90</y>
+       <width>211</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Tolerance1</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lblLon_3">
+     <property name="geometry">
+      <rect>
+       <x>210</x>
+       <y>44</y>
+       <width>47</width>
+       <height>14</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>lon:</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="txtLat_3">
+     <property name="geometry">
+      <rect>
+       <x>430</x>
+       <y>41</y>
+       <width>113</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="readOnly">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="txtLon_3">
+     <property name="geometry">
+      <rect>
+       <x>270</x>
+       <y>41</y>
+       <width>113</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="readOnly">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btnSourcePoint_3">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>40</y>
+       <width>191</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Get Point By Click on Map</string>
+     </property>
+    </widget>
+   </widget>
+  </widget>
+  <widget class="QLabel" name="lblMessages">
+   <property name="geometry">
+    <rect>
+     <x>30</x>
+     <y>460</y>
+     <width>271</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Message:</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="lblProtocol">
+   <property name="geometry">
+    <rect>
+     <x>30</x>
+     <y>10</y>
+     <width>71</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Protocol type:</string>
+   </property>
+  </widget>
+  <widget class="QComboBox" name="cmbProtocolType">
+   <property name="geometry">
+    <rect>
+     <x>130</x>
+     <y>10</y>
+     <width>171</width>
+     <height>22</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="btngetShortestPaths">
+   <property name="geometry">
+    <rect>
+     <x>410</x>
+     <y>460</y>
+     <width>191</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Get Shortest Paths</string>
+   </property>
+  </widget>
+  <widget class="QProgressBar" name="progressBar">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>430</y>
+     <width>571</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="value">
+    <number>0</number>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="txtLimit">
+   <property name="geometry">
+    <rect>
+     <x>550</x>
+     <y>10</y>
+     <width>41</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>0</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="lblLimit">
+   <property name="geometry">
+    <rect>
+     <x>430</x>
+     <y>6</y>
+     <width>121</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Limit count start point: 
+ (&quot;0&quot; - without limit)</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="btnBreakOn">
+   <property name="geometry">
+    <rect>
+     <x>250</x>
+     <y>460</y>
+     <width>75</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Break</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="btnCallRevRaptorMany">
+   <property name="geometry">
+    <rect>
+     <x>318</x>
+     <y>395</y>
+     <width>91</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>rRAPTOR</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="btnCallRaptorMany">
+   <property name="geometry">
+    <rect>
+     <x>190</x>
+     <y>395</y>
+     <width>91</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>RAPTOR</string>
+   </property>
+  </widget>
+ </widget>
+ <tabstops>
+  <tabstop>cmbProtocolType</tabstop>
+  <tabstop>btngetShortestPaths</tabstop>
+ </tabstops>
+ <resources/>
+ <connections/>
+</ui>
