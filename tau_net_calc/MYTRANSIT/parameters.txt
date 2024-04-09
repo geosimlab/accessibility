@@ -1,0 +1,15 @@
+MaxWalkDist1,400
+MaxWalkDist2,300
+MaxWalkDist3,400
+MaxWaitTime,900
+MaxTimeTravel,3600
+PathToNetwork,C:/doc/Игорь/GIS/plugin
+PathToProtocols,C:/doc/Игорь/GIS/plugin/protocols
+NETWORK_NAME,5routes+b_test
+MAX_TRANSFER,1
+WALKING_FROM_SOURCE,1
+D_TIME,2023-06-30 8:30:00
+CHANGE_TIME_SEC,1
+VELOCITY,30
+stopTolerance,300
+ExactTransfersCount,0

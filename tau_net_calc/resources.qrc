@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/plugins/tau_net_calc" >
+        <file>icon.png</file>
+        <file>settings.png</file>
+    </qresource>
+</RCC>
