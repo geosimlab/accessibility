@@ -496,7 +496,7 @@ def makeRaptorAccessibilityByTimeProtocol (SOURCE, dictInput, protocol_full_path
     #print (f'row {row}')    
    filetowrite.write(row + "\n")
    
-  file_verify.close()
+  #file_verify.close()
  
 # for type_protokol =2 
 def  make_raptor_statistics_protocol_ext3(raptor_mode, D_TIME, dictInput, protocol_full_path):
