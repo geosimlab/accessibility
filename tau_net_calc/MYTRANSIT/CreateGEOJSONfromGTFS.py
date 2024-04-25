@@ -108,8 +108,7 @@ class MainWindow(QMainWindow):
         self.setGeometry(100, 100, 800, 600)
 
         self.canvas = QgsMapCanvas()
-        self.setCentralWidget(self.canvas)
-
+        
         self.load_action = QAction("Load GeoJSON", self)
         self.load_action.triggered.connect(self.load_geojson)
         self.menuBar().addAction(self.load_action)
