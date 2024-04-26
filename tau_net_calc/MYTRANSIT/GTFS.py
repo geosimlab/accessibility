@@ -373,6 +373,18 @@ class GTFS ():
         
         return 1
     
+    # Группируем данные по trip_id и проверяем, что stop_sequence не имеет пропусков
+    def check_stop_sequence(self, stop_times):
+        trips_to_delete = set()
+        for trip_id, group in stop_times.groupby('trip_id'):
+            max_sequence = group['stop_sequence'].max()
+            # Проверяем, равен ли размер группы последнему значению stop_sequence
+            if len(group) != max_sequence:
+                print(f"Trip ID {trip_id} has missing stop_sequence values.")
+                trips_to_delete.add(trip_id)
+        return trips_to_delete
+        
+    
     def correcting_files(self):
         print ("start load GTFS")
         
@@ -456,6 +468,7 @@ class GTFS ():
          
         print ("filtering stoptimes by arrival time sorting")
         trips_with_correct_timestamps = [id for id, trip in trips_group if list(trip.arrival_time) == list(trip.arrival_time.sort_values())]
+        """
         incorrectly_sorted_trips = []
         for trip_id, trip in trips_group:
         # Проверяем, если временные метки прибытия не равны их отсортированной версии
@@ -463,11 +476,13 @@ class GTFS ():
                 incorrectly_sorted_trips.append(trip_id)
         print("Неправильно отсортированные поездки time:")
         print(incorrectly_sorted_trips)
-        print ("filtering timestamps")
+        """
         stop_times_file = stop_times_file[stop_times_file["trip_id"].isin(trips_with_correct_timestamps)]    
 
         print ("filtering stoptimes by stop sequence sorting")
         trips_with_correct_stop_sequence = [id for id, trip in trips_group if list(trip.stop_sequence) == list(trip.stop_sequence.sort_values())]
+        
+        """
         incorrectly_sorted_stop_sequence = []
         for trip_id, trip in trips_group:
         # Проверяем, если временные метки прибытия не равны их отсортированной версии
@@ -475,9 +490,15 @@ class GTFS ():
                 incorrectly_sorted_stop_sequence.append(trip_id)
         print("Неправильно отсортированные поездки stop_sequence:")
         print(incorrectly_sorted_stop_sequence)
-
-        print ("filtering stop_sequence")
+        """    
         stop_times_file = stop_times_file[stop_times_file["trip_id"].isin(trips_with_correct_stop_sequence)] 
+
+
+        #Еще один баг в GTFS – пропущенный номер stop_sequence
+        # Проверка последовательности остановок и удаление неправильных trip_id
+        print("filtering stoptimes by missing stop_sequence")
+        trips_to_delete = self.check_stop_sequence(stop_times_file)
+        stop_times_file = stop_times_file[~stop_times_file['trip_id'].isin(trips_to_delete)]
 
         print ('saving stop_times file ...')
         stop_times_file_filer_fields = stop_times_file[['trip_id','arrival_time','departure_time','stop_id','stop_sequence','pickup_type','drop_off_type','shape_dist_traveled']]
@@ -505,13 +526,13 @@ if __name__ == "__main__":
         
     calc = GTFS(path_to_file, path_to_GTFS)
     #calc.create_cut_from_GTFS()
-    #calc.modify_time_and_sequence()
+    calc.modify_time_and_sequence()
     #calc.modify_time_in_file (r'C:\Users\geosimlab\Documents\Igor\Protocols\\access_1_detail.csv')
     #print (calc.change_time ('8:52:00'))
     
     #calc.create_tranfers_txt(400, "transfers_start.txt")
     #calc.create_tranfers_txt(400, "transfers_process.txt")
     #calc.create_tranfers_txt(400, "transfers_finish.txt")
-    calc.create_my_routes()
+    #calc.create_my_routes()
     #calc.correcting_files()
 
