@@ -64,15 +64,13 @@ def myload_all_dict(self, PathToNetwork, mode, today):
         footpath_process_dict = pickle.load(file)
     QApplication.processEvents()
     self.progressBar.setValue(2)
-    
-    
+
     self.setMessage ("Load transfers_finish ...")
     with open(path+'/transfers_finish_dict.pkl', 'rb') as file:
         footpath_finish_dict = pickle.load(file)
     QApplication.processEvents()
     self.progressBar.setValue(3)
-    
-    
+
     self.setMessage ("Load routes_by_stop ...")
     with open(path+'/routes_by_stop.pkl', 'rb') as file:
         routes_by_stop_dict = pickle.load(file)
@@ -163,6 +161,7 @@ def runRaptorWithProtocol(self, sources, raptor_mode, protocol_type)-> tuple:
   self.progressBar.setMaximum(count + 8)
   self.progressBar.setValue(0)
 
+
   
   PathToNetwork = self.config['Settings']['PathToPKL']
   PathToProtocols = self.config['Settings']['PathToProtocols']
@@ -186,6 +185,7 @@ def runRaptorWithProtocol(self, sources, raptor_mode, protocol_type)-> tuple:
   
   if protocol_type == 2:
     UseField = False
+
 
 
   MaxTimeTravel = timedelta(seconds = int(MaxTimeTravel))
