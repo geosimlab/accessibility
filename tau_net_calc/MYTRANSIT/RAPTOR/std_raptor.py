@@ -4,17 +4,16 @@ Module contains RAPTOR implementation.
 
 from RAPTOR.raptor_functions import *
 from PyQt5.QtWidgets import QApplication
+from datetime import timedelta
 
-def raptor (SOURCE, D_TIME, MAX_TRANSFER, MIN_TRANSFER, CHANGE_TIME_SEC, 
-           routes_by_stop_dict, stops_dict, stoptimes_dict, 
-           footpath_start_dict, footpath_process_dict, footpath_finish_dict,
+def raptor (SOURCE, D_TIME, MAX_TRANSFER, MIN_TRANSFER, change_time, 
+           routes_by_stop_dict, stops_dict, stoptimes_dict, footpath_dict, 
            idx_by_route_stop_dict: dict, Maximal_travel_time, MaxWalkDist1, MaxWalkDist2, MaxWalkDist3, MaxWaitTime, MaxWaitTimeTransfer) -> list:
     '''
     Standard Raptor implementation
 
     Args:
         SOURCE (int): stop id of source stop.
-        DESTINATION (int): stop id of destination stop.
         D_TIME (pandas.datetime): departure time.
         MAX_TRANSFER (int): maximum transfer limit.
         CHANGE_TIME_SEC (int): change-time in seconds.
@@ -41,34 +40,47 @@ def raptor (SOURCE, D_TIME, MAX_TRANSFER, MIN_TRANSFER, CHANGE_TIME_SEC,
     timeres4 = 0
     timeres5 = 0
 
-    D_TIME = pd.Timestamp(D_TIME)
+    #D_TIME = pd.Timestamp(D_TIME)
    
     my_name = raptor.__name__
     out = []
     
     marked_stop, marked_stop_dict, label, pi_label, star_label, inf_time = initialize_raptor(routes_by_stop_dict, SOURCE, MAX_TRANSFER)
-    change_time = pd.to_timedelta(CHANGE_TIME_SEC, unit='seconds')
+    #change_time = pd.to_timedelta(CHANGE_TIME_SEC, unit='seconds')
+    change_time_save = change_time
     
     (label[0][SOURCE], star_label[SOURCE]) = (D_TIME, D_TIME)
     Q = {}  # Format of Q is {route:stop index}
     roundsCount = MAX_TRANSFER + 1
     trans_info = -1     
    
-    MaxWalkDist1_time = timedelta(seconds=MaxWalkDist1)
-    MaxWalkDist2_time = timedelta(seconds=MaxWalkDist2)    
-    MaxWalkDist3_time = timedelta(seconds=MaxWalkDist3)  
+    #MaxWalkDist1_time = timedelta(seconds=MaxWalkDist1)
+    #MaxWalkDist2_time = timedelta(seconds=MaxWalkDist2)    
+    #MaxWalkDist3_time = timedelta(seconds=MaxWalkDist3)  
+
+    MaxWalkDist1_time = MaxWalkDist1
+    MaxWalkDist2_time = MaxWalkDist2
+    MaxWalkDist3_time = MaxWalkDist3
+    
     
     max_time = D_TIME + Maximal_travel_time
+
+    #test = 48912
+    #test_trans_info = footpath_dict[test]
+    #print(f'Первые 5 элементов test_trans_info: {test_trans_info[:5]}')
     
     if  True:        
         try:
            if trans_info == -1:
-            trans_info = footpath_start_dict[SOURCE]
-
+            trans_info = footpath_dict[SOURCE]
             
+            
+            print (f'trans_info {trans_info}')
+
            for i in trans_info:
                 
                 (p_dash, to_pdash_time) = i
+                #print (f'to_pdash_time {to_pdash_time}')
                                 
                 if not(label[0].get(p_dash)):
                    continue
@@ -91,17 +103,20 @@ def raptor (SOURCE, D_TIME, MAX_TRANSFER, MIN_TRANSFER, CHANGE_TIME_SEC,
         except  KeyError as e:
            pass
     
-    #print (f'pi_label {pi_label}')    
+    print (f'pi_label {pi_label}')    
     #print (f'before big cycle {datetime.now()}') 
       
         
     for k in range(1, roundsCount + 1):
         QApplication.processEvents()
 
+        
         if k == 1:
             MaxWaitCurr = MaxWaitTime
+            change_time = 0
         else:
             MaxWaitCurr = MaxWaitTimeTransfer 
+            change_time = change_time_save
         #print (f'round {k}')
         #print (f'part 1') 
           
@@ -172,7 +187,7 @@ def raptor (SOURCE, D_TIME, MAX_TRANSFER, MIN_TRANSFER, CHANGE_TIME_SEC,
                     #my comment: this condition means that with current trip one is not on time
                     # to next arriving so on need to get more later trip
                     
-                    tid, current_trip_t = get_latest_trip_new(stoptimes_dict, route, label[k - 1][p_i], current_stopindex_by_route, change_time, MaxWaitCurr, k)
+                    tid, current_trip_t = get_latest_trip_new(stoptimes_dict, route, label[k - 1][p_i], current_stopindex_by_route, change_time, MaxWaitCurr)
                                     
                     if current_trip_t == -1:
                         boarding_time, boarding_point = -1, -1
@@ -190,28 +205,21 @@ def raptor (SOURCE, D_TIME, MAX_TRANSFER, MIN_TRANSFER, CHANGE_TIME_SEC,
         
         # Main code part 3
         #print (f'part 3')
-        
-        
-        walking_dict = footpath_process_dict
                       
         if k < roundsCount and MaxWalkDist2_time != MaxWalkDist3_time:
-                walking_dict = footpath_process_dict
+        
                 save_marked_stop = True
                                 
-                #destination_accessed, marked_stop_dict,marked_stop,marked_stop_copy,label,star_label,pi_label = 
-                process_walking_stage(max_time, MaxWalkDist2_time, k, walking_dict,
+                process_walking_stage(max_time, MaxWalkDist2_time, k, footpath_dict,
                 marked_stop_dict,marked_stop, label,star_label,pi_label, save_marked_stop) 
            
            
-        walking_dict = footpath_finish_dict
-           
         save_marked_stop = False
-           
-        #destination_accessed, marked_stop_dict,marked_stop,marked_stop_copy,label,star_label,pi_label = 
-        time1, time2, time3, time4, time5, time6 = process_walking_stage(max_time , MaxWalkDist3_time, k, walking_dict, 
+        
+        time1, time2, time3, time4, time5, time6 = process_walking_stage(max_time , MaxWalkDist3_time, k, footpath_dict, 
         marked_stop_dict, marked_stop, label, star_label, pi_label, save_marked_stop)
         
-        #print (f' pi_label {pi_label}')
+        print (f' pi_label {pi_label}')
         #print (f' marked_stop {marked_stop}')
         #print (f' after part3 {datetime.now()}')   
         

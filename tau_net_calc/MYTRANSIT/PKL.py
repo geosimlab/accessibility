@@ -6,7 +6,11 @@ from io import StringIO
 import geopandas as gpd
 from math import radians, sin, cos, sqrt, atan2
 
-
+def time_to_seconds(time_str):
+    hours, minutes, seconds = map(int, time_str.split(':'))
+    total_seconds = hours * 3600 + minutes * 60 + seconds
+    return total_seconds
+"""
 def haversine(lat1, lon1, lat2, lon2):
     # Радиус Земли в километрах
     R = 6371.0
@@ -27,22 +31,26 @@ def haversine(lat1, lon1, lat2, lon2):
     distance = R * c * 1000
     
     return distance
-
+"""
 class PKL_class ():
       
-    def __init__(self, dist1 = 0, dist2 = 0 , dist3 = 0 , PathToNetwork = '', NETWORK_NAME = '', path_to_txt_files = '', path_to_shp_buildings= ''):
+    def __init__(self, dist = 0,  PathToNetwork = '', path_to_txt_files = '', path_to_shp_buildings= ''):
         if path_to_txt_files == '':
-            self.__path_gtfs = f'{PathToNetwork}/gtfs/{NETWORK_NAME}'
+            self.__path_gtfs = PathToNetwork
         else:
             self.__path_gtfs = path_to_txt_files
 
-        self.__path_pkl = f'{PathToNetwork}/dict_builder/{NETWORK_NAME}'
+        self.__path_pkl = PathToNetwork
 
-        self.__dist1 = dist1
-        self.__dist2 = dist2
-        self.__dist3 = dist3
+        self.__dist = dist
+        
         self.__path_to_shp_buildings = path_to_shp_buildings
-                
+        #self.__transfers_start_file = pd.read_csv(f'{self.__path_gtfs}/transfers_start.txt', sep=',')
+
+        path_to_transfers_file= r"C:\Users\geosimlab\Documents\Igor\sample_gtfs\footpath haifa\all.txt"
+        self.__transfers_start_file = pd.read_csv(path_to_transfers_file, sep=',')
+        
+        
 
     def create_files(self):
 
@@ -55,10 +63,8 @@ class PKL_class ():
         self.build_stopstimes_dict()
         self.build_stop_idx_in_route()
         
-        #self.build_footpath_dict(self.__transfers_start_file, "transfers_start_dict.pkl", self.__dist1, True)
-        #self.build_footpath_dict(self.__transfers_process_file, "transfers_process_dict.pkl", self.__dist2, True)
-        #self.build_footpath_dict(self.__transfers_finish_file, "transfers_finish_dict.pkl", self.__dist3, True)
-        
+        #self.build_footpath_dict(self.__transfers_start_file, "transfers_dict.pkl", self.__dist, False)
+                
         self.build__route_by_stop()
         self.build_routes_by_stop_dict()
 
@@ -69,9 +75,6 @@ class PKL_class ():
 
     def load_gtfs(self):
         """
-        Args:
-        NETWORK_NAME (str): path to network NETWORK_NAME.
-
         Returns:
         stops_file (pandas.dataframe): dataframe with stop details.
         trips_file (pandas.dataframe): dataframe with trip details.
@@ -86,7 +89,7 @@ class PKL_class ():
         print ("merging stoptimes")
         self.__stop_times_file = pd.merge(self.__stop_times_file, self.__trips_file, on='trip_id')
                
-        self.__stop_times_file['arrival_time'] = self.__stop_times_file['arrival_time'].apply(lambda x: datetime.strptime(x, '%H:%M:%S').time())
+        #self.__stop_times_file['arrival_time'] = self.__stop_times_file['arrival_time'].apply(lambda x: datetime.strptime(x, '%H:%M:%S').time())
         
         
 
@@ -97,7 +100,7 @@ class PKL_class ():
             Args:
             stop_times_file (pandas.dataframe): stop_times.txt file in GTFS.
             trips_file (pandas.dataframe): trips.txt file in GTFS.
-            NETWORK_NAME (str): path to network NETWORK_NAME.
+            
 
             Returns:
             stops_dict (dict): keys: route_id, values: list of stop id in the route_id. Format-> dict[route_id] = [stop_id]
@@ -122,7 +125,7 @@ class PKL_class ():
         
         return stops_dict
 
-
+    
     def build_stopstimes_dict(self) -> dict:
         """
         This function saves a dictionary to provide easy access to all the trips passing along a route id. Trips are sorted
@@ -131,7 +134,7 @@ class PKL_class ():
         Args:
         stop_times_file (pandas.dataframe): stop_times.txt file in GTFS.
         trips_file (pandas.dataframe): dataframe with transfers (footpath) details.
-        NETWORK_NAME (str): path to network NETWORK_NAME.
+        
 
         Returns:
         stoptimes_dict (dict): keys: route ID, values: list of trips in the increasing order of start time. Format-> dict[route_ID] = [trip_1, trip_2] where trip_1 = [(stop id, arrival time), (stop id, arrival time)]
@@ -145,7 +148,7 @@ class PKL_class ():
         result_dict = {}
         cycle = 0
         
-        today_date = pd.Timestamp(datetime.now().date())
+        #today_date = pd.Timestamp(datetime.now().date())
 
         for route_id, group in grouped_data:
             cycle += 1
@@ -158,7 +161,8 @@ class PKL_class ():
                 trip_dict[trip_id] = list(zip(trip_data['stop_id'], trip_data['arrival_time']))
 
             sorted_trips = sorted(trip_dict.items(), key=lambda x: x[1][0][1], reverse = False)
-            result_dict[route_id] = {trip_id: [(stop_id, today_date.replace(hour=arrival_time.hour, minute=arrival_time.minute, second=arrival_time.second)) for stop_id, arrival_time in trip_data] for trip_id, trip_data in sorted_trips}
+            #result_dict[route_id] = {trip_id: [(stop_id, today_date.replace(hour=arrival_time.hour, minute=arrival_time.minute, second=arrival_time.second)) for stop_id, arrival_time in trip_data] for trip_id, trip_data in sorted_trips}
+            result_dict[route_id] = {trip_id: [(stop_id, time_to_seconds(arrival_time)) for stop_id, arrival_time in trip_data] for trip_id, trip_data in sorted_trips}
 
         with open(f'{self.__path_pkl}/stoptimes_dict_pkl.pkl', 'wb') as pickle_file:
             pickle.dump(result_dict, pickle_file)  
@@ -170,10 +174,6 @@ class PKL_class ():
     def build_footpath_dict(self, obj_txt, file_name, distance, add_builds) -> dict:
         """
         This function saves a dictionary to provide easy access to all the footpaths through a stop id.
-
-        Args:
-            transfers_file (pandas.dataframe): dataframe with transfers (footpath) details.
-            NETWORK_NAME (str): path to network NETWORK_NAME.
 
         Returns:
             footpath_dict (dict): keys: from stop_id, values: list of tuples of form (to stop id, footpath duration). Format-> dict[stop_id]=[(stop_id, footpath_duration)]
@@ -187,9 +187,11 @@ class PKL_class ():
             footpath_dict[from_stop] = []
             for _, row in details.iterrows():
                 footpath_dict[from_stop].append(
-                    (row.to_stop_id, pd.to_timedelta(float(row.min_transfer_time), unit='seconds')))
+                    #(row.to_stop_id, pd.to_timedelta(float(row.min_transfer_time), unit='seconds')))
+                    (row.to_stop_id, (row.min_transfer_time)))
     
         # test
+        """
         if add_builds:
             
             buildings = self.get_buildings()
@@ -217,97 +219,20 @@ class PKL_class ():
                     if distance_calc <= int(distance):
                         
                         if build_item not in footpath_dict:
-                            footpath_dict[build_item] = [(stop_item, pd.to_timedelta(float(distance_calc), unit='seconds'))]
+                            #footpath_dict[build_item] = [(stop_item, pd.to_timedelta(float(distance_calc), unit='seconds'))]
+                            footpath_dict[build_item] = [(stop_item, distance_calc)]
                         else:
-                            footpath_dict[build_item].append((stop_item, pd.to_timedelta(float(distance_calc), unit='seconds')))
+                            #footpath_dict[build_item].append((stop_item, pd.to_timedelta(float(distance_calc), unit='seconds')))
+                            footpath_dict[build_item].append((stop_item, distance_calc))
 
                         if stop_item not in footpath_dict:
-                            footpath_dict[stop_item] = [(build_item, pd.to_timedelta(float(distance_calc), unit='seconds'))]
+                            #footpath_dict[stop_item] = [(build_item, pd.to_timedelta(float(distance_calc), unit='seconds'))]
+                            footpath_dict[stop_item] = [(build_item, distance_calc)]
                         else:
-                            footpath_dict[stop_item].append((build_item, pd.to_timedelta(float(distance_calc), unit='seconds')))    
-
-
+                            #footpath_dict[stop_item].append((build_item, pd.to_timedelta(float(distance_calc), unit='seconds')))    
+                            footpath_dict[stop_item].append((build_item, distance_calc))
 
         """
-        footpath_dict[99999] = []
-        footpath_dict[99999].extend([
-                    (2, pd.to_timedelta(float(276), unit='seconds')),
-                    (9, pd.to_timedelta(float(262), unit='seconds')),
-                    (16, pd.to_timedelta(float(418), unit='seconds')),
-                    (15, pd.to_timedelta(float(319), unit='seconds')),
-                    (14, pd.to_timedelta(float(439), unit='seconds'))
-                    ])
-        
-        key =2
-        if key not in footpath_dict:
-            footpath_dict[key] = [(99999, pd.to_timedelta(float(276), unit='seconds'))]
-        else:
-            footpath_dict[key].append((99999, pd.to_timedelta(float(276), unit='seconds')))
-
-        key = 9
-        if key not in footpath_dict:
-            footpath_dict[key] = [(99999, pd.to_timedelta(float(262), unit='seconds'))]
-        else:
-            footpath_dict[key].append((99999, pd.to_timedelta(float(262), unit='seconds')))
-
-        key = 16
-        if key not in footpath_dict:
-            footpath_dict[key] = [(99999, pd.to_timedelta(float(418), unit='seconds'))]
-        else:
-            footpath_dict[key].append((99999, pd.to_timedelta(float(418), unit='seconds')))    
-
-        key = 15
-        if key not in footpath_dict:
-            footpath_dict[key] = [(99999, pd.to_timedelta(float(319), unit='seconds'))]
-        else:
-            footpath_dict[key].append((99999, pd.to_timedelta(float(319), unit='seconds')))    
-
-        key = 14
-        if key not in footpath_dict:
-            footpath_dict[key] = [(99999, pd.to_timedelta(float(439), unit='seconds'))]
-        else:
-            footpath_dict[key].append((99999, pd.to_timedelta(float(439), unit='seconds')))    
-                               
-        footpath_dict[99998] = []
-        footpath_dict[99998].extend([
-                    (4, pd.to_timedelta(float(219), unit='seconds')),
-                    (22, pd.to_timedelta(float(250), unit='seconds')),
-                    (23, pd.to_timedelta(float(285), unit='seconds')),
-                    (11, pd.to_timedelta(float(138), unit='seconds'))
-                    ])
-        
-        #footpath_dict[4].extend([(99998, pd.to_timedelta(float(219), unit='seconds'))])
-        #footpath_dict[22].extend([(99998, pd.to_timedelta(float(250), unit='seconds'))])
-        #footpath_dict[23].extend([(99998, pd.to_timedelta(float(285), unit='seconds'))])
-        #footpath_dict[11].extend([(99998, pd.to_timedelta(float(138), unit='seconds'))])
-
-        
-        key = 4
-        if key not in footpath_dict:
-            footpath_dict[key] = [(99998, pd.to_timedelta(float(219), unit='seconds'))]
-        else:
-            footpath_dict[key].append((99998, pd.to_timedelta(float(219), unit='seconds')))    
-
-        key = 22
-        if key not in footpath_dict:
-            footpath_dict[key] = [(99998, pd.to_timedelta(float(250), unit='seconds'))]
-        else:
-            footpath_dict[key].append((99998, pd.to_timedelta(float(250), unit='seconds')))    
-
-        key = 23
-        if key not in footpath_dict:
-            footpath_dict[key] = [(99998, pd.to_timedelta(float(285), unit='seconds'))]
-        else:
-            footpath_dict[key].append((99998, pd.to_timedelta(float(285), unit='seconds')))    
-        
-        key = 11
-        if key not in footpath_dict:
-            footpath_dict[key] = [(99998, pd.to_timedelta(float(138), unit='seconds'))]
-        else:
-            footpath_dict[key].append((99998, pd.to_timedelta(float(138), unit='seconds')))
-                   
-        """ 
-        #with open(f'{self.__path_pkl}/transfers_dict_full.pkl', 'wb') as pickle_file:
         with open(f'{self.__path_pkl}/{file_name}', 'wb') as pickle_file:    
             pickle.dump(footpath_dict, pickle_file)
         
@@ -331,8 +256,7 @@ class PKL_class ():
 
         Args:
             stop_times_file (pandas.dataframe): stop_times.txt file in GTFS.
-            NETWORK_NAME (str): path to network NETWORK_NAME.
-
+          
         Returns:    
             idx_by_route_stop_dict (dict): Keys: (route id, stop id), value: stop index. Format {(route id, stop id): stop index in route}.
         """
@@ -352,10 +276,7 @@ class PKL_class ():
     def build_routes_by_stop_dict(self):
         """
         This function saves a dictionary.
-
-        Args:
-            NETWORK_NAME (str): path to network NETWORK_NAME.
-
+     
         Returns:
             routesindx_by_stop_dict (dict): Keys: stop id, value: [(route_id, stop index), (route_id, stop index)]
         """
@@ -400,7 +321,7 @@ class PKL_class ():
         result_dict = {}
         cycle = 0
         
-        today_date = pd.Timestamp(datetime.now().date())
+        #today_date = pd.Timestamp(datetime.now().date())
 
         for route_id, group in grouped_data:
             cycle += 1
@@ -413,7 +334,8 @@ class PKL_class ():
                 trip_dict[trip_id] = list(zip(trip_data['stop_id'], trip_data['arrival_time']))
 
             sorted_trips = sorted(trip_dict.items(), key=lambda x: x[1][0][1], reverse=True)
-            result_dict[route_id] = {trip_id: [(stop_id, today_date.replace(hour=arrival_time.hour, minute=arrival_time.minute, second=arrival_time.second)) for stop_id, arrival_time in trip_data] for trip_id, trip_data in sorted_trips}
+            result_dict[route_id] = {trip_id: [(stop_id, time_to_seconds(arrival_time)) for stop_id, arrival_time in trip_data] for trip_id, trip_data in sorted_trips}
+            #result_dict[route_id] = {trip_id: [(stop_id, today_date.replace(hour=arrival_time.hour, minute=arrival_time.minute, second=arrival_time.second)) for stop_id, arrival_time in trip_data] for trip_id, trip_data in sorted_trips}
 
         with open(f'{self.__path_pkl}/stoptimes_dict_reversed_pkl.pkl', 'wb') as pickle_file:
             pickle.dump(result_dict, pickle_file)  
@@ -476,8 +398,6 @@ class PKL_class ():
 
         Args:
         stop_times_file (pandas.dataframe): stop_times.txt file in GTFS.
-        NETWORK_NAME (str): path to network NETWORK_NAME.
-
         Returns:
         idx_by_route_stop_dict (dict): Keys: (route id, stop id), value: stop index. Format {(route id, stop id): stop index in route}.
         """
@@ -501,8 +421,7 @@ class PKL_class ():
 
         Args:
         stop_times_file (pandas.dataframe): stop_times.txt file in GTFS.
-        NETWORK_NAME (str): path to network NETWORK_NAME.
-
+        
         Returns:
         route_by_stop_dict_new (dict): keys: stop_id, values: list of routes passing through the stop_id. Format-> dict[stop_id] = [route_id]
         """
@@ -561,19 +480,15 @@ class PKL_class ():
         return centroid_dict
               
 
-if __name__ == "__main__":
-    
-    PathToNetwork = "C:/Users/geosimlab/Documents/Igor/israel-public-transportation_gtfs"
-    NETWORK_NAME = "israel-public-transportation_cut"
-    path_to_txt_files = "C:/Users/geosimlab/Documents/Igor/sample_gtfs/full cut test rev"
-    path_to_shape_buildings = "C:/Users/geosimlab/Documents/Igor/qgis_prj/haifa/haifa_buildings.shp"
+if __name__ == "__main__":    
+    PathToNetwork = r"C:\Users\geosimlab\Documents\Igor\israel-public-transportation_gtfs\dict_builder\pkl_haifa_rev"
+    path_to_txt_files = r"C:\Users\geosimlab\Documents\Igor\sample_gtfs\full cut test rev"
+    path_to_shape_buildings = r"C:/Users/geosimlab/Documents/Igor/qgis_prj/haifa/haifa_buildings.shp"
     #path_to_shape_buildings = ""
-    
-    dist1 = 400
-    dist2 = 400
-    dist3 = 400
+        
+    dist = 400
+  
 
-    PKL = PKL_class (dist1 , dist2 , dist3, PathToNetwork, NETWORK_NAME,  
-                     path_to_txt_files = path_to_txt_files, path_to_shp_buildings = path_to_shape_buildings)
+    PKL = PKL_class (dist,  PathToNetwork, path_to_txt_files, path_to_shape_buildings)
     PKL.create_files()
     

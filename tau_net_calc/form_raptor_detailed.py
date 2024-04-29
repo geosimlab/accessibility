@@ -35,6 +35,7 @@ class RaptorDetailed(QDialog, FORM_CLASS):
             self.tabWidget.setCurrentIndex(0) 
             self.config = configparser.ConfigParser()
             self.break_on = False
+            
             self.mode = mode
             self.protocol_type = protocol_type
             self.title = title
@@ -49,6 +50,7 @@ class RaptorDetailed(QDialog, FORM_CLASS):
             self.lblFields.setVisible(False)
             self.cbUseFields.setVisible(False)
 
+            self.textLog.setOpenLinks(False)
             self.textLog.anchorClicked.connect(self.openFolder)
             
             self.toolButton_PKL.clicked.connect(lambda: self.showFoldersDialog(self.txtPathToPKL))
@@ -64,13 +66,13 @@ class RaptorDetailed(QDialog, FORM_CLASS):
             self.btnBreakOn.clicked.connect(self.set_break_on)
             
             
-            run_button = self.buttonBox.addButton("Run", QDialogButtonBox.ActionRole)
-            close_button = self.buttonBox.addButton("Close", QDialogButtonBox.RejectRole)
-            help_button = self.buttonBox.addButton("Help", QDialogButtonBox.HelpRole)
+            self.run_button = self.buttonBox.addButton("Run", QDialogButtonBox.ActionRole)
+            self.close_button = self.buttonBox.addButton("Close", QDialogButtonBox.RejectRole)
+            self.help_button = self.buttonBox.addButton("Help", QDialogButtonBox.HelpRole)
             
-            run_button.clicked.connect(self.on_run_button_clicked)
-            close_button.clicked.connect(self.on_close_button_clicked)
-            help_button.clicked.connect(self.on_help_button_clicked)
+            self.run_button.clicked.connect(self.on_run_button_clicked)
+            self.close_button.clicked.connect(self.on_close_button_clicked)
+            self.help_button.clicked.connect(self.on_help_button_clicked)
                         
             # Создание экземпляра регулярного выражения для целых чисел
             regex = QRegExp(r"\d*")     
@@ -99,35 +101,44 @@ class RaptorDetailed(QDialog, FORM_CLASS):
 
     def set_break_on (self):
       self.break_on = True
+      self.run_button.setEnabled(True)
 
     def on_run_button_clicked(self):
-        
+        self.run_button.setEnabled(False)
         
 
         self.break_on = False
         if not (self.check_folder_and_file()):
+           self.run_button.setEnabled(True)
            return 0
         if not self.cmbLayers.currentText():
+          self.run_button.setEnabled(True)
           self.setMessage ("Need choise layer")   
           return 0
         
         self.saveParameters()
         self.readParameters()
 
+        
         self.setMessage ("Starting ...")
-
+        self.textLog.clear()
         self.tabWidget.setCurrentIndex(1) 
-        self.textLog.setPlainText("[System]")
+        self.textLog.append("<a style='font-weight:bold;'>[System]</a>")
         qgis_info = self.get_qgis_info()
-        info_str = "\n".join([f"{key}: {value}" for key, value in qgis_info.items()])
-        self.textLog.append(info_str)
-        self.textLog.append("[Mode]")
-        self.textLog.append(f'Mode: {self.title}')
+        
+        info_str = "<br>".join([f"{key}: {value}" for key, value in qgis_info.items()])
+        self.textLog.append(f'<a> {info_str}</a>')
+        self.textLog.append("<a style='font-weight:bold;'>[Mode]</a>")
+        self.textLog.append(f'<a> Mode: {self.title}</a>')
         config_info = self.get_config_info()
-        info_str = "\n".join(config_info)
-        self.textLog.append(info_str)
+        #info_str = "<br>".join(config_info)
+        info_str = "<br>".join(config_info[1:])
+        self.textLog.append("<a style='font-weight:bold;'>[Settings]</a>")
+        self.textLog.append(f'<a>{info_str}</a>')
 
         self.prepareRaptor()
+       
+        self.run_button.setEnabled(True)
         
     
     def on_close_button_clicked(self):
@@ -253,7 +264,7 @@ class RaptorDetailed(QDialog, FORM_CLASS):
     def setMessage (self, message):
       self.lblMessages.setText(message)
 
-    def get_feature_from_layer (self, limit = 0):
+    def get_feature_from_layer (self, limit = 10):
       
       layer = self.config['Settings']['Layer']
       layer = QgsProject.instance().mapLayersByName(layer)[0]   
@@ -289,19 +300,19 @@ class RaptorDetailed(QDialog, FORM_CLASS):
       
       return ids
     
+    def time_to_seconds(self, time_str):
+      hours, minutes, seconds = map(int, time_str.split(':'))
+      total_seconds = hours * 3600 + minutes * 60 + seconds
+      return total_seconds
+    
     def prepareRaptor(self):  
-      self.break_on = False   
-      mode = self.mode
-      
+      self.break_on = False
+        
       QApplication.processEvents()
+
+      mode = self.mode
       protocol_type = self.protocol_type
-            
-      D_TIME = self.config['Settings']['TIME']
-      date_format = "%H:%M:%S"
-      D_TIME = datetime.strptime(D_TIME, date_format)
-      current_date = date.today()
-      D_TIME = datetime.combine(current_date, D_TIME.time())
-           
+      D_TIME = self.time_to_seconds(self.config['Settings']['TIME'])
       sources = [] 
 
       stops = self.get_feature_from_layer()
@@ -311,9 +322,9 @@ class RaptorDetailed(QDialog, FORM_CLASS):
       else:
         self.setMessage("No exist points in layer")
         return 0
-     
-              
-      runRaptorWithProtocol(self, sources, mode, protocol_type)   
+                   
+      runRaptorWithProtocol(self, sources, mode, protocol_type)
+      
 
     def get_qgis_info(self):
       qgis_info = {}
@@ -327,8 +338,8 @@ class RaptorDetailed(QDialog, FORM_CLASS):
     def get_config_info(self):
       config_info = []
       for section in self.config.sections():
-        config_info.append(f"[{section}]")
+        config_info.append(f"<a>[{section}]</a>")
         for key, value in self.config.items(section):
-            config_info.append(f"{key}: {value}")
+            config_info.append(f"<a>{key}: {value}</a>")
       return config_info
       

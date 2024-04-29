@@ -6,8 +6,7 @@ from RAPTOR.raptor_functions import *
 
 
 def rev_raptor(SOURCE, D_TIME, MAX_TRANSFER, MIN_TRANSFER, 
-                CHANGE_TIME_SEC, routes_by_stop_dict, stops_dict, stoptimes_dict, 
-                footpath_start_dict,footpath_process_dict,footpath_finish_dict,
+                change_time, routes_by_stop_dict, stops_dict, stoptimes_dict, footpath_dict,
                 idx_by_route_stop_dict,Maximal_travel_time,
                 MaxWalkDist1, MaxWalkDist2, MaxWalkDist3, MaxWaitTime, MaxWaitTimeTransfer) -> list:
     '''
@@ -37,12 +36,12 @@ def rev_raptor(SOURCE, D_TIME, MAX_TRANSFER, MIN_TRANSFER,
         HypRAPTOR, Tip-based Public Transit Routing (TBTR)
     '''
     
-    D_TIME = pd.Timestamp(D_TIME)
+    #D_TIME = pd.Timestamp(D_TIME)
     
     my_name=rev_raptor.__name__
     out = []
     marked_stop, marked_stop_dict, label, pi_label, star_label, inf_time = initialize_rev_raptor(routes_by_stop_dict, SOURCE, MAX_TRANSFER)
-    change_time = pd.to_timedelta(CHANGE_TIME_SEC, unit='seconds')
+    #change_time = pd.to_timedelta(CHANGE_TIME_SEC, unit='seconds')
     
 
     (label[0][SOURCE], star_label[SOURCE]) = (D_TIME, D_TIME)
@@ -50,16 +49,20 @@ def rev_raptor(SOURCE, D_TIME, MAX_TRANSFER, MIN_TRANSFER,
     roundsCount = MAX_TRANSFER + 1
     trans_info = -1     
     
-    MaxWalkDist1_time = timedelta(seconds=MaxWalkDist1)
-    MaxWalkDist2_time = timedelta(seconds=MaxWalkDist2)    
-    MaxWalkDist3_time = timedelta(seconds=MaxWalkDist3) 
+    #MaxWalkDist1_time = timedelta(seconds=MaxWalkDist1)
+    #MaxWalkDist2_time = timedelta(seconds=MaxWalkDist2)    
+    #MaxWalkDist3_time = timedelta(seconds=MaxWalkDist3) 
+
+    MaxWalkDist1_time = MaxWalkDist1
+    MaxWalkDist2_time = MaxWalkDist2
+    MaxWalkDist3_time = MaxWalkDist3
 
     min_time = D_TIME - Maximal_travel_time
 
     if True:
         try:
             if trans_info == -1:
-             trans_info = footpath_finish_dict[SOURCE]
+             trans_info = footpath_dict[SOURCE]
 
              
             for i in trans_info:
@@ -189,7 +192,7 @@ def rev_raptor(SOURCE, D_TIME, MAX_TRANSFER, MIN_TRANSFER,
                      # assuming arrival_time = departure_time
                     
                        
-                    tid, current_trip_t = get_earliest_trip_new(stoptimes_dict, route, label[k - 1][p_i], current_stopindex_by_route, change_time, MaxWaitCurr, k)
+                    tid, current_trip_t = get_earliest_trip_new(stoptimes_dict, route, label[k - 1][p_i], current_stopindex_by_route, change_time, MaxWaitCurr)
                     
                     if current_trip_t == -1:
                         boarding_time, boarding_point = -1, -1
@@ -207,24 +210,22 @@ def rev_raptor(SOURCE, D_TIME, MAX_TRANSFER, MIN_TRANSFER,
         # Main code part 3
         #print (f'part 3')
         #marked_stop_copy = [*marked_stop]
-    
-        walking_dict = footpath_process_dict
-           
+                       
         if k < roundsCount and MaxWalkDist2_time != MaxWalkDist3_time:
-                walking_dict = footpath_process_dict
+        
                 save_marked_stop = True
 
                 #destination_accessed, marked_stop_dict,marked_stop,marked_stop_copy,label,star_label,pi_label = 
-                process_walking_stage(min_time, MaxWalkDist2_time, k, walking_dict,
+                process_walking_stage(min_time, MaxWalkDist2_time, k, footpath_dict,
                 marked_stop_dict, marked_stop, label, star_label, pi_label, save_marked_stop) 
 
 
-        walking_dict = footpath_start_dict
+        
 
         save_marked_stop = False
 
         #destination_accessed, marked_stop_dict,marked_stop,marked_stop_copy,label,star_label,pi_label = 
-        process_walking_stage(min_time, MaxWalkDist1_time, k, walking_dict, 
+        process_walking_stage(min_time, MaxWalkDist1_time, k, footpath_dict, 
         marked_stop_dict, marked_stop, label, star_label, pi_label, save_marked_stop) 
 
            

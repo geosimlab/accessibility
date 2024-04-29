@@ -3,8 +3,8 @@ Module contains function related to RAPTOR, rRAPTOR, One-To-Many rRAPTOR, HypRAP
 """
 from collections import deque as deque
 
-import pandas as pd
-from datetime import timedelta
+#import pandas as pd
+#from datetime import timedelta
 from PyQt5.QtWidgets import QApplication
 
 def initialize_raptor(routes_by_stop_dict: dict, SOURCE: int, MAX_TRANSFER: int) -> tuple:
@@ -28,8 +28,8 @@ def initialize_raptor(routes_by_stop_dict: dict, SOURCE: int, MAX_TRANSFER: int)
     Examples:
         >>> output = initialize_raptor(routes_by_stop_dict, 20775, 4)
     '''
-    inf_time = pd.to_datetime("today").round(freq='H') + pd.to_timedelta("365 day")
-    #    inf_time = pd.to_datetime('2022-01-15 19:00:00')
+    #inf_time = pd.to_datetime("today").round(freq='H') + pd.to_timedelta("365 day")
+    inf_time = 200000
     roundsCount = MAX_TRANSFER + 1
     pi_label = {x: {stop: -1 for stop in routes_by_stop_dict.keys()} for x in range(0, roundsCount + 1)}
     label = {x: {stop: inf_time for stop in routes_by_stop_dict.keys()} for x in range(0, roundsCount + 1)}
@@ -42,7 +42,7 @@ def initialize_raptor(routes_by_stop_dict: dict, SOURCE: int, MAX_TRANSFER: int)
     return marked_stop, marked_stop_dict, label, pi_label, star_label, inf_time
 
 
-def get_latest_trip_new(stoptimes_dict: dict, route: int, arrival_time_at_pi, pi_index: int, change_time, max_wait_time, k) -> tuple:
+def get_latest_trip_new(stoptimes_dict: dict, route: int, arrival_time_at_pi, pi_index: int, change_time, max_waiting_time) -> tuple:
     '''
     Get latest trip after a certain timestamp from the given stop of a route.
 
@@ -63,11 +63,8 @@ def get_latest_trip_new(stoptimes_dict: dict, route: int, arrival_time_at_pi, pi
         >>> output = get_latest_trip_new(stoptimes_dict, 1000, pd.to_datetime('2019-06-10 17:40:00'), 0, pd.to_timedelta(0, unit='seconds'))
     '''
     
-    max_waiting_time = timedelta(seconds = max_wait_time)
-    change_time = timedelta(days=change_time.days, seconds=change_time.seconds)
-    if k == 1:
-        change_time = pd.to_timedelta(0, unit='seconds')
-    
+    #max_waiting_time = timedelta(seconds = max_wait_time)
+    #change_time = timedelta(days=change_time.days, seconds=change_time.seconds)
     
     for trip_idx, trip in (stoptimes_dict[route].items()): 
             
@@ -80,7 +77,8 @@ def get_latest_trip_new(stoptimes_dict: dict, route: int, arrival_time_at_pi, pi
             
             if t1 == 0:
                 continue
-
+            
+            
             if (t1 >= arrival_time_at_pi + change_time) and (t1 <= arrival_time_at_pi + max_waiting_time) :   
                 return f'{route}_{trip_idx}', stoptimes_dict[route][trip_idx]
     return -1, -1  # No trip is found after arrival_time_at_pi
@@ -135,9 +133,17 @@ def post_processing (DESTINATION: int, pi_label, MIN_TRANSFER, MaxWalkDist) -> t
         
         last_mode = ""
         trip_set = []
-                
+
+        print (f'rounds_inwhich_desti_reached {rounds_inwhich_desti_reached}')        
         for k in rounds_inwhich_desti_reached:
             transfer_needed = k - 1
+
+            # null transfers:
+            # 1) foot path
+            # 2) foot path + route
+            # 2) foot path + route + foot path
+            if transfer_needed == -1:
+                transfer_needed = 0
             
             journey = []
             stop = DESTINATION 
@@ -182,8 +188,15 @@ def post_processing (DESTINATION: int, pi_label, MIN_TRANSFER, MaxWalkDist) -> t
 
             journey.reverse()
             
+            print (f'journey {journey}')
+            #print (f'journey[-1][3] {journey[-1][3]}')
+            #print (f'MaxWalkDist {MaxWalkDist}')
+            #print (f'transfer_needed {transfer_needed}')
+            #print (f'MIN_TRANSFER {MIN_TRANSFER}')
+
             
-            if len(journey) > 0 and not (journey[-1][0] == 'walking' and journey[-1][3].total_seconds() > MaxWalkDist) and (transfer_needed >= MIN_TRANSFER):
+            #if len(journey) > 0 and not (journey[-1][0] == 'walking' and journey[-1][3].total_seconds() > MaxWalkDist) and (transfer_needed >= MIN_TRANSFER):
+            if len(journey) > 0 and not (journey[-1][0] == 'walking' and journey[-1][3] > MaxWalkDist) and (transfer_needed+1 >= MIN_TRANSFER):    
                 pareto_set.append((transfer_needed, journey))
         
         if len(pareto_set) == 0:
@@ -217,6 +230,7 @@ def post_processingAll(call_name, SOURCE, D_TIME, label, pi_label, MIN_TRANSFER,
             total_drive_time = -1
             
             
+            print (f'pareto_set {pareto_set}')
             
             if pareto_set != (None, None, None, None) and len(pareto_set) > 0:
              #Just one journey with minimal time will be in pareto set
@@ -260,9 +274,11 @@ def get_optimal_journey(pareto_set):
         for leg in journey:
             count_leg = count_leg + 1
             if leg[0] == 'walking':
-               current_arrive_time = leg[4].time()                
+               #current_arrive_time = leg[4].time()                
+               current_arrive_time = leg[4]
             else:
-               current_arrive_time = leg[3].time()
+               #current_arrive_time = leg[3].time()
+               current_arrive_time = leg[3]
             time_finish = current_arrive_time
 
         res[item_in_pareto_set] = []
@@ -296,9 +312,11 @@ def get_rev_optimal_journey(pareto_set):
         for leg in journey:
             count_leg = count_leg + 1
             if leg[0] == 'walking':
-               current_arrive_time = leg[4].time()                
+               #current_arrive_time = leg[4].time()                
+               current_arrive_time = leg[4]
             else:
-               current_arrive_time = leg[3].time()
+               #current_arrive_time = leg[3].time()
+               current_arrive_time = leg[3]
             time_finish = current_arrive_time
 
         res[item_in_pareto_set] = []
@@ -339,8 +357,9 @@ def initialize_rev_raptor(routes_by_stop_dict: dict, SOURCE: int, MAX_TRANSFER: 
     Examples:
         >>> output = initialize_raptor(routes_by_stop_dict, 20775, 4)
     '''
-    inf_time = pd.to_datetime("today").round(freq='H') - pd.to_timedelta("730 day")
+    #inf_time = pd.to_datetime("today").round(freq='H') - pd.to_timedelta("730 day")
     #    inf_time = pd.to_datetime('2022-01-15 19:00:00')
+    inf_time = -1
     roundsCount = MAX_TRANSFER+1
     pi_label = {x: {stop: -1 for stop in routes_by_stop_dict.keys()} for x in range(0, roundsCount + 1)}
     label = {x: {stop: inf_time for stop in routes_by_stop_dict.keys()} for x in range(0, roundsCount + 1)}
@@ -352,7 +371,7 @@ def initialize_rev_raptor(routes_by_stop_dict: dict, SOURCE: int, MAX_TRANSFER: 
     marked_stop_dict[SOURCE] = 1
     return marked_stop, marked_stop_dict, label, pi_label, star_label, inf_time
 
-def get_earliest_trip_new(stoptimes_dict: dict, route: int, arrival_time_at_pi, pi_index: int, change_time, max_wait_time, k) -> tuple:
+def get_earliest_trip_new(stoptimes_dict: dict, route: int, arrival_time_at_pi, pi_index: int, change_time, max_waiting_time) -> tuple:
 
     '''
     Get earliest trip after a certain timestamp from the given stop of a route.
@@ -376,12 +395,8 @@ def get_earliest_trip_new(stoptimes_dict: dict, route: int, arrival_time_at_pi, 
     '''
     
     
-    max_waiting_time = timedelta(seconds = max_wait_time)
-    change_time = timedelta(days=change_time.days, seconds=change_time.seconds)
-    if k == 1:
-        change_time = pd.to_timedelta(0, unit='seconds')
-    
-    
+    #max_waiting_time = timedelta(seconds = max_wait_time)
+    #change_time = timedelta(days=change_time.days, seconds=change_time.seconds)
         
     for trip_idx, trip in (stoptimes_dict[route].items()):
 
@@ -424,50 +439,28 @@ def post_processing_2(D_TIME, journey) -> tuple:
     
     for leg in journey:       
              if leg[0] == 'walking':
-               total_walk_time = total_walk_time + leg[3].total_seconds() 
+               #total_walk_time = total_walk_time + leg[3].total_seconds() 
+               total_walk_time = total_walk_time + leg[3]
                last_arrive_time = leg[4]     
                if not first_leg_found:
                     first_leg_found = True        
              else:               
                total_boarding_count = total_boarding_count + 1
-               total_drive_time = total_drive_time + (leg[3] - leg[0]).total_seconds()
+               #total_drive_time = total_drive_time + (leg[3] - leg[0]).total_seconds()
+               total_drive_time = total_drive_time + (leg[3] - leg[0])
                
                if  first_leg_found:  #distract from boarding time previous arrive time
                   if last_arrive_time != 0:
-                        total_waiting_time = total_waiting_time + (leg[0] - last_arrive_time).total_seconds() 
+                        #total_waiting_time = total_waiting_time + (leg[0] - last_arrive_time).total_seconds() 
+                        total_waiting_time = total_waiting_time + (leg[0] - last_arrive_time)
                else:
-                  total_waiting_time = (leg[0] - D_TIME).total_seconds()  
+                  #total_waiting_time = (leg[0] - D_TIME).total_seconds()  
+                  total_waiting_time = (leg[0] - D_TIME)
                   first_leg_found = True                  
                last_arrive_time = leg[3]
             
     total_time_to_dest = total_walk_time + total_waiting_time + total_drive_time
 
-    """
-
-    if len(journey) == 1:
-        leg = journey[1]
-        if leg_start[0] == 'walking':
-            total_time_to_dest = leg_start[3].total_seconds()
-        else:     
-            total_time_to_dest = (leg_start[3] - leg_start[0]).total_seconds()
-
-        return total_time_to_dest, total_walk_time, total_waiting_time, total_boarding_count, total_drive_time 
-    
-
-    leg_start = journey[1]
-    if leg_start[0] == 'walking':
-        time_start = leg_start[4].total_seconds()
-    else:     
-        time_start = leg_start[0].total_seconds()
-
-    leg_finish = journey[-1]
-    if leg_finish[0] == 'walking':
-        time_finish = leg_start[4].total_seconds()
-    else:     
-        time_finish = leg_start[3].total_seconds()
-    
-    total_time_to_dest = time_finish- time_start
-    """
     return total_time_to_dest,total_walk_time,total_waiting_time,total_boarding_count,total_drive_time 
 
 def revpost_processing_2(D_TIME, journey) -> tuple:
@@ -489,49 +482,30 @@ def revpost_processing_2(D_TIME, journey) -> tuple:
         
     for leg in journey:       
              if leg[0] == 'walking':
-               total_walk_time = total_walk_time + leg[3].total_seconds() 
+               #total_walk_time = total_walk_time + leg[3].total_seconds() 
+               total_walk_time = total_walk_time + leg[3]
                last_arrive_time = leg[4]
                if not first_leg_found:
                     first_leg_found = True        
              else:               
                total_boarding_count = total_boarding_count + 1
-               total_drive_time = total_drive_time - (leg[3] - leg[0]).total_seconds()
+               #total_drive_time = total_drive_time - (leg[3] - leg[0]).total_seconds()
+               total_drive_time = total_drive_time - (leg[3] - leg[0])
                
 
                if  first_leg_found:  #distract from boarding time previous arrive time
                   if last_arrive_time != 0:
-                   total_waiting_time = total_waiting_time - (leg[0] - last_arrive_time).total_seconds() 
+                   #total_waiting_time = total_waiting_time - (leg[0] - last_arrive_time).total_seconds() 
+                   total_waiting_time = total_waiting_time - (leg[0] - last_arrive_time)
                else:
-                  total_waiting_time = - (leg[0] - D_TIME).total_seconds()  
+                  #total_waiting_time = - (leg[0] - D_TIME).total_seconds()  
+                  total_waiting_time = - (leg[0] - D_TIME)
                   first_leg_found = True                  
                last_arrive_time = leg[3]
 
     
     total_time_to_dest = total_walk_time + total_waiting_time + total_drive_time
-    """
-    if len(journey) == 1:
-        leg = journey[1]
-        if leg_start[0] == 'walking':
-            total_time_to_dest = leg_start[3].total_seconds()
-        else:     
-            total_time_to_dest = (leg_start[0] - leg_start[3]).total_seconds()
-        return total_time_to_dest, total_walk_time, total_waiting_time, total_boarding_count, total_drive_time 
     
-
-    leg_start = journey[-1]
-    if leg_start[0] == 'walking':
-        time_start = (leg_start[4]).total_seconds()
-    else:     
-        time_start = leg_start[3].total_seconds()
-
-    leg_finish = journey[1]
-    if leg_finish[0] == 'walking':
-        time_finish = leg_start[4].total_seconds()
-    else:     
-        time_finish = leg_start[3].total_seconds()
-    
-    total_time_to_dest = time_start- time_finish
-    """
 
     return total_time_to_dest, total_walk_time, total_waiting_time, total_boarding_count, total_drive_time 
 
