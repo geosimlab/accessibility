@@ -46,7 +46,7 @@ def raptor (SOURCE, D_TIME, MAX_TRANSFER, MIN_TRANSFER, change_time,
     out = []
     
     marked_stop, marked_stop_dict, label, pi_label, star_label, inf_time = initialize_raptor(routes_by_stop_dict, SOURCE, MAX_TRANSFER)
-    #change_time = pd.to_timedelta(CHANGE_TIME_SEC, unit='seconds')
+    
     change_time_save = change_time
     
     (label[0][SOURCE], star_label[SOURCE]) = (D_TIME, D_TIME)
@@ -54,28 +54,17 @@ def raptor (SOURCE, D_TIME, MAX_TRANSFER, MIN_TRANSFER, change_time,
     roundsCount = MAX_TRANSFER + 1
     trans_info = -1     
    
-    #MaxWalkDist1_time = timedelta(seconds=MaxWalkDist1)
-    #MaxWalkDist2_time = timedelta(seconds=MaxWalkDist2)    
-    #MaxWalkDist3_time = timedelta(seconds=MaxWalkDist3)  
-
     MaxWalkDist1_time = MaxWalkDist1
     MaxWalkDist2_time = MaxWalkDist2
     MaxWalkDist3_time = MaxWalkDist3
-    
-    
+        
     max_time = D_TIME + Maximal_travel_time
-
-    #test = 48912
-    #test_trans_info = footpath_dict[test]
-    #print(f'Первые 5 элементов test_trans_info: {test_trans_info[:5]}')
-    
+        
     if  True:        
         try:
            if trans_info == -1:
             trans_info = footpath_dict[SOURCE]
             
-            
-            print (f'trans_info {trans_info}')
 
            for i in trans_info:
                 
@@ -103,7 +92,7 @@ def raptor (SOURCE, D_TIME, MAX_TRANSFER, MIN_TRANSFER, change_time,
         except  KeyError as e:
            pass
     
-    print (f'pi_label {pi_label}')    
+    #print (f'pi_label {pi_label}')    
     #print (f'before big cycle {datetime.now()}') 
       
         
@@ -219,7 +208,7 @@ def raptor (SOURCE, D_TIME, MAX_TRANSFER, MIN_TRANSFER, change_time,
         time1, time2, time3, time4, time5, time6 = process_walking_stage(max_time , MaxWalkDist3_time, k, footpath_dict, 
         marked_stop_dict, marked_stop, label, star_label, pi_label, save_marked_stop)
         
-        print (f' pi_label {pi_label}')
+        #print (f' pi_label {pi_label}')
         #print (f' marked_stop {marked_stop}')
         #print (f' after part3 {datetime.now()}')   
         
@@ -326,8 +315,8 @@ def process_walking_stage(max_time, WALKING_LIMIT, k,
                 #time5 = end_time5 - start_time5            
                 #time5res += time5
 
-         #print (f'time1 process walk {time1res}')       
+         
          return time1res, time2res, time3res, time4res, time5res, time6res
 
-         #destination_accessed, marked_stop_dict, marked_stop, marked_stop_copy, label, star_label, pi_label       
+         
      

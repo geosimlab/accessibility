@@ -4,7 +4,7 @@ from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication, Qt
 from qgis.PyQt.QtGui import QIcon
 from PyQt5.QtWidgets import QDockWidget,  QAction
 import shutil
-from .resources import *
+#from .resources import *
 from .accessibility_tools import AccessibilityTools
 import sys
 import os
@@ -94,8 +94,14 @@ class TAUNetCalc():
         return action
 
     def initGui(self):
+
+        #cache_dir = os.path.expanduser('~/.qgis2/cache/tau_net_calc')
+        #if os.path.exists(cache_dir):
+        #    shutil.rmtree(cache_dir)
+
                 
-        icon_accessibility_path = ':/plugins/tau_net_calc/settings.png'
+        icon_accessibility_path = os.path.join(os.path.dirname(__file__), 'app.png')
+        
        
         self.add_action(
             icon_path=icon_accessibility_path,

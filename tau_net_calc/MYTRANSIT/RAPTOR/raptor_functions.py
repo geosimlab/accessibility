@@ -2,9 +2,6 @@
 Module contains function related to RAPTOR, rRAPTOR, One-To-Many rRAPTOR, HypRAPTOR
 """
 from collections import deque as deque
-
-#import pandas as pd
-#from datetime import timedelta
 from PyQt5.QtWidgets import QApplication
 
 def initialize_raptor(routes_by_stop_dict: dict, SOURCE: int, MAX_TRANSFER: int) -> tuple:
@@ -134,7 +131,7 @@ def post_processing (DESTINATION: int, pi_label, MIN_TRANSFER, MaxWalkDist) -> t
         last_mode = ""
         trip_set = []
 
-        print (f'rounds_inwhich_desti_reached {rounds_inwhich_desti_reached}')        
+        #print (f'rounds_inwhich_desti_reached {rounds_inwhich_desti_reached}')        
         for k in rounds_inwhich_desti_reached:
             transfer_needed = k - 1
 
@@ -188,7 +185,7 @@ def post_processing (DESTINATION: int, pi_label, MIN_TRANSFER, MaxWalkDist) -> t
 
             journey.reverse()
             
-            print (f'journey {journey}')
+            #print (f'journey {journey}')
             #print (f'journey[-1][3] {journey[-1][3]}')
             #print (f'MaxWalkDist {MaxWalkDist}')
             #print (f'transfer_needed {transfer_needed}')
@@ -230,7 +227,7 @@ def post_processingAll(call_name, SOURCE, D_TIME, label, pi_label, MIN_TRANSFER,
             total_drive_time = -1
             
             
-            print (f'pareto_set {pareto_set}')
+            #print (f'pareto_set {pareto_set}')
             
             if pareto_set != (None, None, None, None) and len(pareto_set) > 0:
              #Just one journey with minimal time will be in pareto set

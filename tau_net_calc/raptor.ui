@@ -24,7 +24,7 @@
      </property>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <property name="usesScrollButtons">
        <bool>true</bool>
@@ -49,23 +49,70 @@
            <property name="geometry">
             <rect>
              <x>0</x>
-             <y>0</y>
+             <y>-450</y>
              <width>489</width>
-             <height>806</height>
+             <height>761</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_2">
             <item>
              <layout class="QGridLayout" name="gridLayout">
-              <item row="22" column="0">
-               <widget class="QLabel" name="label_14">
+              <item row="4" column="0">
+               <widget class="QLabel" name="label_17">
                 <property name="text">
-                 <string>Max walk distance at transfer, m</string>
+                 <string>Layer of origins (points/polygons) </string>
                 </property>
                </widget>
               </item>
-              <item row="3" column="0">
-               <widget class="QLineEdit" name="txtPathToProtocols"/>
+              <item row="3" column="1">
+               <widget class="QToolButton" name="toolButton_protocol">
+                <property name="text">
+                 <string>...</string>
+                </property>
+               </widget>
+              </item>
+              <item row="24" column="0">
+               <widget class="QLabel" name="label_20">
+                <property name="text">
+                 <string>Max walk distance from a last PT stop, m</string>
+                </property>
+               </widget>
+              </item>
+              <item row="37" column="0">
+               <widget class="QLineEdit" name="txtTimeInterval"/>
+              </item>
+              <item row="9" column="0">
+               <widget class="QLabel" name="lblFields">
+                <property name="text">
+                 <string>Field to aggregate</string>
+                </property>
+               </widget>
+              </item>
+              <item row="28" column="0">
+               <widget class="QLabel" name="label_4">
+                <property name="text">
+                 <string>Walking speed (km/h)</string>
+                </property>
+               </widget>
+              </item>
+              <item row="35" column="0">
+               <widget class="QLineEdit" name="txtMaxTimeTravel"/>
+              </item>
+              <item row="7" column="0">
+               <widget class="QComboBox" name="cmbLayersDest"/>
+              </item>
+              <item row="26" column="0">
+               <widget class="QLabel" name="label_21">
+                <property name="text">
+                 <string>Start at/Arrive before (time)</string>
+                </property>
+               </widget>
+              </item>
+              <item row="23" column="0">
+               <widget class="QLineEdit" name="txtMaxWalkDist2"/>
+              </item>
+              <item row="31" column="0">
+               <widget class="QLineEdit" name="txtMaxWaitTime"/>
               </item>
               <item row="36" column="0">
                <widget class="QLabel" name="lblTimeInterval">
@@ -74,10 +121,50 @@
                 </property>
                </widget>
               </item>
-              <item row="26" column="0">
-               <widget class="QLabel" name="label_21">
+              <item row="7" column="1">
+               <widget class="QToolButton" name="toolButton_layer_dest_refresh">
                 <property name="text">
-                 <string>Start at/Arrive before (time)</string>
+                 <string>...</string>
+                </property>
+                <property name="icon">
+                 <iconset>
+                  <normalon>refresh.png</normalon>
+                 </iconset>
+                </property>
+               </widget>
+              </item>
+              <item row="11" column="0">
+               <widget class="QComboBox" name="cmbFields"/>
+              </item>
+              <item row="8" column="0">
+               <widget class="QCheckBox" name="cbUseFields">
+                <property name="text">
+                 <string>Run aggregate</string>
+                </property>
+               </widget>
+              </item>
+              <item row="12" column="0">
+               <widget class="QLabel" name="label_15">
+                <property name="text">
+                 <string>Min transfers</string>
+                </property>
+               </widget>
+              </item>
+              <item row="5" column="1">
+               <widget class="QToolButton" name="toolButton_layer_refresh">
+                <property name="text">
+                 <string>...</string>
+                </property>
+                <property name="icon">
+                 <iconset>
+                  <normaloff>refresh.png</normaloff>refresh.png</iconset>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_19">
+                <property name="text">
+                 <string>Dataset folder</string>
                 </property>
                </widget>
               </item>
@@ -95,141 +182,17 @@
                 </property>
                </widget>
               </item>
-              <item row="0" column="0">
-               <widget class="QLabel" name="label_19">
-                <property name="text">
-                 <string>Dataset folder</string>
-                </property>
-               </widget>
-              </item>
-              <item row="5" column="1">
-               <widget class="QToolButton" name="toolButton_layer_refresh">
-                <property name="text">
-                 <string>...</string>
-                </property>
-                <property name="icon">
-                 <iconset>
-                  <normaloff>refresh.png</normaloff>refresh.png</iconset>
-                </property>
-               </widget>
-              </item>
-              <item row="4" column="0">
-               <widget class="QLabel" name="label_17">
-                <property name="text">
-                 <string>Layer of origins (points/polygons) </string>
-                </property>
-               </widget>
-              </item>
-              <item row="35" column="0">
-               <widget class="QLineEdit" name="txtMaxTimeTravel"/>
-              </item>
-              <item row="37" column="0">
-               <widget class="QLineEdit" name="txtTimeInterval"/>
-              </item>
-              <item row="19" column="0">
-               <widget class="QLineEdit" name="txtMaxTransfers"/>
-              </item>
-              <item row="1" column="1">
-               <widget class="QToolButton" name="toolButton_PKL">
-                <property name="text">
-                 <string>...</string>
-                </property>
-               </widget>
-              </item>
-              <item row="30" column="0">
-               <widget class="QLabel" name="label_22">
-                <property name="text">
-                 <string>Maximal waiting time at initial stop, sec</string>
-                </property>
-               </widget>
-              </item>
-              <item row="24" column="0">
-               <widget class="QLabel" name="label_20">
-                <property name="text">
-                 <string>Max walk distance from a last PT stop, m</string>
-                </property>
-               </widget>
-              </item>
-              <item row="41" column="0">
-               <widget class="QLineEdit" name="txtVoronoi"/>
-              </item>
-              <item row="33" column="0">
-               <widget class="QLineEdit" name="txtMaxWaitTimeTransfer"/>
-              </item>
-              <item row="32" column="0">
-               <widget class="QLabel" name="label_23">
-                <property name="text">
-                 <string>Maximal waiting time at transfer stop, sec</string>
-                </property>
-               </widget>
-              </item>
-              <item row="3" column="1">
-               <widget class="QToolButton" name="toolButton_protocol">
-                <property name="text">
-                 <string>...</string>
-                </property>
-               </widget>
-              </item>
-              <item row="11" column="0">
-               <widget class="QComboBox" name="cmbFields"/>
-              </item>
-              <item row="31" column="0">
-               <widget class="QLineEdit" name="txtMaxWaitTime"/>
-              </item>
-              <item row="1" column="0">
-               <widget class="QLineEdit" name="txtPathToPKL"/>
-              </item>
-              <item row="29" column="0">
-               <widget class="QLineEdit" name="txtSpeed">
-                <property name="inputMethodHints">
-                 <set>Qt::ImhDialableCharactersOnly|Qt::ImhDigitsOnly|Qt::ImhPreferNumbers</set>
-                </property>
-               </widget>
-              </item>
-              <item row="25" column="0">
-               <widget class="QLineEdit" name="txtMaxWalkDist3"/>
-              </item>
-              <item row="21" column="0">
-               <widget class="QLineEdit" name="txtMaxWalkDist1"/>
-              </item>
-              <item row="9" column="0">
-               <widget class="QLabel" name="lblFields">
-                <property name="text">
-                 <string>Field to aggregate</string>
-                </property>
-               </widget>
-              </item>
-              <item row="23" column="0">
-               <widget class="QLineEdit" name="txtMaxWalkDist2"/>
-              </item>
-              <item row="12" column="0">
-               <widget class="QLabel" name="label_15">
-                <property name="text">
-                 <string>Min transfers</string>
-                </property>
-               </widget>
-              </item>
-              <item row="28" column="0">
-               <widget class="QLabel" name="label_4">
-                <property name="text">
-                 <string>Walking speed (km/h)</string>
-                </property>
-               </widget>
-              </item>
-              <item row="34" column="0">
-               <widget class="QLabel" name="label_24">
-                <property name="text">
-                 <string>Maximal time travel, sec</string>
-                </property>
-               </widget>
-              </item>
-              <item row="5" column="0">
-               <widget class="QComboBox" name="cmbLayers"/>
-              </item>
               <item row="17" column="0">
                <widget class="QLabel" name="label_16">
                 <property name="text">
                  <string>Max transfers</string>
+                </property>
+               </widget>
+              </item>
+              <item row="32" column="0">
+               <widget class="QLabel" name="label_23">
+                <property name="text">
+                 <string>Maximal waiting time at transfer stop, min</string>
                 </property>
                </widget>
               </item>
@@ -240,15 +203,27 @@
                 </property>
                </widget>
               </item>
-              <item row="7" column="1">
-               <widget class="QToolButton" name="toolButton_layer_dest_refresh">
+              <item row="30" column="0">
+               <widget class="QLabel" name="label_22">
+                <property name="text">
+                 <string>Maximal waiting time at initial stop, min</string>
+                </property>
+               </widget>
+              </item>
+              <item row="29" column="0">
+               <widget class="QLineEdit" name="txtSpeed">
+                <property name="inputMethodHints">
+                 <set>Qt::ImhDialableCharactersOnly|Qt::ImhDigitsOnly|Qt::ImhPreferNumbers</set>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLineEdit" name="txtPathToPKL"/>
+              </item>
+              <item row="1" column="1">
+               <widget class="QToolButton" name="toolButton_PKL">
                 <property name="text">
                  <string>...</string>
-                </property>
-                <property name="icon">
-                 <iconset>
-                  <normalon>refresh.png</normalon>
-                 </iconset>
                 </property>
                </widget>
               </item>
@@ -259,6 +234,32 @@
                 </property>
                </widget>
               </item>
+              <item row="3" column="0">
+               <widget class="QLineEdit" name="txtPathToProtocols"/>
+              </item>
+              <item row="13" column="0">
+               <widget class="QLineEdit" name="txtMinTransfers"/>
+              </item>
+              <item row="5" column="0">
+               <widget class="QComboBox" name="cmbLayers">
+                <property name="mouseTracking">
+                 <bool>false</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="22" column="0">
+               <widget class="QLabel" name="label_14">
+                <property name="text">
+                 <string>Max walk distance at transfer, m</string>
+                </property>
+               </widget>
+              </item>
+              <item row="25" column="0">
+               <widget class="QLineEdit" name="txtMaxWalkDist3"/>
+              </item>
+              <item row="33" column="0">
+               <widget class="QLineEdit" name="txtMaxWaitTimeTransfer"/>
+              </item>
               <item row="20" column="0">
                <widget class="QLabel" name="label_18">
                 <property name="text">
@@ -266,25 +267,18 @@
                 </property>
                </widget>
               </item>
-              <item row="40" column="0">
-               <widget class="QLabel" name="label_3">
+              <item row="19" column="0">
+               <widget class="QLineEdit" name="txtMaxTransfers"/>
+              </item>
+              <item row="34" column="0">
+               <widget class="QLabel" name="label_24">
                 <property name="text">
-                 <string>Voronoi polygon maximal diameter </string>
+                 <string>Maximal time travel, min</string>
                 </property>
                </widget>
               </item>
-              <item row="7" column="0">
-               <widget class="QComboBox" name="cmbLayersDest"/>
-              </item>
-              <item row="13" column="0">
-               <widget class="QLineEdit" name="txtMinTransfers"/>
-              </item>
-              <item row="8" column="0">
-               <widget class="QCheckBox" name="cbUseFields">
-                <property name="text">
-                 <string>Run aggregate</string>
-                </property>
-               </widget>
+              <item row="21" column="0">
+               <widget class="QLineEdit" name="txtMaxWalkDist1"/>
               </item>
              </layout>
             </item>
@@ -386,7 +380,6 @@
   <tabstop>txtMaxWaitTime</tabstop>
   <tabstop>txtMaxWaitTimeTransfer</tabstop>
   <tabstop>txtMaxTimeTravel</tabstop>
-  <tabstop>txtVoronoi</tabstop>
   <tabstop>textInfo</tabstop>
   <tabstop>tabWidget</tabstop>
   <tabstop>btnBreakOn</tabstop>

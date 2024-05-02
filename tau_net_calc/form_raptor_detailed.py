@@ -1,24 +1,18 @@
 import os
-
 import sys
 import qgis.core
+from qgis.PyQt import QtCore
+from qgis.core import QgsProject, QgsWkbTypes
+
 import osgeo.gdal
 import osgeo.osr
 
 from PyQt5.QtWidgets import QDialogButtonBox, QDialog, QFileDialog, QApplication
-from PyQt5.QtCore import QRegExp, QDateTime
-from PyQt5.QtGui import QRegExpValidator
-
+from PyQt5.QtCore import QRegExp, QDateTime, QEvent
+from PyQt5.QtGui import QRegExpValidator, QDesktopServices
 from PyQt5 import uic
-from PyQt5.QtGui import QDesktopServices
-
-from qgis.PyQt import QtCore
-from qgis.core import QgsProject,QgsWkbTypes
-from datetime import datetime, date
 
 from query_file import runRaptorWithProtocol
-
-
 import configparser
 
 # This loads your .ui file so that PyQt can populate your plugin with the elements from Qt Designer
@@ -57,7 +51,12 @@ class RaptorDetailed(QDialog, FORM_CLASS):
             self.toolButton_protocol.clicked.connect(lambda: self.showFoldersDialog(self.txtPathToProtocols))
 
             self.showAllLayersInCombo(self.cmbLayers)
+            self.cmbLayers.installEventFilter(self)
             self.showAllLayersInCombo(self.cmbLayersDest)
+            self.cmbLayersDest.installEventFilter(self)
+
+            self.dtStartTime.installEventFilter(self)
+            
             
             self.toolButton_layer_dest_refresh.clicked.connect(lambda: self.showAllLayersInCombo(self.cmbLayersDest))
             self.toolButton_layer_refresh.clicked.connect(lambda: self.showAllLayersInCombo(self.cmbLayers))
@@ -75,23 +74,26 @@ class RaptorDetailed(QDialog, FORM_CLASS):
             self.help_button.clicked.connect(self.on_help_button_clicked)
                         
             # Создание экземпляра регулярного выражения для целых чисел
-            regex = QRegExp(r"\d*")     
-            int_validator1 = QRegExpValidator(regex)
+            regex1 = QRegExp(r"\d*")     
+            int_validator1 = QRegExpValidator(regex1)
             
             # 0,1,2
             regex2 = QRegExp(r"[0-2]{1}")
             int_validator2 = QRegExpValidator(regex2)
+
+             # floating, two digit after dot
+            regex3 = QRegExp(r"^\d+(\.\d{1,2})?$")
+            int_validator3 = QRegExpValidator(regex3)
 
             self.txtMinTransfers.setValidator(int_validator2)
             self.txtMaxTransfers.setValidator(int_validator2)
             self.txtMaxWalkDist1.setValidator(int_validator1)
             self.txtMaxWalkDist2.setValidator(int_validator1)
             self.txtMaxWalkDist3.setValidator(int_validator1)
-            self.txtSpeed.setValidator(int_validator1)
-            self.txtMaxWaitTime.setValidator(int_validator1)
-            self.txtMaxWaitTimeTransfer.setValidator(int_validator1)
-            self.txtMaxTimeTravel.setValidator(int_validator1)
-            self.txtVoronoi.setValidator(int_validator1)
+            self.txtSpeed.setValidator(int_validator3)
+            self.txtMaxWaitTime.setValidator(int_validator3)
+            self.txtMaxWaitTimeTransfer.setValidator(int_validator3)
+            self.txtMaxTimeTravel.setValidator(int_validator3)
 
             self.ParametrsShow()
 
@@ -193,7 +195,7 @@ class RaptorDetailed(QDialog, FORM_CLASS):
       self.config['Settings']['MaxWaitTime'] = self.txtMaxWaitTime.text()
       self.config['Settings']['MaxWaitTimeTranfer'] = self.txtMaxWaitTimeTransfer.text()
       self.config['Settings']['MaxTimeTravel'] = self.txtMaxTimeTravel.text()
-      self.config['Settings']['Voronoi'] = self.txtVoronoi.text()
+      
 
       with open(f, 'w') as configfile:
           self.config.write(configfile)
@@ -228,7 +230,7 @@ class RaptorDetailed(QDialog, FORM_CLASS):
       self.txtMaxWaitTimeTransfer.setText(self.config['Settings']['MaxWaitTimeTranfer'])
       self.txtMaxTimeTravel.setText( self.config['Settings']['MaxTimeTravel'])
       
-      self.txtVoronoi.setText(self.config['Settings']['Voronoi'])
+      
 
     def check_folder_and_file(self):
       
@@ -264,7 +266,7 @@ class RaptorDetailed(QDialog, FORM_CLASS):
     def setMessage (self, message):
       self.lblMessages.setText(message)
 
-    def get_feature_from_layer (self, limit = 10):
+    def get_feature_from_layer (self, limit = 0):
       
       layer = self.config['Settings']['Layer']
       layer = QgsProject.instance().mapLayersByName(layer)[0]   
@@ -342,4 +344,29 @@ class RaptorDetailed(QDialog, FORM_CLASS):
         for key, value in self.config.items(section):
             config_info.append(f"<a>{key}: {value}</a>")
       return config_info
-      
+
+    
+    
+    def eventFilter(self, obj, event):
+        if obj == self.cmbLayers and event.type() == QEvent.Wheel:
+            # Если комбо-бокс в фокусе, игнорируем событие прокрутки колесом мыши
+            if self.cmbLayers.hasFocus():
+                event.ignore()
+                return True
+            
+        if obj == self.cmbLayersDest and event.type() == QEvent.Wheel:
+            # Если комбо-бокс в фокусе, игнорируем событие прокрутки колесом мыши
+            if self.cmbLayersDest.hasFocus():
+                event.ignore()
+                return True
+
+        if obj == self.dtStartTime and event.type() == QEvent.Wheel:
+            # Проверяем, находится ли QDateTimeEdit в фокусе
+            if self.dtStartTime.hasFocus():
+                # Игнорируем событие колеса мыши
+                event.ignore()
+                return True
+    
+         
+        return super().eventFilter(obj, event)  
+    
