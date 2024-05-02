@@ -35,24 +35,18 @@ def rev_raptor(SOURCE, D_TIME, MAX_TRANSFER, MIN_TRANSFER,
     See Also:
         HypRAPTOR, Tip-based Public Transit Routing (TBTR)
     '''
-    
-    #D_TIME = pd.Timestamp(D_TIME)
+       
     
     my_name=rev_raptor.__name__
     out = []
     marked_stop, marked_stop_dict, label, pi_label, star_label, inf_time = initialize_rev_raptor(routes_by_stop_dict, SOURCE, MAX_TRANSFER)
-    #change_time = pd.to_timedelta(CHANGE_TIME_SEC, unit='seconds')
     
-
     (label[0][SOURCE], star_label[SOURCE]) = (D_TIME, D_TIME)
     Q = {}  # Format of Q is {route:stop index}
     roundsCount = MAX_TRANSFER + 1
     trans_info = -1     
-    
-    #MaxWalkDist1_time = timedelta(seconds=MaxWalkDist1)
-    #MaxWalkDist2_time = timedelta(seconds=MaxWalkDist2)    
-    #MaxWalkDist3_time = timedelta(seconds=MaxWalkDist3) 
-
+   
+   
     MaxWalkDist1_time = MaxWalkDist1
     MaxWalkDist2_time = MaxWalkDist2
     MaxWalkDist3_time = MaxWalkDist3
@@ -124,8 +118,7 @@ def rev_raptor(SOURCE, D_TIME, MAX_TRANSFER, MIN_TRANSFER,
         # Main code part 2
         
         boarding_time, boarding_point = -1, -1,
-        #print (f' stops_dict [14213_1] {stops_dict["14213_1"]}')
-        
+                
         for route, current_stopindex_by_route in Q.items():
             QApplication.processEvents()
             boarding_time, boarding_point = -1, -1           
@@ -150,10 +143,8 @@ def rev_raptor(SOURCE, D_TIME, MAX_TRANSFER, MIN_TRANSFER,
                         to_process=False
                                               
                     if to_process and boarding_point != p_i: #and boarding_time >= arr_by_t_at_pi :
-                     #print ('to_process!')
-                     label[k][p_i], star_label[p_i] = arr_by_t_at_pi, arr_by_t_at_pi
-
                      
+                     label[k][p_i], star_label[p_i] = arr_by_t_at_pi, arr_by_t_at_pi
                      pi_label[k][p_i] = (boarding_time, boarding_point, p_i, arr_by_t_at_pi, tid)
                                           
                      """
@@ -171,7 +162,7 @@ def rev_raptor(SOURCE, D_TIME, MAX_TRANSFER, MIN_TRANSFER,
                         current_tuple = pi_label[k-1][boarding_point]
                         new_tuple = (current_tuple[0], current_tuple[1], current_tuple[2], current_tuple[3], boarding_time)
                         pi_label[k-1][boarding_point] = new_tuple
-                        print (f'correct new_tuple {new_tuple}')
+                        
                      """   
                         
     
@@ -224,7 +215,6 @@ def rev_raptor(SOURCE, D_TIME, MAX_TRANSFER, MIN_TRANSFER,
 
         save_marked_stop = False
 
-        #destination_accessed, marked_stop_dict,marked_stop,marked_stop_copy,label,star_label,pi_label = 
         process_walking_stage(min_time, MaxWalkDist1_time, k, footpath_dict, 
         marked_stop_dict, marked_stop, label, star_label, pi_label, save_marked_stop) 
 
@@ -291,30 +281,4 @@ def process_walking_stage(min_time, WALKING_LIMIT, k,
                     
             
     return 1
-"""
-  Input:
-  get  pi_label[k][p_dash]  = ('walking', p, p_dash, to_pdash_time, new_p_dash_time)   
-  that is not -1.
-  also get its possible new state: pnew, p_dash, to_pdash_time_new,
-   Get pi_label[k][p]. If it is not in walking mode then get it arrive time: time1= pi_label[k][p][3]
-   Then check that time1+to_pdash_time_new >= new_p_dash_time: if not that not change pi_label
-
-   
-  """
-"""
-def need_correct(k, pi_label, p_dash, p, to_pdash_time_new)  :
-
-  result = False  
-  if pi_label[k][p] != -1 and pi_label[k][p][0] != "walking":
-    if pi_label[k][p][3] - to_pdash_time_new > pi_label[k][p_dash][4]:
-        result = True
-
-  return result
-
-def recalculate_pi_label(k,p,label, pi_label,trans_info):
-   for i in trans_info:
-     (p_dash, to_pdash_time) = i
-     if pi_label[k][p_dash]!=-1 and pi_label[k][p_dash][0]=='walking' and pi_label[k][p_dash][1]==p:
-       new_p_dash_time = label[k][p] - to_pdash_time
-       pi_label[k][p_dash] = ('walking', p, p_dash, to_pdash_time, new_p_dash_time)      
-"""               
+             

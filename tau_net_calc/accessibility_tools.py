@@ -5,6 +5,7 @@ from qgis.PyQt.QtGui import QIcon, QFont
 from .form_settings import Settings
 from .form_raptor_detailed import RaptorDetailed
 from .form_raptor_summary import RaptorSummary
+import os
 
 class AccessibilityTools(QWidget):
     def __init__(self):
@@ -29,7 +30,7 @@ class AccessibilityTools(QWidget):
         self.item3 = QTreeWidgetItem(group2, ['Download GTFS dictionary '])
         group2.setExpanded(True)
 
-        group3 = QTreeWidgetItem(self.tree_widget,['Public transport accessibility, by origins or destinations (former detailed)'])
+        group3 = QTreeWidgetItem(self.tree_widget,['Public transport accessibility, by origins or destinations'])
         self.item4 = QTreeWidgetItem(group3, ['Forward accessibility, fixed start time'])
         self.item4.setFont(0,font)
         self.item5 = QTreeWidgetItem(group3, ['Forward accessibility, follow timetable'])
@@ -38,7 +39,7 @@ class AccessibilityTools(QWidget):
         self.item7 = QTreeWidgetItem(group3, ['Backward accessibility, follow timetable'])
         group3.setExpanded(True)
           
-        group4 = QTreeWidgetItem(self.tree_widget,['Public transport accessibility map (former summary statistics)'])
+        group4 = QTreeWidgetItem(self.tree_widget,['Public transport accessibility map'])
         self.item8 = QTreeWidgetItem(group4, ['Forward accessibility, fixed start time'])
         self.item8.setFont(0,font)
         self.item9 = QTreeWidgetItem(group4, ['Forward accessibility, follow timetable'])
@@ -62,18 +63,18 @@ class AccessibilityTools(QWidget):
         self.item17 = QTreeWidgetItem(group7, ['Backward accessibility'])
         group7.setExpanded(True)
 
-               
+        icon1 = os.path.join(os.path.dirname(__file__), 'folder.png')
+        
         for group_index in range(self.tree_widget.topLevelItemCount()):
               group_item = self.tree_widget.topLevelItem(group_index)
-              group_item.setIcon(0, QIcon(":/plugins/tau_net_calc/icon.png")) 
+              group_item.setIcon(0, QIcon(icon1)) 
               
-
-        
+        icon2 = os.path.join(os.path.dirname(__file__), 'app.png')
         for group_index in range(self.tree_widget.topLevelItemCount()):
               group_item = self.tree_widget.topLevelItem(group_index)
               for item_index in range(group_item.childCount()):
                   item = group_item.child(item_index)
-                  item.setIcon(0, QIcon(":/plugins/tau_net_calc/settings.png")) 
+                  item.setIcon(0, QIcon(icon2)) 
         
         # Добавляем QTreeWidget в макет
         layout.addWidget(self.tree_widget)
