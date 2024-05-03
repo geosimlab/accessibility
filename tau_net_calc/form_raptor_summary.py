@@ -36,6 +36,7 @@ class RaptorSummary(RaptorDetailed):
         self.cmbFields.setEnabled(False)        
 
     def fillComboBoxWithLayerFields(self):
+      self.cmbFields.clear()
       selected_layer_name = self.cmbLayersDest.currentText()
       selected_layer = QgsProject.instance().mapLayersByName(selected_layer_name)
       if selected_layer:
@@ -46,7 +47,7 @@ class RaptorSummary(RaptorDetailed):
       except:
         return 0
       
-      self.cmbFields.clear()
+      
 
       for field in fields:
         self.cmbFields.addItem(field)
@@ -77,3 +78,19 @@ class RaptorSummary(RaptorDetailed):
       self.cbUseFields.setChecked(use_field)
       self.cmbFields.setEnabled(use_field)
       self.txtTimeInterval.setText( self.config['Settings']['TimeInterval'])
+
+    def get_config_info(self):
+        
+        config_info = super().get_config_info()
+        for section in self.config.sections():
+            for key, value in self.config.items(section):
+              if key == "field":
+                config_info.append(f"<a>Field to aggregate: {value}</a>")
+
+              if key == "usefield":
+                config_info.append(f"<a>Run aggregate: {value}</a>")      
+
+              if key == "timeinterval":
+                config_info.append(f"<a>Time interval between stored maps: {value} min</a>")       
+        
+        return config_info    

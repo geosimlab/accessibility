@@ -13,7 +13,7 @@ maxwalkdist3 = 400
 time = 08:30:00
 speed = 3.6
 maxwaittime = 15
-maxwaittimetranfer = 15
+maxwaittimetransfer = 15
 maxtimetravel = 60
 timeinterval = 10
 

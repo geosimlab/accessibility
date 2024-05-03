@@ -8,7 +8,7 @@ import osgeo.gdal
 import osgeo.osr
 
 from PyQt5.QtWidgets import QDialogButtonBox, QDialog, QFileDialog, QApplication
-from PyQt5.QtCore import QRegExp, QDateTime, QEvent
+from PyQt5.QtCore import Qt, QRegExp, QDateTime, QEvent
 from PyQt5.QtGui import QRegExpValidator, QDesktopServices
 from PyQt5 import uic
 
@@ -23,11 +23,16 @@ class RaptorDetailed(QDialog, FORM_CLASS):
     def __init__(self, mode, protocol_type, title = "Raptor detailed"):
             super().__init__()
             self.setupUi(self)
+            self.setModal(False)
+            self.setWindowFlags(Qt.Window);
             self.user_home = os.path.expanduser("~")
             
             self.setWindowTitle(title)
             self.tabWidget.setCurrentIndex(0) 
             self.config = configparser.ConfigParser()
+
+            #self.textLog.anchorClicked.connect(self.openExternalLink)
+
             self.break_on = False
             
             self.mode = mode
@@ -97,13 +102,16 @@ class RaptorDetailed(QDialog, FORM_CLASS):
 
             self.ParametrsShow()
 
+    #def openExternalLink(self, url):
+    #    QDesktopServices.openUrl(QUrl(url))
+
     def openFolder(self, url):
         QDesktopServices.openUrl(url)
         
 
     def set_break_on (self):
       self.break_on = True
-      self.run_button.setEnabled(True)
+      #self.run_button.setEnabled(True)
 
     def on_run_button_clicked(self):
         self.run_button.setEnabled(False)
@@ -116,6 +124,11 @@ class RaptorDetailed(QDialog, FORM_CLASS):
         if not self.cmbLayers.currentText():
           self.run_button.setEnabled(True)
           self.setMessage ("Need choise layer")   
+          return 0
+        
+        if self.cbUseFields.isChecked() and self.cmbFields.currentText() == "":
+          self.run_button.setEnabled(True)
+          self.setMessage ("Need choise field to aggregate")   
           return 0
         
         self.saveParameters()
@@ -140,7 +153,7 @@ class RaptorDetailed(QDialog, FORM_CLASS):
 
         self.prepareRaptor()
        
-        self.run_button.setEnabled(True)
+        #self.run_button.setEnabled(True)
         
     
     def on_close_button_clicked(self):
@@ -193,7 +206,7 @@ class RaptorDetailed(QDialog, FORM_CLASS):
       self.config['Settings']['TIME'] = self.dtStartTime.dateTime().toString("HH:mm:ss")
       self.config['Settings']['Speed'] = self.txtSpeed.text()
       self.config['Settings']['MaxWaitTime'] = self.txtMaxWaitTime.text()
-      self.config['Settings']['MaxWaitTimeTranfer'] = self.txtMaxWaitTimeTransfer.text()
+      self.config['Settings']['MaxWaitTimeTrasnfer'] = self.txtMaxWaitTimeTransfer.text()
       self.config['Settings']['MaxTimeTravel'] = self.txtMaxTimeTravel.text()
       
 
@@ -227,7 +240,7 @@ class RaptorDetailed(QDialog, FORM_CLASS):
 
       self.txtSpeed.setText(self.config['Settings']['Speed'])
       self.txtMaxWaitTime.setText(self.config['Settings']['MaxWaitTime'])
-      self.txtMaxWaitTimeTransfer.setText(self.config['Settings']['MaxWaitTimeTranfer'])
+      self.txtMaxWaitTimeTransfer.setText(self.config['Settings']['MaxWaitTimeTransfer'])
       self.txtMaxTimeTravel.setText( self.config['Settings']['MaxTimeTravel'])
       
       
@@ -342,7 +355,44 @@ class RaptorDetailed(QDialog, FORM_CLASS):
       for section in self.config.sections():
         config_info.append(f"<a>[{section}]</a>")
         for key, value in self.config.items(section):
-            config_info.append(f"<a>{key}: {value}</a>")
+            if key == "pathtopkl":
+              config_info.append(f"<a>Dataset folder: {value}</a>")
+
+            if key == "pathtoprotocols":
+              config_info.append(f"<a>Output folder: {value}</a>")  
+
+            if key == "layer":
+              config_info.append(f"<a>Layer of origins (points/polygons): {value}</a>")
+
+            if key == "layerdest":
+              config_info.append(f"<a>Layer of destinations (points/polygons): {value}</a>")
+
+            
+            if key == "min_transfer":
+              config_info.append(f"<a>Min transfers: {value}</a>")      
+            if key == "max_transfer":
+              config_info.append(f"<a>Max transfers: {value}</a>")      
+            if key == "maxwalkdist1":
+              config_info.append(f"<a>Max walk distance to the initial PT stop: {value} m</a>")      
+            if key == "maxwalkdist2":
+              config_info.append(f"<a>Max walk distance at transfer: {value} m</a>")      
+            if key == "maxwalkdist3":
+              config_info.append(f"<a>Max walk distance from a last PT stop: {value} m</a>") 
+
+            if key == "time":
+              config_info.append(f"<a>Start at/Arrive before (time): {value}</a>")      
+            if key == "speed":
+              config_info.append(f"<a>Walking speed: {value} km/h</a>")      
+            if key == "maxwaittime":
+              config_info.append(f"<a>Maximal waiting time at initial stop: {value} min</a>")      
+            if key == "maxwaittimetransfer":
+              config_info.append(f"<a>Maximal waiting time at transfer stop: {value} min</a>")      
+            if key == "maxtimetravel":
+              config_info.append(f"<a>Maximal time travel: {value} min</a>") 
+            
+
+
+
       return config_info
 
     

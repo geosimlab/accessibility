@@ -141,7 +141,7 @@ def runRaptorWithProtocol(self, sources, raptor_mode, protocol_type)-> tuple:
 
   MaxTimeTravel = float(self.config['Settings']['MaxTimeTravel'].replace(',', '.'))*60           # to sec
   MaxWaitTime = float(self.config['Settings']['MaxWaitTime'].replace(',', '.'))*60               # to sec
-  MaxWaitTimeTransfer= float(self.config['Settings']['MaxWaitTimeTranfer'].replace(',', '.'))*60 # to sec 
+  MaxWaitTimeTransfer= float(self.config['Settings']['MaxWaitTimeTransfer'].replace(',', '.'))*60 # to sec 
   
   CHANGE_TIME_SEC = int(self.change_time)
   time_step = int (self.config['Settings']['TimeInterval'])
@@ -338,10 +338,11 @@ def write_info (self,Layer, LayerDest, curr_getDateTime, folder_name):
 
   zip_filename1 = f'{folder_name}//origins_{Layer}_{curr_getDateTime}.zip'
   filename1 = f'{folder_name}//origins_{Layer}_{curr_getDateTime}.geojson'
-  zip_filename2 = f'{folder_name}//destinations_{LayerDest}_{curr_getDateTime}.zip'
-  filename2 = f'{folder_name}//destinations_{LayerDest}_{curr_getDateTime}.geojson'
+  
   save_layer_to_zip(Layer, zip_filename1, filename1)
   if Layer != LayerDest: 
+    zip_filename2 = f'{folder_name}//destinations_{LayerDest}_{curr_getDateTime}.zip'
+    filename2 = f'{folder_name}//destinations_{LayerDest}_{curr_getDateTime}.geojson'
     save_layer_to_zip(LayerDest, zip_filename2, filename2)  
   
   self.textLog.append(f'<a href="file:///{folder_name}" target="_blank" >Output in folder</a>')  
@@ -779,19 +780,19 @@ def  make_protocol_detailed(raptor_mode, D_TIME, dictInput, protocol_full_path):
          if raptor_mode == 1:
                       
            row = f'{symbol1}{SOURCE}{sep}{seconds_to_time(D_TIME)}{sep}{walk1_time}{sep}{sfirst_boarding_stop}\
-            {sep}{wait1_time}{sep}{sfirst_boarding_time}{sep}{line1_id}{sep}{ride1_time}{sep}{sfirst_arrive_stop}{sep}{sfirst_arrive_time}\
-            {sep}{walk2_time}{sep}{ssecond_boarding_stop}{sep}{wait2_time}{sep}{ssecond_boarding_time}{sep}{line2_id}{sep}{ride2_time}{sep}{ssecond_arrive_stop}{sep}{ssecond_bus_arrival_time}\
-            {sep}{walk3_time}{sep}{sthird_boarding_stop}{sep}{wait3_time}{sep}{sthird_boarding_time}{sep}{line3_id}{sep}{ride3_time}{sep}{sthird_arrive_stop}{sep}{sthird_bus_arrival_time}\
-            {sep}{dest_walk_time}{sep}{destination_type}{orig_dest}{sep}{sarrival_time}'
+{sep}{wait1_time}{sep}{sfirst_boarding_time}{sep}{line1_id}{sep}{ride1_time}{sep}{sfirst_arrive_stop}{sep}{sfirst_arrive_time}\
+{sep}{walk2_time}{sep}{ssecond_boarding_stop}{sep}{wait2_time}{sep}{ssecond_boarding_time}{sep}{line2_id}{sep}{ride2_time}{sep}{ssecond_arrive_stop}{sep}{ssecond_bus_arrival_time}\
+{sep}{walk3_time}{sep}{sthird_boarding_stop}{sep}{wait3_time}{sep}{sthird_boarding_time}{sep}{line3_id}{sep}{ride3_time}{sep}{sthird_arrive_stop}{sep}{sthird_bus_arrival_time}\
+{sep}{dest_walk_time}{sep}{destination_type}{orig_dest}{sep}{sarrival_time}'
          else:
 
 
            
            row = f'{symbol1}{SOURCE_REV}{sep}{seconds_to_time(start_time)}{sep}{walk1_time}{sep}{sfirst_boarding_stop}\
-            {sep}{wait1_time}{sep}{sfirst_boarding_time}{sep}{line1_id}{sep}{ride1_time}{sep}{sfirst_arrive_stop}{sep}{sfirst_arrive_time}\
-            {sep}{walk2_time}{sep}{ssecond_boarding_stop}{sep}{wait2_time}{sep}{ssecond_boarding_time}{sep}{line2_id}{sep}{ride2_time}{sep}{ssecond_arrive_stop}{sep}{ssecond_bus_arrival_time}\
-            {sep}{walk3_time}{sep}{sthird_boarding_stop}{sep}{wait3_time}{sep}{sthird_boarding_time}{sep}{line3_id}{sep}{ride3_time}{sep}{sthird_arrive_stop}{sep}{sthird_bus_arrival_time}\
-            {sep}{dest_walk_time}{sep}{destination_type}{SOURCE}{sep}{sarrival_time}{sep}{seconds_to_time(D_TIME)}' 
+{sep}{wait1_time}{sep}{sfirst_boarding_time}{sep}{line1_id}{sep}{ride1_time}{sep}{sfirst_arrive_stop}{sep}{sfirst_arrive_time}\
+{sep}{walk2_time}{sep}{ssecond_boarding_stop}{sep}{wait2_time}{sep}{ssecond_boarding_time}{sep}{line2_id}{sep}{ride2_time}{sep}{ssecond_arrive_stop}{sep}{ssecond_bus_arrival_time}\
+{sep}{walk3_time}{sep}{sthird_boarding_stop}{sep}{wait3_time}{sep}{sthird_boarding_time}{sep}{line3_id}{sep}{ride3_time}{sep}{sthird_arrive_stop}{sep}{sthird_bus_arrival_time}\
+{sep}{dest_walk_time}{sep}{destination_type}{SOURCE}{sep}{sarrival_time}{sep}{seconds_to_time(D_TIME)}' 
 
                
          filetowrite.write(row +"\n")
@@ -806,13 +807,16 @@ def int1(s):
   return result
 
 def save_layer_to_zip(layer_name, zip_filename, filename):
-    layer = QgsProject.instance().mapLayersByName(layer_name)[0]
-    temp_file = "temp_layer_file.geojson"
+    try:
+      layer = QgsProject.instance().mapLayersByName(layer_name)[0]
+      temp_file = "temp_layer_file.geojson"
     
-    QgsVectorFileWriter.writeAsVectorFormat(layer, temp_file, "utf-8", layer.crs(), "GeoJSON")
-    with zipfile.ZipFile(zip_filename, 'w') as zipf:
-      zipf.write(temp_file, os.path.basename(filename))
-    os.remove(temp_file)   
+      QgsVectorFileWriter.writeAsVectorFormat(layer, temp_file, "utf-8", layer.crs(), "GeoJSON")
+      with zipfile.ZipFile(zip_filename, 'w') as zipf:
+        zipf.write(temp_file, os.path.basename(filename))
+      os.remove(temp_file)   
+    except:
+      return 0
     
     
      
