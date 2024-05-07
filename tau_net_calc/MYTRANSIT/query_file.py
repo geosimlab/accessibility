@@ -101,12 +101,12 @@ def myload_all_dict(self, PathToNetwork, mode):
 def getDateTime():
   current_datetime = datetime.now()
   year = current_datetime.year
-  month = current_datetime.month
-  day = current_datetime.day
-  hour = current_datetime.hour
-  minute = current_datetime.minute
-  second = current_datetime.second
-  return f'{year}_{month}_{day}_{hour}_{minute}_{second}'
+  month = str(current_datetime.month).zfill(2)
+  day = str(current_datetime.day).zfill(2)
+  hour = str(current_datetime.hour).zfill(2)
+  minute = str(current_datetime.minute).zfill(2)
+  second = str(current_datetime.second).zfill(2)
+  return f'{year}{month}{day}_{hour}{minute}{second}'
 
 def verify_break (self, Layer= "", LayerDest= "", curr_getDateTime = "", folder_name = "", ):
   if self.break_on:
@@ -118,7 +118,7 @@ def verify_break (self, Layer= "", LayerDest= "", curr_getDateTime = "", folder_
             return True
   return False
 
-def runRaptorWithProtocol(self, sources, raptor_mode, protocol_type)-> tuple:
+def runRaptorWithProtocol(self, sources, raptor_mode, protocol_type, timetable_mode)-> tuple:
 
   
   count = len(sources)
@@ -132,6 +132,9 @@ def runRaptorWithProtocol(self, sources, raptor_mode, protocol_type)-> tuple:
   
   MAX_TRANSFER = int (self.config['Settings']['Max_transfer'])
   MIN_TRANSFER = int (self.config['Settings']['Min_transfer'])
+
+  MaxExtraTime = int (self.config['Settings']['MaxExtraTime'])*60
+  DepartureInterval = int (self.config['Settings']['DepartureInterval'])*60
   
   Speed = float(self.config['Settings']['Speed'].replace(',', '.')) * 1000 / 3600                    # from km/h to m/sec
 
@@ -280,7 +283,7 @@ def runRaptorWithProtocol(self, sources, raptor_mode, protocol_type)-> tuple:
            
            output, time1, time2, time3, time4, time5, time6  = raptor(SOURCE, D_TIME, MAX_TRANSFER, MIN_TRANSFER, CHANGE_TIME_SEC,
                             routes_by_stop_dict, stops_dict, stoptimes_dict, footpath_dict,  
-                            idx_by_route_stop_dict,MaxTimeTravel, MaxWalkDist1, MaxWalkDist2, MaxWalkDist3, MaxWaitTime, MaxWaitTimeTransfer)
+                            idx_by_route_stop_dict,MaxTimeTravel, MaxWalkDist1, MaxWalkDist2, MaxWalkDist3, MaxWaitTime, MaxWaitTimeTransfer, timetable_mode, MaxExtraTime, DepartureInterval)
            
            total_time1 += time1
            total_time2 += time2
@@ -293,7 +296,7 @@ def runRaptorWithProtocol(self, sources, raptor_mode, protocol_type)-> tuple:
             
             output = rev_raptor(SOURCE, D_TIME, MAX_TRANSFER, MIN_TRANSFER, CHANGE_TIME_SEC, 
                             routes_by_stop_dict, stops_dict, stoptimes_dict, footpath_dict, 
-                            idx_by_route_stop_dict,MaxTimeTravel, MaxWalkDist1, MaxWalkDist2, MaxWalkDist3, MaxWaitTime,MaxWaitTimeTransfer)
+                            idx_by_route_stop_dict,MaxTimeTravel, MaxWalkDist1, MaxWalkDist2, MaxWalkDist3, MaxWaitTime,MaxWaitTimeTransfer, timetable_mode, MaxExtraTime, DepartureInterval)
             
             
           # !testing -deleting item with None value on end
@@ -309,7 +312,7 @@ def runRaptorWithProtocol(self, sources, raptor_mode, protocol_type)-> tuple:
           if protocol_type == 1:   
             make_protocol_summary(SOURCE, reachedLabels, f, grades, UseField, attribute_dict) 
           if protocol_type == 2 :           
-            make_protocol_detailed(raptor_mode, D_TIME, reachedLabels, f)
+            make_protocol_detailed (raptor_mode, D_TIME, reachedLabels, f, timetable_mode)
            
                  
   #print (f'total_time1 {total_time1}')
@@ -340,10 +343,13 @@ def write_info (self,Layer, LayerDest, curr_getDateTime, folder_name):
   filename1 = f'{folder_name}//origins_{Layer}_{curr_getDateTime}.geojson'
   
   save_layer_to_zip(Layer, zip_filename1, filename1)
+  
+  """
   if Layer != LayerDest: 
     zip_filename2 = f'{folder_name}//destinations_{LayerDest}_{curr_getDateTime}.zip'
     filename2 = f'{folder_name}//destinations_{LayerDest}_{curr_getDateTime}.geojson'
     save_layer_to_zip(LayerDest, zip_filename2, filename2)  
+  """
   
   self.textLog.append(f'<a href="file:///{folder_name}" target="_blank" >Output in folder</a>')  
   
@@ -381,7 +387,8 @@ def make_protocol_summary (SOURCE, dictInput, f, grades, use_fields, attribute_d
    
  
 # for type_protokol =2 
-def  make_protocol_detailed(raptor_mode, D_TIME, dictInput, protocol_full_path):
+def  make_protocol_detailed(raptor_mode, D_TIME, dictInput, protocol_full_path, timetable_mode):
+  
   
   sep=","
   building_symbol = "b"
@@ -774,9 +781,29 @@ def  make_protocol_detailed(raptor_mode, D_TIME, dictInput, protocol_full_path):
          if walk1_time == "":
              walk1_time = 0 
 
+         if walk2_time == "" and ssecond_boarding_stop != "":
+             walk2_time = 0     
+
+         if walk3_time == "" and sthird_boarding_stop != "":
+             walk3_time = 0     
+
          if dest_walk_time == "":
              dest_walk_time = 0  
          
+         #if timetable_mode and len(journey) > 1:
+         #  D_TIME = journey[0][4]
+         if timetable_mode and raptor_mode == 1: 
+           D_TIME = journey[0][4] 
+
+         #if timetable_mode and raptor_mode == 2: 
+         if raptor_mode == 2:   
+           if len(journey) > 1:
+            sarrival_time = seconds_to_time(journey[-2][3] + journey[-1][3])
+           else: 
+            sarrival_time = seconds_to_time(journey[0][3] + journey[0][4])
+              
+                  
+
          if raptor_mode == 1:
                       
            row = f'{symbol1}{SOURCE}{sep}{seconds_to_time(D_TIME)}{sep}{walk1_time}{sep}{sfirst_boarding_stop}\
@@ -796,7 +823,6 @@ def  make_protocol_detailed(raptor_mode, D_TIME, dictInput, protocol_full_path):
 
                
          filetowrite.write(row +"\n")
-         
                     
 
  

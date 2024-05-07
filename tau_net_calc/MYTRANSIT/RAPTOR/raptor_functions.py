@@ -36,7 +36,7 @@ def initialize_raptor(routes_by_stop_dict: dict, SOURCE: int, MAX_TRANSFER: int)
     marked_stop_dict = {stop: 0 for stop in routes_by_stop_dict.keys()}
     marked_stop.append(SOURCE)
     marked_stop_dict[SOURCE] = 1
-    return marked_stop, marked_stop_dict, label, pi_label, star_label, inf_time
+    return marked_stop, marked_stop_dict, label, pi_label, star_label
 
 
 def get_latest_trip_new(stoptimes_dict: dict, route: int, arrival_time_at_pi, pi_index: int, change_time, max_waiting_time) -> tuple:
@@ -74,9 +74,13 @@ def get_latest_trip_new(stoptimes_dict: dict, route: int, arrival_time_at_pi, pi
             
             if t1 == 0:
                 continue
-            
-            
-            if (t1 >= arrival_time_at_pi + change_time) and (t1 <= arrival_time_at_pi + max_waiting_time) :   
+           
+
+            if (t1 >= arrival_time_at_pi + change_time) and (t1 <= arrival_time_at_pi + max_waiting_time) :  
+                #if trip_idx == "49449015_310723":
+                #    print (f't1 {t1}')            
+                #    print (f'arrival_time_at_pi {arrival_time_at_pi}')            
+                #    print (f'max_waiting_time {max_waiting_time}')            
                 return f'{route}_{trip_idx}', stoptimes_dict[route][trip_idx]
     return -1, -1  # No trip is found after arrival_time_at_pi
     
@@ -85,7 +89,7 @@ def get_latest_trip_new(stoptimes_dict: dict, route: int, arrival_time_at_pi, pi
 
 
 
-def post_processing (DESTINATION: int, pi_label, MIN_TRANSFER, MaxWalkDist) -> tuple:
+def post_processing (DESTINATION: int, pi_label, MIN_TRANSFER, MaxWalkDist, timetable_mode, Maximal_travel_time, D_Time, mode_raptor, departure_interval) -> tuple:
     '''
     Post processing for std_RAPTOR. Currently supported functionality:
         1. Rounds in which DESTINATION is reached
@@ -130,8 +134,7 @@ def post_processing (DESTINATION: int, pi_label, MIN_TRANSFER, MaxWalkDist) -> t
         
         last_mode = ""
         trip_set = []
-
-        #print (f'rounds_inwhich_desti_reached {rounds_inwhich_desti_reached}')        
+        
         for k in rounds_inwhich_desti_reached:
             transfer_needed = k - 1
 
@@ -149,7 +152,7 @@ def post_processing (DESTINATION: int, pi_label, MIN_TRANSFER, MaxWalkDist) -> t
             
             
             while pi_label[k][stop] != -1:
-               
+                
                 journey.append(pi_label[k][stop])
                
                 mode = pi_label[k][stop][0]
@@ -163,12 +166,16 @@ def post_processing (DESTINATION: int, pi_label, MIN_TRANSFER, MaxWalkDist) -> t
                     """
                     if walking_stops != [] : #previous step was also walking
                 
-                       if stop in walking_stops:
-                          k = k - 1  
-                          walking_stops = []
-                       else:
-                         walking_stops.append(stop) 
-                         stop = pi_label[k][stop][1]               
+                        if stop in walking_stops:
+                            #k = k - 1  
+                            walking_stops = []
+                            # changed 06.05.2024!!!
+                            journey = []
+                            break
+                            # changed 06.05.2024!!!
+                        else:
+                            walking_stops.append(stop) 
+                            stop = pi_label[k][stop][1]               
                     else:                          
                          walking_stops.append(stop) 
                          stop = pi_label[k][stop][1]                                        
@@ -193,8 +200,35 @@ def post_processing (DESTINATION: int, pi_label, MIN_TRANSFER, MaxWalkDist) -> t
 
             
             #if len(journey) > 0 and not (journey[-1][0] == 'walking' and journey[-1][3].total_seconds() > MaxWalkDist) and (transfer_needed >= MIN_TRANSFER):
+            
+            append = True                            
+            
+            #print (f'timetable_mode {timetable_mode}')
+            #print (f'mode {mode}')
+            if timetable_mode and mode_raptor == 1:
+                # pi_label[0][p_dash] = ('walking', SOURCE, p_dash, to_pdash_time, new_p_dash_time)
+                # pi_label[k][p_i] = (boarding_time, boarding_point, p_i, arr_by_t_at_pi, tid)
+                print ('correct!')
+                if len (journey)> 1 and journey[0][0] == "walking" and journey[1][0] != "walking":
+
+                    new_value = journey[1][0] - departure_interval
+                    journey[0] = (journey[0][0], journey[0][1], journey[0][2], journey[0][3], new_value)    
+                    
+                    start_time = journey[0][4] - journey[0][3]
+                    if journey[-1][0] == 'walking':
+                        end_time = journey[-1][4] 
+                    else:
+                        end_time = journey[-1][3]  
+
+                    duration = end_time - start_time
+
+                    if duration > Maximal_travel_time or start_time < D_Time:
+                        append = False
+                   
+            
             if len(journey) > 0 and not (journey[-1][0] == 'walking' and journey[-1][3] > MaxWalkDist) and (transfer_needed+1 >= MIN_TRANSFER):    
-                pareto_set.append((transfer_needed, journey))
+                if append:
+                    pareto_set.append((transfer_needed, journey))
         
         if len(pareto_set) == 0:
           return None, None, None,None
@@ -203,7 +237,7 @@ def post_processing (DESTINATION: int, pi_label, MIN_TRANSFER, MaxWalkDist) -> t
   
 
 
-def post_processingAll(call_name, SOURCE, D_TIME, label, pi_label, MIN_TRANSFER, MaxWalkDist) -> tuple:
+def post_processingAll(call_name, SOURCE, D_TIME, label, pi_label, MIN_TRANSFER, MaxWalkDist, timetable_mode, Maximal_travel_time, departure_interval, mode) -> tuple:
    newDict = dict()   
    stops = label[0].keys()
       
@@ -217,7 +251,7 @@ def post_processingAll(call_name, SOURCE, D_TIME, label, pi_label, MIN_TRANSFER,
             QApplication.processEvents()
             if SOURCE == p_i:
                continue        
-            pareto_set = post_processing (p_i, pi_label, MIN_TRANSFER, MaxWalkDist)           
+            pareto_set = post_processing (p_i, pi_label, MIN_TRANSFER, MaxWalkDist, timetable_mode, Maximal_travel_time, D_TIME, mode, departure_interval)           
             
 
             total_time_to_dest = -1           

@@ -8,7 +8,7 @@ from RAPTOR.raptor_functions import *
 def rev_raptor(SOURCE, D_TIME, MAX_TRANSFER, MIN_TRANSFER, 
                 change_time, routes_by_stop_dict, stops_dict, stoptimes_dict, footpath_dict,
                 idx_by_route_stop_dict,Maximal_travel_time,
-                MaxWalkDist1, MaxWalkDist2, MaxWalkDist3, MaxWaitTime, MaxWaitTimeTransfer) -> list:
+                MaxWalkDist1, MaxWalkDist2, MaxWalkDist3, MaxWaitTime, MaxWaitTimeTransfer, timetable_mode, MaxExtraTime, departure_interval) -> list:
     '''
     Standard Raptor implementation
 
@@ -40,6 +40,8 @@ def rev_raptor(SOURCE, D_TIME, MAX_TRANSFER, MIN_TRANSFER,
     my_name=rev_raptor.__name__
     out = []
     marked_stop, marked_stop_dict, label, pi_label, star_label, inf_time = initialize_rev_raptor(routes_by_stop_dict, SOURCE, MAX_TRANSFER)
+
+    change_time_save = change_time
     
     (label[0][SOURCE], star_label[SOURCE]) = (D_TIME, D_TIME)
     Q = {}  # Format of Q is {route:stop index}
@@ -52,6 +54,10 @@ def rev_raptor(SOURCE, D_TIME, MAX_TRANSFER, MIN_TRANSFER,
     MaxWalkDist3_time = MaxWalkDist3
 
     min_time = D_TIME - Maximal_travel_time
+
+    if timetable_mode:
+        #MaxWaitTime = 30 * 60
+        D_TIME = D_TIME - departure_interval
 
     if True:
         try:
@@ -87,10 +93,13 @@ def rev_raptor(SOURCE, D_TIME, MAX_TRANSFER, MIN_TRANSFER,
     
     for k in range(1, roundsCount + 1):
         QApplication.processEvents()
+
         if k == 1:
             MaxWaitCurr = MaxWaitTime
+            change_time = 0
         else:
-            MaxWaitCurr = MaxWaitTimeTransfer 
+            MaxWaitCurr = MaxWaitTimeTransfer
+            change_time = change_time_save 
         #print (f'round {k}')
         #print (f'part 1') 
         
@@ -195,6 +204,10 @@ def rev_raptor(SOURCE, D_TIME, MAX_TRANSFER, MIN_TRANSFER,
                         
                 current_stopindex_by_route = current_stopindex_by_route + 1
 
+        #if k == 1 and timetable_mode:
+        #    t_max = get_t_min(pi_label, routes_by_stop_dict.keys())
+        #    min_time = t_max - Maximal_travel_time
+
         #print (f' part 2 pi_label {pi_label}')
         #print (f' marked_stop {marked_stop}')
 
@@ -225,7 +238,7 @@ def rev_raptor(SOURCE, D_TIME, MAX_TRANSFER, MIN_TRANSFER,
         if marked_stop == deque([]):
             break
     
-    reachedLabels = post_processingAll(my_name, SOURCE, D_TIME, label, pi_label, MIN_TRANSFER,  MaxWalkDist1)
+    reachedLabels = post_processingAll(my_name, SOURCE, D_TIME, label, pi_label, MIN_TRANSFER,  MaxWalkDist1, timetable_mode, Maximal_travel_time, departure_interval, mode = 2)
     out=reachedLabels    
     return out
 

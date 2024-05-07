@@ -7,7 +7,7 @@ from qgis.core import QgsProject, QgsWkbTypes
 import osgeo.gdal
 import osgeo.osr
 
-from PyQt5.QtWidgets import QDialogButtonBox, QDialog, QFileDialog, QApplication
+from PyQt5.QtWidgets import QDialogButtonBox, QDialog, QFileDialog, QApplication, QMessageBox
 from PyQt5.QtCore import Qt, QRegExp, QDateTime, QEvent
 from PyQt5.QtGui import QRegExpValidator, QDesktopServices
 from PyQt5 import uic
@@ -15,17 +15,21 @@ from PyQt5 import uic
 from query_file import runRaptorWithProtocol
 import configparser
 
+
+
 # This loads your .ui file so that PyQt can populate your plugin with the elements from Qt Designer
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'raptor.ui'))
 
 class RaptorDetailed(QDialog, FORM_CLASS):
-    def __init__(self, mode, protocol_type, title = "Raptor detailed"):
+    def __init__(self, mode, protocol_type, title = "Raptor detailed", timetable_mode = False):
             super().__init__()
             self.setupUi(self)
             self.setModal(False)
             self.setWindowFlags(Qt.Window);
             self.user_home = os.path.expanduser("~")
+
+                           
             
             self.setWindowTitle(title)
             self.tabWidget.setCurrentIndex(0) 
@@ -38,6 +42,7 @@ class RaptorDetailed(QDialog, FORM_CLASS):
             self.mode = mode
             self.protocol_type = protocol_type
             self.title = title
+            self.timetable_mode = timetable_mode
             self.change_time = 1
             #self.stops_id_name = "stop_id"
             #self.stops_build_name = "osm_id"
@@ -48,6 +53,23 @@ class RaptorDetailed(QDialog, FORM_CLASS):
             self.cmbFields.setVisible(False)
             self.lblFields.setVisible(False)
             self.cbUseFields.setVisible(False)
+
+            if not timetable_mode:
+               self.lblMaxExtraTime.setVisible(False)
+               self.txtMaxExtraTime.setVisible(False)
+               self.lblDepartureInterval.setVisible(False)
+               self.txtDepartureInterval.setVisible(False)
+
+            if timetable_mode:
+               #self.lblMaxWaitTime.setVisible(False)
+               self.txtMaxWaitTime.setVisible(False)
+               
+            
+            if timetable_mode and mode == 2:
+              self.lblDepartureInterval.setText("Departure interval latest, min")
+
+
+               
 
             self.textLog.setOpenLinks(False)
             self.textLog.anchorClicked.connect(self.openFolder)
@@ -99,6 +121,10 @@ class RaptorDetailed(QDialog, FORM_CLASS):
             self.txtMaxWaitTime.setValidator(int_validator3)
             self.txtMaxWaitTimeTransfer.setValidator(int_validator3)
             self.txtMaxTimeTravel.setValidator(int_validator3)
+            self.txtMaxExtraTime.setValidator(int_validator3)
+            self.txtDepartureInterval.setValidator(int_validator3)
+            
+            
 
             self.ParametrsShow()
 
@@ -111,6 +137,7 @@ class RaptorDetailed(QDialog, FORM_CLASS):
 
     def set_break_on (self):
       self.break_on = True
+      self.close_button.setEnabled(True)
       #self.run_button.setEnabled(True)
 
     def on_run_button_clicked(self):
@@ -136,6 +163,7 @@ class RaptorDetailed(QDialog, FORM_CLASS):
 
         
         self.setMessage ("Starting ...")
+        self.close_button.setEnabled(False)
         self.textLog.clear()
         self.tabWidget.setCurrentIndex(1) 
         self.textLog.append("<a style='font-weight:bold;'>[System]</a>")
@@ -152,12 +180,13 @@ class RaptorDetailed(QDialog, FORM_CLASS):
         self.textLog.append(f'<a>{info_str}</a>')
 
         self.prepareRaptor()
+        self.close_button.setEnabled(True)
        
         #self.run_button.setEnabled(True)
         
     
     def on_close_button_clicked(self):
-        self.break_on = True
+        #self.break_on = True
         self.reject()
         
     
@@ -200,6 +229,8 @@ class RaptorDetailed(QDialog, FORM_CLASS):
       self.config['Settings']['LayerDest'] = self.cmbLayersDest.currentText()
       self.config['Settings']['Min_transfer'] = self.txtMinTransfers.text()
       self.config['Settings']['Max_transfer'] = self.txtMaxTransfers.text()
+      self.config['Settings']['MaxExtraTime'] = self.txtMaxExtraTime.text()
+      self.config['Settings']['DepartureInterval'] = self.txtDepartureInterval.text()
       self.config['Settings']['MaxWalkDist1'] = self.txtMaxWalkDist1.text()
       self.config['Settings']['MaxWalkDist2'] = self.txtMaxWalkDist2.text()
       self.config['Settings']['MaxWalkDist3'] = self.txtMaxWalkDist3.text()
@@ -209,6 +240,9 @@ class RaptorDetailed(QDialog, FORM_CLASS):
       self.config['Settings']['MaxWaitTimeTrasnfer'] = self.txtMaxWaitTimeTransfer.text()
       self.config['Settings']['MaxTimeTravel'] = self.txtMaxTimeTravel.text()
       
+      
+      
+     
 
       with open(f, 'w') as configfile:
           self.config.write(configfile)
@@ -242,7 +276,14 @@ class RaptorDetailed(QDialog, FORM_CLASS):
       self.txtMaxWaitTime.setText(self.config['Settings']['MaxWaitTime'])
       self.txtMaxWaitTimeTransfer.setText(self.config['Settings']['MaxWaitTimeTransfer'])
       self.txtMaxTimeTravel.setText( self.config['Settings']['MaxTimeTravel'])
-      
+
+      max_extra_time = self.config['Settings'].get('maxextratime', '30')
+      self.txtMaxExtraTime.setText(max_extra_time)
+
+      DepartureInterval = self.config['Settings'].get('departureinterval', '5')
+      self.txtDepartureInterval.setText(DepartureInterval)
+
+     
       
 
     def check_folder_and_file(self):
@@ -327,6 +368,7 @@ class RaptorDetailed(QDialog, FORM_CLASS):
 
       mode = self.mode
       protocol_type = self.protocol_type
+      timetable_mode = self.timetable_mode
       D_TIME = self.time_to_seconds(self.config['Settings']['TIME'])
       sources = [] 
 
@@ -336,9 +378,34 @@ class RaptorDetailed(QDialog, FORM_CLASS):
           sources.append((stop_id, D_TIME))
       else:
         self.setMessage("No exist points in layer")
+        self.run_button.setEnabled(True)
         return 0
+      
+      run = True
+      if len(sources) > 10:
+        msgBox = QMessageBox()
+        msgBox.setIcon(QMessageBox.Question)
+        msgBox.setWindowTitle("Confirm")
+        msgBox.setText(f"Layer contains {len(sources)} feature. No more than 10 objects are recommended. The calculations can take a long time and require a lot of resources. Are you sure?")
+        msgBox.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        
+        result = msgBox.exec_()
+        if result == QMessageBox.Yes:
+          run = True
+        else:
+          run = False
                    
-      runRaptorWithProtocol(self, sources, mode, protocol_type)
+      if run:
+         runRaptorWithProtocol(self, sources, mode, protocol_type, timetable_mode)
+
+      if not(run):
+         self.run_button.setEnabled(True)
+         self.close_button.setEnabled(True)
+         self.textLog.clear()
+         self.tabWidget.setCurrentIndex(0) 
+         self.setMessage("")
+
+         
       
 
     def get_qgis_info(self):
@@ -372,6 +439,19 @@ class RaptorDetailed(QDialog, FORM_CLASS):
               config_info.append(f"<a>Min transfers: {value}</a>")      
             if key == "max_transfer":
               config_info.append(f"<a>Max transfers: {value}</a>")      
+
+            if self.timetable_mode:
+              if key == "maxextratime":
+                config_info.append(f"<a>Maximum extra time at a first stop: {value} min</a>") 
+
+              if key == "departureinterval":
+                if self.mode == 1:
+                  config_info.append(f"<a>Departure interval earliest: {value} min</a>") 
+                else:  
+                  config_info.append(f"<a>Departure interval latest: {value} min</a>")  
+
+                
+
             if key == "maxwalkdist1":
               config_info.append(f"<a>Max walk distance to the initial PT stop: {value} m</a>")      
             if key == "maxwalkdist2":
