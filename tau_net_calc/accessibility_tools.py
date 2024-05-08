@@ -23,12 +23,12 @@ class AccessibilityTools(QWidget):
         group1 = QTreeWidgetItem(self.tree_widget,['General settings'])
         self.item1 = QTreeWidgetItem(group1, ['Set default folders, databases and parameters '])
         self.item1.setFont(0,font)
-        group1.setExpanded(True)
+        #group1.setExpanded(True)
             
-        group2 = QTreeWidgetItem(self.tree_widget,['Data preparation'])
-        self.item2 = QTreeWidgetItem(group2, ['Build a GTFS dictionary'])
-        self.item3 = QTreeWidgetItem(group2, ['Download GTFS dictionary '])
-        group2.setExpanded(True)
+        #group2 = QTreeWidgetItem(self.tree_widget,['Data preparation'])
+        self.item2 = QTreeWidgetItem(group1, ['Select GTFS dictionary'])
+        self.item3 = QTreeWidgetItem(group1, ['Build GTFS dictionary'])
+        group1.setExpanded(True)
 
         group3 = QTreeWidgetItem(self.tree_widget,['Public transport accessibility AREA, by origins or destinations'])
         self.item4 = QTreeWidgetItem(group3, ['Forward accessibility AREA, fixed departure time'])
@@ -95,7 +95,7 @@ class AccessibilityTools(QWidget):
           dialog.show()
 
         if item == self.item4:
-          raptor_detailed = RaptorDetailed(mode = 1, protocol_type = 2, title = "Public transport accessibility AREA, by origins, forward accessibility AREA, fixed departure time")
+          raptor_detailed = RaptorDetailed(mode = 1, protocol_type = 2, title = "Public transport accessibility AREA, by origins, forward accessibility AREA, fixed departure time", timetable_mode = False)
           raptor_detailed.textInfo.setPlainText("Sample description forward raptor")
           raptor_detailed.show()
 
@@ -105,7 +105,7 @@ class AccessibilityTools(QWidget):
           raptor_detailed.show()    
 
         if item == self.item6:
-          raptor_detailed = RaptorDetailed(mode = 2, protocol_type = 2, title = "Public transport accessibility AREA, by destinations, backward accessibility AREA, fixed arrival time")
+          raptor_detailed = RaptorDetailed(mode = 2, protocol_type = 2, title = "Public transport accessibility AREA, by destinations, backward accessibility AREA, fixed arrival time", timetable_mode = False)
           raptor_detailed.textInfo.setPlainText("Sample description backward raptor")
           raptor_detailed.show() 
 
@@ -117,7 +117,7 @@ class AccessibilityTools(QWidget):
 
 
         if item == self.item8:
-          raptor_summary = RaptorSummary(mode = 1, protocol_type = 1, title = "Public transport accessibility MAP, forward accessibility AREA, fixed departure time")
+          raptor_summary = RaptorSummary(mode = 1, protocol_type = 1, title = "Public transport accessibility MAP, forward accessibility AREA, fixed departure time", timetable_mode = False)
           raptor_summary.textInfo.setPlainText("Sample description backward raptor")
           raptor_summary.show()    
 
@@ -127,7 +127,7 @@ class AccessibilityTools(QWidget):
           raptor_summary.show()  
 
         if item == self.item10:
-          raptor_summary = RaptorSummary(mode = 2, protocol_type = 1, title = "Public transport accessibility MAP, backward accessibility AREA, fixed arrival time")
+          raptor_summary = RaptorSummary(mode = 2, protocol_type = 1, title = "Public transport accessibility MAP, backward accessibility AREA, fixed arrival time", timetable_mode = False)
           raptor_summary.textInfo.setPlainText("Sample description backward raptor")
           raptor_summary.show()
 

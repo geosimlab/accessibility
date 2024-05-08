@@ -22,7 +22,7 @@ FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'raptor.ui'))
 
 class RaptorDetailed(QDialog, FORM_CLASS):
-    def __init__(self, mode, protocol_type, title = "Raptor detailed", timetable_mode = False):
+    def __init__(self, mode, protocol_type, title, timetable_mode ):
             super().__init__()
             self.setupUi(self)
             self.setModal(False)
@@ -55,13 +55,14 @@ class RaptorDetailed(QDialog, FORM_CLASS):
             self.cbUseFields.setVisible(False)
 
             if not timetable_mode:
+               print ("not timetable_mode")
                self.lblMaxExtraTime.setVisible(False)
                self.txtMaxExtraTime.setVisible(False)
                self.lblDepartureInterval.setVisible(False)
                self.txtDepartureInterval.setVisible(False)
 
             if timetable_mode:
-               #self.lblMaxWaitTime.setVisible(False)
+               self.lblMaxWaitTime.setVisible(False)
                self.txtMaxWaitTime.setVisible(False)
                
             

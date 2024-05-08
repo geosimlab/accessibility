@@ -7,8 +7,8 @@ from .form_raptor_detailed import RaptorDetailed
 
 
 class RaptorSummary(RaptorDetailed):
-    def __init__(self, mode, protocol_type, title = "Raptor summary", timetable_mode = False):
-            super().__init__(mode, protocol_type, title, timetable_mode = False)
+    def __init__(self, mode, protocol_type, title, timetable_mode):
+            super().__init__(mode, protocol_type, title, timetable_mode)
 
             self.txtTimeInterval.setVisible(True)
             self.lblTimeInterval.setVisible(True)
