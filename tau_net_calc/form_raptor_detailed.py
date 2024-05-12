@@ -67,7 +67,7 @@ class RaptorDetailed(QDialog, FORM_CLASS):
                
             
             if timetable_mode and mode == 2:
-              self.lblDepartureInterval.setText("Departure interval latest, min")
+              self.lblDepartureInterval.setText("Departure interval latest, min                    ")
 
 
                
@@ -227,7 +227,11 @@ class RaptorDetailed(QDialog, FORM_CLASS):
       self.config['Settings']['PathToPKL'] = self.txtPathToPKL.text()
       self.config['Settings']['PathToProtocols'] = self.txtPathToProtocols.text()
       self.config['Settings']['Layer'] = self.cmbLayers.currentText()
+      if hasattr(self, 'cbSelectedOnly1'):
+        self.config['Settings']['SelectedOnly1'] = str(self.cbSelectedOnly1.isChecked())
       self.config['Settings']['LayerDest'] = self.cmbLayersDest.currentText()
+      if hasattr(self, 'cbSelectedOnly2'):
+        self.config['Settings']['SelectedOnly2'] = str(self.cbSelectedOnly2.isChecked())
       self.config['Settings']['Min_transfer'] = self.txtMinTransfers.text()
       self.config['Settings']['Max_transfer'] = self.txtMaxTransfers.text()
       self.config['Settings']['MaxExtraTime'] = self.txtMaxExtraTime.text()
@@ -259,8 +263,21 @@ class RaptorDetailed(QDialog, FORM_CLASS):
       if isinstance(self.config['Settings']['Layer'], str) and self.config['Settings']['Layer'].strip():
         self.cmbLayers.setCurrentText(self.config['Settings']['Layer'])
 
+      try:
+        SelectedOnly1 = self.config['Settings']['SelectedOnly1'].lower() == "true"  
+      except:
+        SelectedOnly1 = False
+      self.cbSelectedOnly1.setChecked(SelectedOnly1)
+      
+      
       if isinstance(self.config['Settings']['LayerDest'], str) and self.config['Settings']['LayerDest'].strip():  
         self.cmbLayersDest.setCurrentText(self.config['Settings']['LayerDest'])
+
+      try:
+        SelectedOnly2 = self.config['Settings']['SelectedOnly2'].lower() == "true"  
+      except:
+        SelectedOnly2 = False
+      self.cbSelectedOnly2.setChecked(SelectedOnly2)  
 
       
       self.txtMinTransfers.setText(self.config['Settings']['Min_transfer'])
@@ -335,6 +352,19 @@ class RaptorDetailed(QDialog, FORM_CLASS):
         self.setMessage(f'No features in layer {layer}')
         return 0  
 
+      if self.cbSelectedOnly1.isChecked():
+         features = layer.selectedFeatures()
+         print (f'len(features) {len(features)}')
+         if len(features) == 0:
+          print ('len(features) empty')
+          msgBox = QMessageBox()
+          msgBox.setIcon(QMessageBox.Information)
+          msgBox.setText(f"You selected an option for layer of origins 'Selected features only' \n  but did not selected any objects in the layer '{self.config['Settings']['Layer']}'")
+          msgBox.setWindowTitle("Information")
+          msgBox.setStandardButtons(QMessageBox.Ok)
+          msgBox.exec_()
+          return 0
+
       fields = layer.fields()
       feature_id_field = fields[0].name()
 
@@ -347,7 +377,11 @@ class RaptorDetailed(QDialog, FORM_CLASS):
         self.setMessage("Layer not consist point and polygon")
         return 0  
      
+      
       features = layer.getFeatures()
+      if self.cbSelectedOnly1.isChecked():
+         features = layer.selectedFeatures()
+
       for feature in features:
         count += 1
         id = feature[feature_id_field]  
@@ -387,7 +421,7 @@ class RaptorDetailed(QDialog, FORM_CLASS):
         msgBox = QMessageBox()
         msgBox.setIcon(QMessageBox.Question)
         msgBox.setWindowTitle("Confirm")
-        msgBox.setText(f"Layer contains {len(sources)} feature. No more than 10 objects are recommended. The calculations can take a long time and require a lot of resources. Are you sure?")
+        msgBox.setText(f"Layer contains {len(sources)+1} feature. No more than 10 objects are recommended. The calculations can take a long time and require a lot of resources. Are you sure?")
         msgBox.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
         
         result = msgBox.exec_()
@@ -397,7 +431,7 @@ class RaptorDetailed(QDialog, FORM_CLASS):
           run = False
                    
       if run:
-         runRaptorWithProtocol(self, sources, mode, protocol_type, timetable_mode)
+         runRaptorWithProtocol(self, sources, mode, protocol_type, timetable_mode, self.cbSelectedOnly1.isChecked(), self.cbSelectedOnly2.isChecked())
 
       if not(run):
          self.run_button.setEnabled(True)
@@ -432,8 +466,14 @@ class RaptorDetailed(QDialog, FORM_CLASS):
             if key == "layer":
               config_info.append(f"<a>Layer of origins (points/polygons): {value}</a>")
 
+            if key == "selectedonly1":
+              config_info.append(f"<a>Selected feature only from layer of origins (points/polygons): {value}</a>")  
+
             if key == "layerdest":
               config_info.append(f"<a>Layer of destinations (points/polygons): {value}</a>")
+
+            if key == "selectedonly2":
+              config_info.append(f"<a>Selected feature only from layer of destinations (points/polygons): {value}</a>")  
 
             
             if key == "min_transfer":

@@ -4,7 +4,8 @@ import zipfile
 from datetime import datetime, timedelta, date
 
 from PyQt5.QtWidgets import QApplication
-from qgis.core import QgsProject, QgsVectorFileWriter
+from qgis.core import QgsProject, QgsVectorFileWriter, QgsVectorLayer, QgsCoordinateTransform 
+
 
 from RAPTOR.std_raptor import raptor
 from RAPTOR.rev_std_raptor import rev_raptor
@@ -113,12 +114,12 @@ def verify_break (self, Layer= "", LayerDest= "", curr_getDateTime = "", folder_
             self.setMessage ("Process raptor is break")
             self.textLog.append (f'<a><b><font color="red">Process raptor is break</font> </b></a>')
             if folder_name !="":
-              write_info (self,Layer, LayerDest, curr_getDateTime, folder_name)  
+              write_info (self, Layer, LayerDest, curr_getDateTime, folder_name, self.cbSelectedOnly1)  
             self.progressBar.setValue(0)  
             return True
   return False
 
-def runRaptorWithProtocol(self, sources, raptor_mode, protocol_type, timetable_mode)-> tuple:
+def runRaptorWithProtocol(self, sources, raptor_mode, protocol_type, timetable_mode, selected_only1, selected_only2)-> tuple:
 
   
   count = len(sources)
@@ -197,14 +198,19 @@ def runRaptorWithProtocol(self, sources, raptor_mode, protocol_type, timetable_m
 
   layers_dest = QgsProject.instance().mapLayersByName(LayerDest)
   layer_dest = layers_dest[0]
+  features_dest = layer_dest.getFeatures() 
+
+  if selected_only2:
+    features_dest = layer_dest.selectedFeatures() 
   
   attribute_dict = {}
   if UseField:
         
     fields = layer_dest.fields()
+      
     first_field_name = fields[0].name()
     
-    for feature in layer_dest.getFeatures():
+    for feature in features_dest:
         if isinstance(feature[Field], int) or (isinstance(feature[Field], str) and feature[Field].isdigit()):
           attribute_dict[int(feature[first_field_name])] = int(feature[Field])
         else:
@@ -330,10 +336,10 @@ def runRaptorWithProtocol(self, sources, raptor_mode, protocol_type, timetable_m
   time_after_computation = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
   self.textLog.append(f'<a>Time after computation {time_after_computation}</a>')  
 
-  write_info (self, Layer, LayerDest, curr_getDateTime, folder_name)
+  write_info (self, Layer, LayerDest, curr_getDateTime, folder_name, selected_only1)
   
 
-def write_info (self,Layer, LayerDest, curr_getDateTime, folder_name):
+def write_info (self,Layer, LayerDest, curr_getDateTime, folder_name, selected_only1):
   text = self.textLog.toPlainText()
   filelog_name = f'{folder_name}//log_{curr_getDateTime}.txt'
   with open(filelog_name, "w") as file:
@@ -342,7 +348,7 @@ def write_info (self,Layer, LayerDest, curr_getDateTime, folder_name):
   zip_filename1 = f'{folder_name}//origins_{Layer}_{curr_getDateTime}.zip'
   filename1 = f'{folder_name}//origins_{Layer}_{curr_getDateTime}.geojson'
   
-  save_layer_to_zip(Layer, zip_filename1, filename1)
+  save_layer_to_zip(Layer, zip_filename1, filename1, selected_only1)
   
   """
   if Layer != LayerDest: 
@@ -832,7 +838,7 @@ def int1(s):
    result = 0
   return result
 
-def save_layer_to_zip(layer_name, zip_filename, filename):
+def save_layer_to_zip(layer_name, zip_filename, filename, selected_only1):
     try:
       layer = QgsProject.instance().mapLayersByName(layer_name)[0]
       temp_file = "temp_layer_file.geojson"
@@ -842,7 +848,7 @@ def save_layer_to_zip(layer_name, zip_filename, filename):
         zipf.write(temp_file, os.path.basename(filename))
       os.remove(temp_file)   
     except:
-      return 0
+      return 0  
     
     
      

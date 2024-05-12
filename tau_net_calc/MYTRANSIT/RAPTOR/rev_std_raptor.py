@@ -56,7 +56,7 @@ def rev_raptor(SOURCE, D_TIME, MAX_TRANSFER, MIN_TRANSFER,
     min_time = D_TIME - Maximal_travel_time
 
     if timetable_mode:
-        #MaxWaitTime = 30 * 60
+        MaxWaitTime = MaxExtraTime
         D_TIME = D_TIME - departure_interval
 
     if True:
@@ -204,9 +204,9 @@ def rev_raptor(SOURCE, D_TIME, MAX_TRANSFER, MIN_TRANSFER,
                         
                 current_stopindex_by_route = current_stopindex_by_route + 1
 
-        #if k == 1 and timetable_mode:
-        #    t_max = get_t_min(pi_label, routes_by_stop_dict.keys())
-        #    min_time = t_max - Maximal_travel_time
+        if k == 1 and timetable_mode:
+            t_min = get_t_min(pi_label, routes_by_stop_dict.keys())
+            min_time = t_min - Maximal_travel_time
 
         #print (f' part 2 pi_label {pi_label}')
         #print (f' marked_stop {marked_stop}')
@@ -241,6 +241,30 @@ def rev_raptor(SOURCE, D_TIME, MAX_TRANSFER, MIN_TRANSFER,
     reachedLabels = post_processingAll(my_name, SOURCE, D_TIME, label, pi_label, MIN_TRANSFER,  MaxWalkDist1, timetable_mode, Maximal_travel_time, departure_interval, mode = 2)
     out=reachedLabels    
     return out
+# returns (maximum boarding time for the first bus - time to reach this stop)
+# use for timetable mode
+def get_t_min(pi_label, keys):
+    
+    time_min = 0
+
+    for point in keys:
+        
+        if pi_label[1][point] != -1:
+            
+            boarding_point = pi_label[1][point][1]
+            boarding_time = pi_label[1][point][0]
+
+            time_foot_to_stop_point = get_time_foot_to_stop(pi_label,boarding_point)
+            time = boarding_time + time_foot_to_stop_point # + departure_interval 
+            if time_min < time:
+                time_min = time
+    return time_min
+
+def get_time_foot_to_stop(pi_label, boarding_point):
+    if pi_label[0][boarding_point] != 1:
+        return pi_label[0][boarding_point][3]
+    else:
+        return 0
 
 def process_walking_stage(min_time, WALKING_LIMIT, k,
         footpath_dict, marked_stop_dict, marked_stop, label, star_label, pi_label, save_marked_stop):

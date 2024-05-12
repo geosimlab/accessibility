@@ -85,7 +85,7 @@ class AccessibilityTools(QWidget):
 
         self.setLayout(layout)
         # Подключаем обработчик сигнала itemClicked к QTreeWidget
-        self.tree_widget.itemClicked.connect(self.on_tree_item_clicked)
+        self.tree_widget.itemDoubleClicked.connect(self.on_tree_item_clicked)
 
     def on_tree_item_clicked(self, item, column):
         # Создаем и отображаем диалоговое окно DialogTools

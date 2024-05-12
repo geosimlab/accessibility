@@ -2,7 +2,9 @@
 pathtopkl = C:/
 pathtoprotocols = C:/
 layer = 
+selectedonly1 = False
 layerdest = 
+selectedonly2 = False
 field = 
 usefield = True
 min_transfer = 0

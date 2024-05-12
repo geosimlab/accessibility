@@ -2,8 +2,8 @@ from PyQt5.QtWidgets import QDialogButtonBox
 from .form_raptor_summary import RaptorSummary
 
 class Settings(RaptorSummary):
-    def __init__(self, mode=1, protocol_type=1, title = "Settings"):
-            super().__init__(mode, protocol_type, title )
+    def __init__(self, mode=1, protocol_type=1, title = "Settings", timetable_mode = True):
+            super().__init__(mode, protocol_type, title, timetable_mode = True )
             
             self.progressBar.setVisible(False)
             self.btnBreakOn.setVisible(False)
