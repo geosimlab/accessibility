@@ -125,7 +125,7 @@ class TAUNetCalc():
     #    "runRaptorWithProtocol(self,self.settings, sources, mode, protocol_type)",
     #    globals(),
     #    locals(),
-    #    filename=r"C:\Users\geosimlab\Documents\Igor\Protocols\plugin_profile.txt"
+    #    filename=r"C:/Users/geosimlab/Documents/Igor/Protocols/plugin_profile.txt"
     #  )
     
 

@@ -4,116 +4,66 @@ import pickle
 from datetime import datetime
 from io import StringIO
 import geopandas as gpd
-from math import radians, sin, cos, sqrt, atan2
+import datetime
+
 
 def time_to_seconds(time_str):
     hours, minutes, seconds = map(int, time_str.split(':'))
     total_seconds = hours * 3600 + minutes * 60 + seconds
     return total_seconds
-"""
-def haversine(lat1, lon1, lat2, lon2):
-    # Радиус Земли в километрах
-    R = 6371.0
-    
-    # Преобразование координат из градусов в радианы
-    lat1 = radians(lat1)
-    lon1 = radians(lon1)
-    lat2 = radians(lat2)
-    lon2 = radians(lon2)
-    
-    # Разница между широтами и долготами
-    dlat = lat2 - lat1
-    dlon = lon2 - lon1
-    
-    # Вычисление расстояния с использованием формулы гаверсинуса
-    a = sin(dlat / 2)**2 + cos(lat1) * cos(lat2) * sin(dlon / 2)**2
-    c = 2 * atan2(sqrt(a), sqrt(1 - a))
-    distance = R * c * 1000
-    
-    return distance
-"""
+
 class PKL_class ():
       
-    def __init__(self, dist = 0,  PathToNetwork = '', path_to_txt_files = '', path_to_shp_buildings= ''):
-        if path_to_txt_files == '':
-            self.__path_gtfs = PathToNetwork
+    def __init__(self, dist = 0,  path_to_pkl = '', path_to_GTFS = '', path_to_shp_buildings= ''):
+        if path_to_GTFS == '':
+            self.__path_gtfs = path_to_pkl
         else:
-            self.__path_gtfs = path_to_txt_files
+            self.__path_gtfs = path_to_GTFS
 
-        self.__path_pkl = PathToNetwork
+        self.__path_pkl = path_to_pkl
 
         self.__dist = dist
         
         self.__path_to_shp_buildings = path_to_shp_buildings
-        #self.__transfers_start_file = pd.read_csv(f'{self.__path_gtfs}/transfers_start.txt', sep=',')
-
-        path_to_transfers_file= r"C:\Users\geosimlab\Documents\Igor\sample_gtfs\footpath haifa\all.txt"
-        self.__transfers_start_file = pd.read_csv(path_to_transfers_file, sep=',')
+        self.__transfers_start_file = pd.read_csv(f'{self.__path_gtfs}/footpath_road.txt', sep=',')
+        
+        if not os.path.exists(self.__path_pkl):
+            os.makedirs(self.__path_pkl)
         
         
 
     def create_files(self):
-
-        self.__unique_stops = set()
-        
+        print("time:", datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))        
         self.load_gtfs()
-               
         
-        self.__stop_pkl = self.build_stops_dict()
-        self.build_stopstimes_dict()
-        self.build_stop_idx_in_route()
+        #self.__stop_pkl = self.build_stops_dict()
+        #self.build_stopstimes_dict()
+        #self.build_stop_idx_in_route()
         
-        #self.build_footpath_dict(self.__transfers_start_file, "transfers_dict.pkl", self.__dist, False)
+        self.build_footpath_dict(self.__transfers_start_file, "transfers_dict.pkl")
                 
-        self.build__route_by_stop()
-        self.build_routes_by_stop_dict()
+        #self.build__route_by_stop()
+        #self.build_routes_by_stop_dict()
 
-        self.build_reversed_stops_dict()
-        self.build_reversed_stoptimes_dict()
-        self.build_reverse_stoptimes_file_txt()
-        self.build_rev_stop_idx_in_route()
+        #self.build_reversed_stops_dict()
+        #self.build_reversed_stoptimes_dict()
+        #self.build_reverse_stoptimes_file_txt()
+        #self.build_rev_stop_idx_in_route()
+
+        print("time:", datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
     def load_gtfs(self):
-        """
-        Returns:
-        stops_file (pandas.dataframe): dataframe with stop details.
-        trips_file (pandas.dataframe): dataframe with trip details.
-        stop_times_file (pandas.dataframe): dataframe with stoptimes details.
-        transfers_file (pandas.dataframe): dataframe with transfers (footpath) details.
-        """
         print ("start load GTFS")
-        self.__stops_file = pd.read_csv(f'{self.__path_gtfs}/stops.txt', sep=',').sort_values(by=['stop_id']).reset_index(drop=True)
         self.__trips_file = pd.read_csv(f'{self.__path_gtfs}/trips.txt', sep=',')
         self.__stop_times_file = pd.read_csv(f'{self.__path_gtfs}/stop_times.txt', sep=',')
-
-        print ("merging stoptimes")
         self.__stop_times_file = pd.merge(self.__stop_times_file, self.__trips_file, on='trip_id')
                
-        #self.__stop_times_file['arrival_time'] = self.__stop_times_file['arrival_time'].apply(lambda x: datetime.strptime(x, '%H:%M:%S').time())
-        
         
 
     def build_stops_dict(self):
-        """
-            This function saves a dictionary to provide easy access to all the stops in the route.
-
-            Args:
-            stop_times_file (pandas.dataframe): stop_times.txt file in GTFS.
-            trips_file (pandas.dataframe): trips.txt file in GTFS.
-            
-
-            Returns:
-            stops_dict (dict): keys: route_id, values: list of stop id in the route_id. Format-> dict[route_id] = [stop_id]
-        """
-        print("building stops dict")
-                        
-        if not os.path.exists(self.__path_pkl):
-            os.makedirs(self.__path_pkl)
-    
-        stop_times = self.__stop_times_file
-
-        print (f'stop_times {stop_times.head()}')
         
+        stop_times = self.__stop_times_file
+              
         route_groups = stop_times.drop_duplicates(subset=['route_id', 'stop_sequence'])[['stop_id', 'route_id', 'stop_sequence']].groupby('route_id')
         stops_dict = {id: routes.sort_values(by='stop_sequence')['stop_id'].to_list() for id, routes in route_groups}
         f = f'{self.__path_pkl}/stops_dict_pkl.pkl'
@@ -127,33 +77,16 @@ class PKL_class ():
 
     
     def build_stopstimes_dict(self) -> dict:
-        """
-        This function saves a dictionary to provide easy access to all the trips passing along a route id. Trips are sorted
-        in the increasing order of departure time. A trip is list of tuple of form (stop id, arrival time)
-
-        Args:
-        stop_times_file (pandas.dataframe): stop_times.txt file in GTFS.
-        trips_file (pandas.dataframe): dataframe with transfers (footpath) details.
-        
-
-        Returns:
-        stoptimes_dict (dict): keys: route ID, values: list of trips in the increasing order of start time. Format-> dict[route_ID] = [trip_1, trip_2] where trip_1 = [(stop id, arrival time), (stop id, arrival time)]
-        """
-        print("building stoptimes dict")
-        
+               
         merged_data = self.__stop_times_file.merge(self.__trips_file, on='trip_id')
-        print ('merged ok')
         grouped_data = merged_data.groupby('route_id_y')
-        print ('grouped ok')
         result_dict = {}
         cycle = 0
-        
-        #today_date = pd.Timestamp(datetime.now().date())
-
+        len_data = len(grouped_data)
         for route_id, group in grouped_data:
             cycle += 1
             if cycle%500 == 0:
-                print(f'{cycle} from {len(grouped_data)}')
+                print(f'{cycle} from {len_data}', end='\r')
 
             trip_dict = {}
             for trip_id, trip_data in group.groupby('trip_id'):
@@ -161,7 +94,7 @@ class PKL_class ():
                 trip_dict[trip_id] = list(zip(trip_data['stop_id'], trip_data['arrival_time']))
 
             sorted_trips = sorted(trip_dict.items(), key=lambda x: x[1][0][1], reverse = False)
-            #result_dict[route_id] = {trip_id: [(stop_id, today_date.replace(hour=arrival_time.hour, minute=arrival_time.minute, second=arrival_time.second)) for stop_id, arrival_time in trip_data] for trip_id, trip_data in sorted_trips}
+            
             result_dict[route_id] = {trip_id: [(stop_id, time_to_seconds(arrival_time)) for stop_id, arrival_time in trip_data] for trip_id, trip_data in sorted_trips}
 
         with open(f'{self.__path_pkl}/stoptimes_dict_pkl.pkl', 'wb') as pickle_file:
@@ -171,79 +104,20 @@ class PKL_class ():
         return 1
     
 
-    def build_footpath_dict(self, obj_txt, file_name, distance, add_builds) -> dict:
-        """
-        This function saves a dictionary to provide easy access to all the footpaths through a stop id.
-
-        Returns:
-            footpath_dict (dict): keys: from stop_id, values: list of tuples of form (to stop id, footpath duration). Format-> dict[stop_id]=[(stop_id, footpath_duration)]
-        """
-        print("building footpath dict")
+    def build_footpath_dict(self, obj_txt, file_name) -> dict:
+        
         
         footpath_dict = {}
-        #g = self.__transfers_file.groupby("from_stop_id")
         g = obj_txt.groupby("from_stop_id")
         for from_stop, details in g:
             footpath_dict[from_stop] = []
             for _, row in details.iterrows():
                 footpath_dict[from_stop].append(
-                    #(row.to_stop_id, pd.to_timedelta(float(row.min_transfer_time), unit='seconds')))
+                    
                     (row.to_stop_id, (row.min_transfer_time)))
-    
-        # test
-        """
-        if add_builds:
-            
-            buildings = self.get_buildings()
-            count_building = len (buildings.items())
-            print (f'count_building {count_building}')
-            count = 0
-            for building, buildings_coords in buildings.items():
-                
-                count += 1
-                if count%100 == 0:
-                    print (f' building {count} from {count_building}')
-
-                build_item = building
-                lng1, lat1  = buildings_coords
-
-                for index, row in self.__stops_file.iterrows():
-                    stop_item = row['stop_id']
-                    lat2 = row['stop_lat']
-                    lng2 = row['stop_lon']
-                    
-                    distance_calc = haversine(lat1, lng1, lat2, lng2)
-                    #print (f' !!! lat1 {lat1}\n !!!lng1 {lng1} lat2 {lat2} lng2 {lng2}')
-                    #print (f' !!! distance_calc {distance_calc}\n !!!distance {distance}')
-                    
-                    if distance_calc <= int(distance):
-                        
-                        if build_item not in footpath_dict:
-                            #footpath_dict[build_item] = [(stop_item, pd.to_timedelta(float(distance_calc), unit='seconds'))]
-                            footpath_dict[build_item] = [(stop_item, distance_calc)]
-                        else:
-                            #footpath_dict[build_item].append((stop_item, pd.to_timedelta(float(distance_calc), unit='seconds')))
-                            footpath_dict[build_item].append((stop_item, distance_calc))
-
-                        if stop_item not in footpath_dict:
-                            #footpath_dict[stop_item] = [(build_item, pd.to_timedelta(float(distance_calc), unit='seconds'))]
-                            footpath_dict[stop_item] = [(build_item, distance_calc)]
-                        else:
-                            #footpath_dict[stop_item].append((build_item, pd.to_timedelta(float(distance_calc), unit='seconds')))    
-                            footpath_dict[stop_item].append((build_item, distance_calc))
-
-        """
+           
         with open(f'{self.__path_pkl}/{file_name}', 'wb') as pickle_file:    
             pickle.dump(footpath_dict, pickle_file)
-        
-        
-
-        for key, values in footpath_dict.items():
-            for value_tuple in values:
-                self.__unique_stops.add(value_tuple[0])
-
-        self.__save_list_stops = list(self.__unique_stops)
-
                 
         print(f'transfers_dict done' )
 
@@ -251,17 +125,9 @@ class PKL_class ():
 
 
     def build_stop_idx_in_route (self):
-        """
-        This function saves a dictionary to provide easy access to index of a stop in a route.
-
-        Args:
-            stop_times_file (pandas.dataframe): stop_times.txt file in GTFS.
-          
-        Returns:    
-            idx_by_route_stop_dict (dict): Keys: (route id, stop id), value: stop index. Format {(route id, stop id): stop index in route}.
-        """
+        
         stoptimes_txt = pd.read_csv(f'{self.__path_gtfs}/stop_times.txt')
-        #stoptimes_txt = self.__stop_times_file
+        
         stop_times_file = pd.merge(stoptimes_txt, self.__trips_file, on='trip_id')
 
         pandas_group = stop_times_file.groupby(["route_id", "stop_id"])
@@ -269,20 +135,17 @@ class PKL_class ():
 
         with open(f'{self.__path_pkl}/idx_by_route_stop.pkl', 'wb') as pickle_file:
             pickle.dump(idx_by_route_stop, pickle_file)
+
+        print(f'done idx_by_route_stop.pkl' )    
     
         return 1
 
 
     def build_routes_by_stop_dict(self):
-        """
-        This function saves a dictionary.
-     
-        Returns:
-            routesindx_by_stop_dict (dict): Keys: stop id, value: [(route_id, stop index), (route_id, stop index)]
-        """
+        
+        
         with open(f'{self.__path_pkl}/stops_dict_pkl.pkl', 'rb') as file:
             stops_dict = pickle.load(file)
-
     
         routes_stops_index = {}
 
@@ -298,7 +161,7 @@ class PKL_class ():
         return 1
 
     def build_reversed_stops_dict(self):
-        print ('build_reversed_stops_dict')
+        
  
         for key in self.__stop_pkl.keys():
             self.__stop_pkl[key] = self.__reverse(self.__stop_pkl[key])
@@ -306,7 +169,7 @@ class PKL_class ():
         with open(self.__path_pkl+'/stops_dict_reversed_pkl.pkl', 'wb') as pickle_file:
             pickle.dump(self.__stop_pkl, pickle_file)    
 
-        print("stops_dict_reversed_pkl done")
+        print("done stops_dict_reversed_pkl ")
     
     def __reverse(self, lst):
        new_lst = lst[::-1]
@@ -314,19 +177,18 @@ class PKL_class ():
         
     def build_reversed_stoptimes_dict(self):
       
+        
         merged_data = self.__stop_times_file.merge(self.__trips_file, on='trip_id')
-        print ('merged ok')
         grouped_data = merged_data.groupby('route_id_y')
-        print ('grouped ok')
         result_dict = {}
         cycle = 0
-        
-        #today_date = pd.Timestamp(datetime.now().date())
+               
 
+        len_data = len(grouped_data)
         for route_id, group in grouped_data:
             cycle += 1
             if cycle%500 == 0:
-                print(f'{cycle} from {len(grouped_data)}')
+                print(f'{cycle} from {len_data}', end='\r')
 
             trip_dict = {}
             for trip_id, trip_data in group.groupby('trip_id'):
@@ -335,11 +197,11 @@ class PKL_class ():
 
             sorted_trips = sorted(trip_dict.items(), key=lambda x: x[1][0][1], reverse=True)
             result_dict[route_id] = {trip_id: [(stop_id, time_to_seconds(arrival_time)) for stop_id, arrival_time in trip_data] for trip_id, trip_data in sorted_trips}
-            #result_dict[route_id] = {trip_id: [(stop_id, today_date.replace(hour=arrival_time.hour, minute=arrival_time.minute, second=arrival_time.second)) for stop_id, arrival_time in trip_data] for trip_id, trip_data in sorted_trips}
+            
 
         with open(f'{self.__path_pkl}/stoptimes_dict_reversed_pkl.pkl', 'wb') as pickle_file:
             pickle.dump(result_dict, pickle_file)  
-        print("stoptimes_dict_reversed_pkl done")      
+        print("done stoptimes_dict_reversed_pkl")      
 
     # Функция для замены номеров остановок на противоположные в пределах каждой поездки
     def reverse_stop_sequence(self, group, *args, **kwargs):
@@ -352,17 +214,15 @@ class PKL_class ():
 
 
     def build_reverse_stoptimes_file_txt(self):
-        print ("build rev_stop_times.txt ok")    
-        
+             
         with open(self.__path_gtfs + "/stop_times.txt", "r") as f:
             allrows = f.readlines()
         
-
         # Преобразование списка строк в строку с разделителями и создание DataFrame
         # Convert a list of strings to a delimited string and create a DataFrame
         data_str = '\n'.join(allrows)
         df = pd.read_csv(StringIO(data_str))
-               
+              
 
         # Применение функции к DataFrame
         # Applying a Function to a DataFrame
@@ -375,33 +235,24 @@ class PKL_class ():
         # Using StringIO again to write a DataFrame to a String
         output_str = StringIO()
         df_result.to_csv(output_str, index=False, lineterminator='\n')
-        print ("to_csv ok")
-  
+          
         # Получаем строку данных
         # We get a row of data
         output_data = output_str.getvalue()
-        print ("getvalue ok")
+        
 
         # Записываем данные обратно в файл
         # Write the data back to the file
         with open(self.__path_gtfs + "/rev_stop_times.txt", "w") as output_file:
             output_file.write(output_data)
 
-        print ("rev_stop_times.txt ok")
+        print ("done rev_stop_times.txt")
 
         return 1
     
 
     def build_rev_stop_idx_in_route(self):
-        """
-        This function saves a dictionary to provide easy access to index of a stop in a route.
-
-        Args:
-        stop_times_file (pandas.dataframe): stop_times.txt file in GTFS.
-        Returns:
-        idx_by_route_stop_dict (dict): Keys: (route id, stop id), value: stop index. Format {(route id, stop id): stop index in route}.
-        """
-          
+         
         reverse_stoptimes_txt = pd.read_csv(f'{self.__path_gtfs}/rev_stop_times.txt')
         rev_stop_times_file = pd.merge(reverse_stoptimes_txt, self.__trips_file, on='trip_id')
     
@@ -416,26 +267,9 @@ class PKL_class ():
         return 1
     
     def build__route_by_stop(self):
-        """
-        This function saves a dictionary to provide easy access to all the routes passing through a stop_id.
-
-        Args:
-        stop_times_file (pandas.dataframe): stop_times.txt file in GTFS.
         
-        Returns:
-        route_by_stop_dict_new (dict): keys: stop_id, values: list of routes passing through the stop_id. Format-> dict[stop_id] = [route_id]
-        """
-        
-        #stops_by_route = self.__stop_times_file.drop_duplicates(subset=['route_id', 'stop_sequence'])[['stop_id', 'route_id']].groupby('stop_id')
         stops_by_route = self.__stop_times_file.drop_duplicates(subset=['route_id', 'stop_id'])[['stop_id', 'route_id']].groupby('stop_id')
-
         route_by_stop_dict = {id: list(routes.route_id) for id, routes in stops_by_route}
-
-
-        """
-        route_by_stop_dict [99999] = []
-        route_by_stop_dict [99998] = []
-        """
         # add buildings
         
         building_dict = self.get_buildings()
@@ -450,26 +284,6 @@ class PKL_class ():
         return 1
 
 
-    
-    def get_stoptimes (self):
-        path_to_stops_file = f'{self.__path_pkl}/stoptimes_dict_pkl.pkl'
-        with open(path_to_stops_file, 'rb') as f:
-            data = pickle.load(f)
-        stoptimes = data
-
-        return stoptimes
-
-    def get_stops (self, limit):
-        path_to_stops_file = f'{self.__path_pkl}/routes_by_stop.pkl'
-        with open(path_to_stops_file, 'rb') as f:
-            data = pickle.load(f)
-        
-        if limit > 0:
-            data = {k: data[k] for k in sorted(data.keys())[:limit]}
-        stops = sorted(data.keys())
-
-        return stops
-
     def get_buildings (self):
         centroid_dict = {}
         if self.__path_to_shp_buildings !='':
@@ -481,14 +295,14 @@ class PKL_class ():
               
 
 if __name__ == "__main__":    
-    PathToNetwork = r"C:\Users\geosimlab\Documents\Igor\israel-public-transportation_gtfs\dict_builder\pkl_haifa_rev"
-    path_to_txt_files = r"C:\Users\geosimlab\Documents\Igor\sample_gtfs\full cut test rev"
-    path_to_shape_buildings = r"C:/Users/geosimlab/Documents/Igor/qgis_prj/haifa/haifa_buildings.shp"
+    
+    path_to_pkl = r"C:/Users/geosimlab/Documents/Igor/israel-public-transportation_gtfs/dict_builder/separated double stops"
+    path_to_GTFS = r"C:/Users/geosimlab/Documents/Igor/sample_gtfs/separated double stops"
+    path_to_shape_buildings = r"C:/Users/geosimlab/Documents/Igor/qgis_prj/foot road TLV/TLV_centroids/TLV_centroids.shp"
     #path_to_shape_buildings = ""
         
     dist = 400
   
-
-    PKL = PKL_class (dist,  PathToNetwork, path_to_txt_files, path_to_shape_buildings)
+    PKL = PKL_class (dist,  path_to_pkl, path_to_GTFS, path_to_shape_buildings)
     PKL.create_files()
     

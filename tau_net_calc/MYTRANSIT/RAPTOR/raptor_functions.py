@@ -77,10 +77,7 @@ def get_latest_trip_new(stoptimes_dict: dict, route: int, arrival_time_at_pi, pi
            
 
             if (t1 >= arrival_time_at_pi + change_time) and (t1 <= arrival_time_at_pi + max_waiting_time) :  
-                #if trip_idx == "49449015_310723":
-                #    print (f't1 {t1}')            
-                #    print (f'arrival_time_at_pi {arrival_time_at_pi}')            
-                #    print (f'max_waiting_time {max_waiting_time}')            
+                          
                 return f'{route}_{trip_idx}', stoptimes_dict[route][trip_idx]
     return -1, -1  # No trip is found after arrival_time_at_pi
     
@@ -112,7 +109,8 @@ def post_processing (DESTINATION: int, pi_label, MIN_TRANSFER, MaxWalkDist, time
     '''
     # раунды, в которых  достигнута цель
     # rounds in which the destination is achieved 
-        
+
+    i = 0    
     rounds_inwhich_desti_reached = [x for x in pi_label.keys() if DESTINATION in pi_label[x] and pi_label[x][DESTINATION] != -1]
 
        
@@ -206,9 +204,7 @@ def post_processing (DESTINATION: int, pi_label, MIN_TRANSFER, MaxWalkDist, time
             #print (f'timetable_mode {timetable_mode}')
             #print (f'mode {mode}')
             if timetable_mode and mode_raptor == 1:
-                # pi_label[0][p_dash] = ('walking', SOURCE, p_dash, to_pdash_time, new_p_dash_time)
-                # pi_label[k][p_i] = (boarding_time, boarding_point, p_i, arr_by_t_at_pi, tid)
-                print ('correct!')
+                
                 if len (journey)> 1 and journey[0][0] == "walking" and journey[1][0] != "walking":
 
                     new_value = journey[1][0] - departure_interval
@@ -224,7 +220,28 @@ def post_processing (DESTINATION: int, pi_label, MIN_TRANSFER, MaxWalkDist, time
 
                     if duration > Maximal_travel_time or start_time < D_Time:
                         append = False
-                   
+            
+            if timetable_mode and mode_raptor == 2:
+                
+                #end_time = 0 
+                if len(journey) != 0:
+                
+                    start_time = journey[-1][3]
+
+                    if len(journey) == 1 and journey[0][0] == 'walking':
+                        new_value = journey[0][4] - departure_interval
+                        journey[0] = (journey[0][0], journey[0][1], journey[0][2], journey[0][3], new_value) 
+                        end_time = journey[0][4] + journey[0][3]
+                    
+                    if len(journey) > 1:
+                        if journey[1][0] != 'walking':
+                            end_time = journey[0][3]+ journey[1][0]
+                
+                    duration = end_time - start_time
+
+                    if duration > Maximal_travel_time or end_time > D_Time - departure_interval:
+                        append = False 
+                 
             
             if len(journey) > 0 and not (journey[-1][0] == 'walking' and journey[-1][3] > MaxWalkDist) and (transfer_needed+1 >= MIN_TRANSFER):    
                 if append:

@@ -11,6 +11,7 @@ from PyQt5.QtWidgets import QDialogButtonBox, QDialog, QFileDialog, QApplication
 from PyQt5.QtCore import Qt, QRegExp, QDateTime, QEvent
 from PyQt5.QtGui import QRegExpValidator, QDesktopServices
 from PyQt5 import uic
+from PyQt5 import QtWidgets
 
 from query_file import runRaptorWithProtocol
 import configparser
@@ -32,6 +33,43 @@ class RaptorDetailed(QDialog, FORM_CLASS):
                            
             
             self.setWindowTitle(title)
+
+            fix_size = 12 * self.txtMinTransfers.fontMetrics().width('x')
+
+            self.txtMinTransfers.setFixedWidth(fix_size)
+            self.txtMaxTransfers.setFixedWidth(fix_size)
+            self.txtMaxWalkDist1.setFixedWidth(fix_size)
+            self.txtMaxWalkDist2.setFixedWidth(fix_size)
+            self.txtMaxWalkDist3.setFixedWidth(fix_size)
+
+            
+            self.dtStartTime.setFixedWidth(fix_size)
+            
+            #self.dtStartTime.setButtonSymbols(QtWidgets.QDateTimeEdit.NoButtons)
+            #self.dtStartTime.setStyleSheet("QDateTimeEdit::clear { visibility: hidden; }")
+
+            self.txtDepartureInterval.setFixedWidth(fix_size)
+            self.txtMaxExtraTime.setFixedWidth(fix_size)
+            self.txtSpeed.setFixedWidth(fix_size)
+            self.txtMaxWaitTime.setFixedWidth(fix_size)
+
+            self.txtMaxWaitTimeTransfer.setFixedWidth(fix_size)
+            self.txtMaxTimeTravel.setFixedWidth(fix_size)
+            self.txtTimeInterval.setFixedWidth(fix_size)   
+
+            self.splitter.setSizes([150, 250])   
+
+            """
+            fix_size = 20 * self.txtMinTransfers.fontMetrics().width('x')
+            self.txtPathToPKL.setFixedWidth(fix_size)
+            self.txtPathToProtocols.setFixedWidth(fix_size)
+            self.cmbLayers.setFixedWidth(fix_size)     
+            self.cmbLayersDest.setFixedWidth(fix_size)     
+            self.cmbFields.setFixedWidth(fix_size)     
+            """
+            
+            
+
             self.tabWidget.setCurrentIndex(0) 
             self.config = configparser.ConfigParser()
 
@@ -55,7 +93,7 @@ class RaptorDetailed(QDialog, FORM_CLASS):
             self.cbUseFields.setVisible(False)
 
             if not timetable_mode:
-               print ("not timetable_mode")
+               
                self.lblMaxExtraTime.setVisible(False)
                self.txtMaxExtraTime.setVisible(False)
                self.lblDepartureInterval.setVisible(False)
@@ -67,7 +105,7 @@ class RaptorDetailed(QDialog, FORM_CLASS):
                
             
             if timetable_mode and mode == 2:
-              self.lblDepartureInterval.setText("Departure interval latest, min                    ")
+              self.lblDepartureInterval.setText("Departure interval latest, min")
 
 
                
@@ -325,7 +363,7 @@ class RaptorDetailed(QDialog, FORM_CLASS):
 
       try:
         tmp_prefix = "write_tester";
-        filename = f'{self.txtPathToProtocols.text()}\\{tmp_prefix}'
+        filename = f'{self.txtPathToProtocols.text()}//{tmp_prefix}'
         with open(filename, 'w') as f:
           f.write("test")
         os.remove(filename)
@@ -354,9 +392,9 @@ class RaptorDetailed(QDialog, FORM_CLASS):
 
       if self.cbSelectedOnly1.isChecked():
          features = layer.selectedFeatures()
-         print (f'len(features) {len(features)}')
+         
          if len(features) == 0:
-          print ('len(features) empty')
+         
           msgBox = QMessageBox()
           msgBox.setIcon(QMessageBox.Information)
           msgBox.setText(f"You selected an option for layer of origins 'Selected features only' \n  but did not selected any objects in the layer '{self.config['Settings']['Layer']}'")

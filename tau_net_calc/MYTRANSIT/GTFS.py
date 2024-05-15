@@ -19,7 +19,7 @@ class GTFS ():
     def __init__(self, path_to_file, path_to_GTFS):
         self.__path_to_file = path_to_file
         self.__path_to_GTFS = path_to_GTFS
-        self.__zip_name = f'{path_to_file}\gtfs_cut.zip'
+        self.__zip_name = f'{path_to_file}/gtfs_cut.zip'
         self.__directory = path_to_file
 
 
@@ -39,7 +39,7 @@ class GTFS ():
     def create_tranfers_txt(self, distance, file_name):
         print ('create_tranfers_txt')
      
-        path_to_file = self.__path_to_file.rstrip("\\")
+        path_to_file = self.__path_to_file.rstrip("//")
 
         try:
             stops_df = pd.read_csv(os.path.join(path_to_file, 'stops.txt'), encoding='windows-1255')
@@ -87,16 +87,16 @@ class GTFS ():
         
         ###
         try:
-            routes_df = pd.read_csv(f'{self.__path_to_file}\\routes.txt', encoding='utf-8-sig')
+            routes_df = pd.read_csv(f'{self.__path_to_file}//routes.txt', encoding='utf-8-sig')
         except:
-            routes_df = pd.read_csv(f'{self.__path_to_file}\\routes.txt', encoding='windows-1255')
+            routes_df = pd.read_csv(f'{self.__path_to_file}//routes.txt', encoding='windows-1255')
 
-        trips_df = pd.read_csv(f'{self.__path_to_GTFS}\\trips.txt')
+        trips_df = pd.read_csv(f'{self.__path_to_GTFS}//trips.txt')
         merged_df = pd.merge(trips_df, routes_df, on='route_id', how='inner')
-        merged_df.to_csv(f'{self.__path_to_file}\\trips.txt', index=False, encoding='')
+        merged_df.to_csv(f'{self.__path_to_file}//trips.txt', index=False, encoding='')
         ###
-        trips_df = pd.read_csv(f'{self.__path_to_file}\\trips.txt', encoding='utf-8')
-        stops_df = pd.read_csv(f'{self.__path_to_GTFS}\\stop_times.txt')
+        trips_df = pd.read_csv(f'{self.__path_to_file}//trips.txt', encoding='utf-8')
+        stops_df = pd.read_csv(f'{self.__path_to_GTFS}//stop_times.txt')
         unique_trip_ids = trips_df['trip_id'].unique()
         filtered_stops_df = stops_df[stops_df['trip_id'].isin(unique_trip_ids)].sort_values(by='arrival_time')
 
@@ -107,14 +107,14 @@ class GTFS ():
         filtered_stops_df['arrival_time'] = filtered_stops_df['hour'].astype(str) + ':' + filtered_stops_df['minute'].astype(str) + ':' + filtered_stops_df['second'].astype(str)
         filtered_stops_df.drop(columns=['hour', 'minute', 'second'], inplace=True)
 
-        filtered_stops_df.to_csv(f'{self.__path_to_file}\\stop_times.txt', index=False, encoding='utf-8')
+        filtered_stops_df.to_csv(f'{self.__path_to_file}//stop_times.txt', index=False, encoding='utf-8')
         ###
 
-        stop_df = pd.read_csv(f'{self.__path_to_GTFS}\\stops.txt')
-        stop_times_df = pd.read_csv(f'{self.__path_to_file}\\stop_times.txt')
+        stop_df = pd.read_csv(f'{self.__path_to_GTFS}//stops.txt')
+        stop_times_df = pd.read_csv(f'{self.__path_to_file}//stop_times.txt')
         unique_stop_ids = stop_times_df['stop_id'].unique()
         filtered_stop_df = stop_df[stop_df['stop_id'].isin(unique_stop_ids)]
-        filtered_stop_df.to_csv(f'{self.__path_to_file}\\stops.txt', index=False, encoding='windows-1255')
+        filtered_stop_df.to_csv(f'{self.__path_to_file}//stops.txt', index=False, encoding='windows-1255')
 
         
        
@@ -122,7 +122,7 @@ class GTFS ():
 
         # Coding 2 files (routes.txt, stops.txt)to utf-8-sig
         try:
-            file_path = f'{self.__path_to_file}\\routes.txt'
+            file_path = f'{self.__path_to_file}//routes.txt'
             with codecs.open(file_path, 'r', encoding='windows-1255') as file:
                 content = file.read()
             with codecs.open(file_path, 'w', 'utf-8-sig') as file:
@@ -130,7 +130,7 @@ class GTFS ():
         except:
             error = 0
 
-        file_path = f'{self.__path_to_file}\\stops.txt'
+        file_path = f'{self.__path_to_file}//stops.txt'
         with codecs.open(file_path, 'r', encoding='windows-1255') as file:
             content = file.read()
         with codecs.open(file_path, 'w', 'utf-8-sig') as file:
@@ -153,54 +153,11 @@ class GTFS ():
     # modify time 24:00:00 - xx.yy.zz in stop_times.txt
     # change stop_sequency, change sorting
     def modify_time_and_sequence (self):
-        """
-        df = pd.read_csv(f'{self.__path_to_file}\\stop_times.txt')
-        print ('filtering')
-        # Отфильтровать значения времени, превышающие 24 часа
-        df['arrival_time'] = df['arrival_time'].apply(lambda x: x if (pd.to_datetime(x, errors='coerce').hour or 0) < 24 else None)
-        df['departure_time'] = df['departure_time'].apply(lambda x: x if (pd.to_datetime(x, errors='coerce').hour or 0) < 24 else None)
-
-        print ('deleting')
-        # Удаление строк с недопустимыми значениями времени
-        df.dropna(subset=['arrival_time', 'departure_time'], inplace=True)
-        print ('convert')
-        # Преобразование времени прибытия и отправления в формат datetime
-        df['arrival_time'] = pd.to_datetime(df['arrival_time'])
-        df['departure_time'] = pd.to_datetime(df['departure_time'])
-
-        # Получение полночи следующего дня
-        next_day_midnight = pd.to_datetime('00:00:00') + pd.Timedelta(days=1)
-        print ('change time')
-        # Изменение времени прибытия и отправления
-        df['arrival_time'] = next_day_midnight - (df['arrival_time'] - df['arrival_time'].dt.normalize())
-        df['departure_time'] = next_day_midnight - (df['departure_time'] - df['departure_time'].dt.normalize())
-
-        # Применение операции остатка от деления на 24 часа
-        #df['arrival_time'] = df['arrival_time'] % pd.Timedelta(days=1)
-        #df['departure_time'] = df['departure_time'] % pd.Timedelta(days=1)
-
-        print ('convert2')
-        # Преобразование времени обратно в формат времени
-        df['arrival_time'] = df['arrival_time'].dt.time
-        df['departure_time'] = df['departure_time'].dt.time
-
-        print ('change stopseq')
-        # Меняем порядок stop_sequence
-        df['stop_sequence'] = df.groupby('trip_id')['stop_sequence'].transform(lambda x: x.max() - x + x.min())
-
-        print ('sorting')
-        # Сортировка значений внутри каждого trip_id по stop_sequence
-        df = df.groupby('trip_id').apply(lambda x: x.sort_values(by='stop_sequence')).reset_index(drop=True)
-
-        print ('save')    
-        # Сохраняем изменения обратно в файл
-        df.to_csv(f'{self.__path_to_file}\\stop_times_mod.txt', index=False)
-        print ('stop_times_mod done')
-        """
-        stops_df = pd.read_csv(f'{self.__path_to_file}\\stop_times.txt')
+        
+        stops_df = pd.read_csv(f'{self.__path_to_file}//stop_times.txt')
         
         print ("# Filtering stoptimes")
-        trips_df = pd.read_csv(f'{self.__path_to_file}\\trips.txt', encoding='utf-8')
+        trips_df = pd.read_csv(f'{self.__path_to_file}//trips.txt', encoding='utf-8')
         unique_trip_ids = trips_df['trip_id'].unique()
 
         filtered_stops_df = stops_df[stops_df['trip_id'].isin(unique_trip_ids)].sort_values(by='arrival_time')
@@ -239,7 +196,7 @@ class GTFS ():
 
         print ("# Сохраняем изменения обратно в файл")
         # Сохраняем изменения обратно в файл
-        df.to_csv(f'{self.__path_to_file}\\stop_times_mod.txt', index=False)
+        df.to_csv(f'{self.__path_to_file}//stop_times_mod.txt', index=False)
         
 
 
@@ -259,30 +216,34 @@ class GTFS ():
             df[col] = df[col].apply(self.change_time)
 
         # Сохранение изменений в файл
-        df.to_csv('C:\\Users\\geosimlab\\Documents\\Igor\\Protocols\\modified_your_file.csv', index=False)
+        df.to_csv('C://Users//geosimlab//Documents//Igor//Protocols//modified_your_file.csv', index=False)
 
     
     # Функция для сравнения массивов stop_id и stop_sequence
     def compare_trip(self, trip1, trip2):
             return trip1['stop_id'] == trip2['stop_id'] and trip1['stop_sequence'] == trip2['stop_sequence']
+            
     
     """"""""""""""
     #Dividing routes into subgroups if different trips are used at different stops
     """"""""""""""
 
     def create_my_routes(self):
-        file1 = self.__path_to_file + 'stop_times.txt'
-        file2 = self.__path_to_file + 'trips.txt'
-        file3 = self.__path_to_file + 'routes.txt'
+        
+        stop_times_file = self.stop_times_df.reset_index()
 
-        print ('reading')
-        df = pd.read_csv(file1)
-        trips_file = pd.read_csv(file2)
-        print ('merging')
-        df = pd.merge(df, trips_file, on='trip_id')
+        routes_file = self.routes_df.reset_index()
+        routes_file = routes_file.set_index('route_id')
 
-        routes_file = pd.read_csv(file3)
-                     
+        trips_file1 = self.trips_df.reset_index()
+        trips_file2 = self.trips_df.reset_index()
+        trips_file2 = trips_file2.set_index('trip_id')
+                
+        # merging
+        df = pd.merge(stop_times_file, trips_file1, on='trip_id')
+        df.set_index(['stop_id', 'stop_sequence'], inplace=True)
+        
+                                     
         # Словарь для хранения типов поездок и их массивов stop_id и stop_sequence
         trip_types = defaultdict(list)
         result = []
@@ -290,25 +251,15 @@ class GTFS ():
         
         # Группировка данных по route_id
         grouped_routes = df.groupby('route_id')
+        
 
+        
         # Итерация по группам
         i = 0
         for route_id, route_group in grouped_routes:
             i += 1
-
-            if i%100 == 0:
-                print (f'route {i} from {len(grouped_routes)}')
+            print (f'route {i} from {len(grouped_routes)}', end='\r')
                 
-                trips_result_df = pd.DataFrame(result)
-                routes_result_df = pd.DataFrame(result_routes)
-
-                trips_result_df.to_csv(self.__path_to_file + 'my_trips.txt', header=['route_id','service_id','trip_id','trip_headsign','direction_id','shape_id'], index=False)
-                routes_result_df.to_csv(self.__path_to_file + 'my_routes.txt', header=['route_id','agency_id','route_short_name','route_long_name','route_desc','route_type','route_color'], index=False)
-                return
-                
-
-            
-
             # Группировка данных по trip_id
             grouped_trips = route_group.groupby(['trip_id'])
 
@@ -316,18 +267,18 @@ class GTFS ():
             trip_types = defaultdict(list)
             # Итерация по поездкам
             for trip_id, trip_group in grouped_trips:
-
                 
                 trip_id = trip_id[0]
-                target_trip = trips_file.loc[trips_file['trip_id'] == trip_id].iloc[0]
+                target_trip = trips_file2.loc[trip_id]  # Доступ через индекс
                 
-                current_trip = {'stop_id': trip_group['stop_id'].tolist(), 'stop_sequence': trip_group['stop_sequence'].tolist()}
-
+                current_trip = {'stop_id': trip_group.index.get_level_values('stop_id').tolist(),
+                'stop_sequence': trip_group.index.get_level_values('stop_sequence').tolist()}
                 trip_found = False
     
                 # Проверка текущей поездки на совпадение с уже существующими типами
                 for trip_type, trip_type_data in trip_types.items():
                     for existing_trip in trip_type_data:
+                   
                         if self.compare_trip(current_trip, existing_trip):
 
                             shape_id = target_trip['shape_id']
@@ -336,7 +287,8 @@ class GTFS ():
                             else:
                                 shape_id_str = str(int(shape_id))
                            
-                            result.append((trip_type, target_trip['service_id'],target_trip['trip_id'],target_trip['trip_headsign'],target_trip['direction_id'],shape_id_str))    
+                            result.append((trip_type, target_trip['service_id'], target_trip.name, target_trip['trip_headsign'],target_trip['direction_id'],shape_id_str))    
+                            
                             trip_found = True
                             break
 
@@ -355,19 +307,16 @@ class GTFS ():
                         shape_id_str = str(int(shape_id))
 
                     new_route_id = f'{route_id}_{num_route}'
-                    result.append((new_route_id, target_trip['service_id'],target_trip['trip_id'],target_trip['trip_headsign'],target_trip['direction_id'],shape_id_str))    
-
-                    target_routes = routes_file.loc[routes_file['route_id'] == route_id].iloc[0]
-                    #print (f'new_route_id {new_route_id}')
+                    result.append((new_route_id, target_trip['service_id'], target_trip.name, target_trip['trip_headsign'], target_trip['direction_id'], shape_id_str))
+                    target_routes = routes_file.loc[route_id] 
                     result_routes.append((new_route_id, target_routes['agency_id'],target_routes['route_short_name'],target_routes['route_long_name'],target_routes['route_desc'],target_routes['route_type'],target_routes['route_color']))    
-
                     
                              
         trips_result_df = pd.DataFrame(result)
         routes_result_df = pd.DataFrame(result_routes)
 
-        trips_result_df.to_csv(self.__path_to_file + 'my_trips.txt', header=['route_id','service_id','trip_id','trip_headsign','direction_id','shape_id'], index=False)
-        routes_result_df.to_csv(self.__path_to_file + 'my_routes.txt', header=['route_id','agency_id','route_short_name','route_long_name','route_desc','route_type','route_color'], index=False)
+        self.trips_df = trips_result_df 
+        self.routes_df = routes_result_df 
         
         return 1
     
@@ -375,151 +324,79 @@ class GTFS ():
     def check_stop_sequence(self, stop_times):
         trips_to_delete = set()
         for trip_id, group in stop_times.groupby('trip_id'):
-            max_sequence = group['stop_sequence'].max()
+            #max_sequence = group['stop_sequence'].max()
+            max_sequence = group.index.get_level_values('stop_sequence').max()
             # Проверяем, равен ли размер группы последнему значению stop_sequence
             if len(group) != max_sequence:
-                print(f"Trip ID {trip_id} has missing stop_sequence values.")
+                #print(f"Trip ID {trip_id} has missing stop_sequence values.")
                 trips_to_delete.add(trip_id)
         return trips_to_delete
         
-    
-    def correcting_files(self):
-        print ("start load GTFS")
-        
-        routes_file = pd.read_csv(f'{self.__path_to_file}/routes.txt', sep=',')
-        trips_file = pd.read_csv(f'{self.__path_to_file}/trips.txt', sep=',')
-        calendar_file = pd.read_csv(f'{self.__path_to_file}/calendar.txt', sep=',')
-        stop_times_file = pd.read_csv(f'{self.__path_to_file}/stop_times.txt', sep=',')
+    def load_GTFS (self):
+        print (f'Loadig data ...')
+        self.routes_df = pd.read_csv(f'{self.__path_to_GTFS}//routes.txt', sep=',')
+        self.trips_df = pd.read_csv(f'{self.__path_to_GTFS}//trips.txt', sep=',')
+        self.stop_times_df = pd.read_csv(f'{self.__path_to_GTFS}//stop_times.txt', sep=',')
+        self.stop_df = pd.read_csv(f'{self.__path_to_GTFS}//stops.txt', sep=',')
+        self.calendar_df = pd.read_csv(f'{self.__path_to_GTFS}//calendar.txt', sep=',')
 
-        # Filtering trips  on field service_id, take tips only on day TUESDAY
-        #print (f' len(self.__trips_file before) {len(self.__trips_file)}')
-        trips_file = pd.merge(trips_file, calendar_file, on='service_id').query('tuesday == 1')
-        #print (f' len(self.__trips_file) after filter calendar {len(self.__trips_file)}')
+        old_len_trips = len(self.trips_df)    
+        print('Remained only tuesday trips ...')
+        self.trips_df = pd.merge(self.trips_df, self.calendar_df, on='service_id').query('tuesday == 1')
+        print(f'Remained trip {len(self.trips_df)} from {old_len_trips}')
 
+        old_len_stops_times = len(self.stop_times_df)  
+        print (f'Merging data ...')
+        self.merged_df = pd.merge(self.routes_df, self.trips_df, on="route_id")
+        self.merged_df = pd.merge(self.merged_df, self.stop_times_df, on="trip_id")
 
-        # filtering hour <= 23
-        print ("filtering stoptimes <=23")
-        stop_times_file[['hour', 'minute', 'second']] = stop_times_file['arrival_time'].str.split(':', expand=True)
-        stop_times_file['hour'] = stop_times_file['hour'].astype(int)
-        stop_times_file = stop_times_file[stop_times_file['hour'] <= 23]
-        #self.__stop_times_file['arrival_time'] = self.__stop_times_file['hour'].astype(str) + ':' + self.__stop_times_file['minute'].astype(str) + ':' + filtered_stops_df['second'].astype(str)
-        #self.__stop_times_file.drop(columns=['hour', 'minute', 'second'], inplace=True)
-        ####
-
-        #stop_times_file.arrival_time = pd.to_datetime(stop_times_file.arrival_time, format='%H:%M:%S')
-
-        print ("merging stoptimes")
-        stop_times_file = pd.merge(stop_times_file, trips_file, on='trip_id')
-
-        trips_group = stop_times_file.groupby("trip_id") 
-        # Verify cycle_tips        
-        
-        """
-        routes_group = self.__stop_times_file.groupby("route_id") 
-        count_cycle_routes = 0
-        for route_id, route_group in routes_group:
-            trips_group = route_group.groupby("trip_id")
-            for trip_id, trip in trips_group:
-                first_stop = trip.iloc[0]
-                last_stop = trip.iloc[-1]
-                if first_stop["stop_id"] == last_stop["stop_id"]:
-                    count_cycle_routes += 1
-                    break
+        # filtering on trip_id
+        self.stop_times_df = self.stop_times_df[self.stop_times_df['trip_id'].isin(self.trips_df['trip_id'])]
+        print(f'Remained stop_times {len(self.stop_times_df)} from {old_len_stops_times}')
                 
-        print (f'count_cycle_routes = {count_cycle_routes}')
-        """
-        print ("filtering stoptimes by cycle trip")
-        """
-        trips_no_cycle = []
-        count_cyclce_trip = 0
-        for trip_id, trip in trips_group:
-            first_stop = trip.iloc[0]
-            last_stop = trip.iloc[-1]
-            if first_stop["stop_id"] != last_stop["stop_id"]:
-                count_cyclce_trip += 1
-                trips_no_cycle.append(trip_id)
-        """
-        # remove all trips with cycle
-        trips_no_cycle = []
-        for trip_id, trip in trips_group:
-            stop_ids = set()  # Создаем пустое множество для отслеживания уникальных stop_id в поездке
-            is_cycle_trip = False  # Флаг для обозначения циклической поездки
 
-            # Проверяем каждую остановку в поездке
-            for index, stop in trip.iterrows():
-                stop_id = stop["stop_id"]
-                if stop_id in stop_ids:
-                    is_cycle_trip = True  # Если текущий stop_id уже был встречен, обозначаем поездку как циклическую
-                    break
-                else:
-                    stop_ids.add(stop_id)  # Добавляем stop_id в множество
+    def correcting_files2(self):
+        print("time:", datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+        self.load_GTFS()
+        self.create_my_routes()
+        self.correct_repeated_stops_in_trips()
 
-            # Если поездка не циклическая, увеличиваем счетчик
-            if not is_cycle_trip:
-                #count_no_cycle_trip += 1
-                trips_no_cycle.append(trip_id)
-
-        stop_times_file = stop_times_file[stop_times_file["trip_id"].isin(trips_no_cycle)]
+        trips_group = self.stop_times_df.groupby("trip_id") 
         
-
-        # This drops all trips for which timestamps and stop_sequence are not sorted
-         
+        self.stop_times_df.reset_index()
+        
         print ("filtering stoptimes by arrival time sorting")
+        old_len_stop_times = len (self.stop_times_df)
         trips_with_correct_timestamps = [id for id, trip in trips_group if list(trip.arrival_time) == list(trip.arrival_time.sort_values())]
-        """
-        incorrectly_sorted_trips = []
-        for trip_id, trip in trips_group:
-        # Проверяем, если временные метки прибытия не равны их отсортированной версии
-            if list(trip.arrival_time) != list(trip.arrival_time.sort_values()):
-                incorrectly_sorted_trips.append(trip_id)
-        print("Неправильно отсортированные поездки time:")
-        print(incorrectly_sorted_trips)
-        """
-        stop_times_file = stop_times_file[stop_times_file["trip_id"].isin(trips_with_correct_timestamps)]    
+        #self.stop_times_df = self.stop_times_df[self.stop_times_df["trip_id"].isin(trips_with_correct_timestamps)]    
+        self.stop_times_df = self.stop_times_df[self.stop_times_df.index.get_level_values('trip_id').isin(trips_with_correct_timestamps)]
+
+        print (f'remained len stop_times_df {len(self.stop_times_df)} from {old_len_stop_times}')
 
         print ("filtering stoptimes by stop sequence sorting")
-        trips_with_correct_stop_sequence = [id for id, trip in trips_group if list(trip.stop_sequence) == list(trip.stop_sequence.sort_values())]
-        
-        """
-        incorrectly_sorted_stop_sequence = []
-        for trip_id, trip in trips_group:
-        # Проверяем, если временные метки прибытия не равны их отсортированной версии
-            if list(trip.stop_sequence) != list(trip.stop_sequence.sort_values()):
-                incorrectly_sorted_stop_sequence.append(trip_id)
-        print("Неправильно отсортированные поездки stop_sequence:")
-        print(incorrectly_sorted_stop_sequence)
-        """    
-        stop_times_file = stop_times_file[stop_times_file["trip_id"].isin(trips_with_correct_stop_sequence)] 
+        old_len_stop_times = len (self.stop_times_df)
+        #trips_with_correct_stop_sequence = [id for id, trip in trips_group if list(trip.stop_sequence) == list(trip.stop_sequence.sort_values())]
+        trips_with_correct_stop_sequence = [id for id, trip in trips_group if list(trip.index.get_level_values('stop_sequence')) == list(trip.index.get_level_values('stop_sequence').sort_values())]
 
+        #self.stop_times_df = self.stop_times_df[self.stop_times_df["trip_id"].isin(trips_with_correct_stop_sequence)]     
+        self.stop_times_df = self.stop_times_df[self.stop_times_df.index.get_level_values('trip_id').isin(trips_with_correct_stop_sequence)]
+        print (f'remained len stop_times_df {len(self.stop_times_df)} from {old_len_stop_times}')
 
         #Еще один баг в GTFS – пропущенный номер stop_sequence
         # Проверка последовательности остановок и удаление неправильных trip_id
         print("filtering stoptimes by missing stop_sequence")
-        trips_to_delete = self.check_stop_sequence(stop_times_file)
-        stop_times_file = stop_times_file[~stop_times_file['trip_id'].isin(trips_to_delete)]
+        old_len_stop_times = len (self.stop_times_df)
+        trips_to_delete = self.check_stop_sequence(self.stop_times_df)
+        #self.stop_times_df = self.stop_times_df[~self.stop_times_df['trip_id'].isin(trips_to_delete)]
+        self.stop_times_df = self.stop_times_df[~self.stop_times_df.index.get_level_values('trip_id').isin(trips_to_delete)]
+        print (f'remained len stop_times_df {len(self.stop_times_df)} from {old_len_stop_times}')
 
-        print ('saving stop_times file ...')
-        stop_times_file_filer_fields = stop_times_file[['trip_id','arrival_time','departure_time','stop_id','stop_sequence','pickup_type','drop_off_type','shape_dist_traveled']]
-        stop_times_file_filer_fields.to_csv(f'{self.__path_to_file}\\stop_times_mod.txt', index=False)
-
-        unique_trip_ids = stop_times_file_filer_fields['trip_id'].unique()
-
-        print ('filtering and saving trips_file ...')
-        filtered_trips = trips_file[trips_file['trip_id'].isin(unique_trip_ids)]
-        filtered_trips= filtered_trips[['route_id','service_id','trip_id','trip_headsign','direction_id','shape_id']]
-        filtered_trips.to_csv(f'{self.__path_to_file}\\trips_mod.txt', index=False)  
-
-        print ('filtering and saving routes_files ...')
-        
-        unique_routes_ids = filtered_trips['route_id'].unique()
-        filtered_routes = routes_file[routes_file['route_id'].isin(unique_routes_ids)]
-        filtered_routes.to_csv(f'{self.__path_to_file}\\routes_mod.txt', index=False)  
+        self.save_GTFS()
+        print("time:", datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
         
     def found_repeated_in_trips_stops(self):
         stop_times_file = pd.read_csv(f'{self.__path_to_GTFS}/stop_times.txt', sep=',')
         trips_group = stop_times_file.groupby("trip_id")
-
-        repeated_stops = []  # Список для хранения повторяющихся остановок
 
         all_group = len(trips_group)
         i = 0 
@@ -542,54 +419,75 @@ class GTFS ():
                     stop_ids[stop_id] = 1
                 
     def correct_repeated_stops_in_trips(self):
-        print (f'Loadig data ...')
-        routes_df = pd.read_csv(f'{self.__path_to_GTFS}\\routes.txt', sep=',')
-        trips_df = pd.read_csv(f'{self.__path_to_GTFS}\\trips.txt', sep=',')
-        self.stop_times_df = pd.read_csv(f'{self.__path_to_GTFS}\\stop_times.txt', sep=',')
-        self.stop_df = pd.read_csv(f'{self.__path_to_GTFS}\\stops.txt', sep=',')
-
-        print (f'Merging data ...')
-        self.merged_df = pd.merge(routes_df, trips_df, on="route_id")
-        self.merged_df = pd.merge(self.merged_df, self.stop_times_df, on="trip_id")
-
         
+        self.stop_times_df.reset_index
+        self.stop_times_df = self.stop_times_df.set_index(['trip_id', 'stop_sequence'])
+
         print (f'Grouping data ...')
         grouped = self.merged_df.groupby('route_id')
-        
 
         self.max_stop_id = self.stop_df['stop_id'].max()
 
         all_routes = len(grouped)
-        print("time:", datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+        #print("time:", datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
         count = 0
-        #for i, route_id in enumerate(route_ids):
-        for i, (route_id, group) in enumerate(grouped, 1):
-            count = count + 1
-            print(f'Processing route {count} of {all_routes}', end='\r')
-            first_trip_id = group['trip_id'].iloc[0]  
-            trip = self.stop_times_df.loc[self.stop_times_df['trip_id'] == first_trip_id]
-            stop_ids = []
-            #if count == 2:
-            #    print (f'trip {trip.head(65)}')
+        
 
-            for index, stop in trip.iterrows():
-                #if count == 2:
-                #    print (f'stop {stop}')
-                stop_id = stop["stop_id"]
-                
+        new_stops = []
+        for route_id, group in grouped:
+            count += 1
+            if count%100 == 0:
+                print(f'Processing route {count} of {all_routes}', end='\r')
+            first_trip_id = group['trip_id'].iloc[0]  
+            trip = self.stop_times_df.xs(first_trip_id, level='trip_id')
+            trip = trip.reset_index()
+            stop_ids = []            
+            
+            for index, row in trip.iterrows():
+                stop_id = row['stop_id']
+                stop_sequence = row['stop_sequence']
+                                            
                 if stop_id in stop_ids:
-                    stop_sequence = stop["stop_sequence"]
                     new_stop_id = self.create_new_stop(stop_id)
-                    self.inplace_new_stop_on_all_trips(route_id, stop_sequence, new_stop_id)
+                    new_stops.append((route_id, stop_sequence, new_stop_id))
                 else:
                     stop_ids.append(stop_id)
-                    
-        # save self.stop_df
-        self.stop_df.to_csv(f'{self.__path_to_file}\\stops.txt', index=False) 
-        # save self.stop_times
-        self.stop_times_df.to_csv(f'{self.__path_to_file}\\stop_times.txt', index=False) 
-        print("time:", datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-        return 0
+        print(f'', end='\n')
+        count = 0
+        len_stops = len(new_stops)               
+        for route_id, stop_sequence, new_stop_id in new_stops:
+            count += 1
+            print(f'Replacing stop {count} of {len_stops}', end='\r')
+            self.inplace_new_stop_on_all_trips(route_id, stop_sequence, new_stop_id)
+
+        
+
+    def save_GTFS(self):
+        print(f'', end='\n')
+        print ('Saving GTFS ...')                                
+        self.stop_df.to_csv(f'{self.__path_to_file}//stops.txt', index=False) 
+        self.stop_times_df.to_csv(f'{self.__path_to_file}//stop_times.txt', index=True)
+        
+        self.stop_times_df = self.stop_times_df.reset_index()
+        unique_trip_ids = self.stop_times_df['trip_id'].unique()
+        
+        print ('filtering trips_file ...')
+        
+        #columns_to_drop = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday','start_date', 'end_date']
+        #self.trips_df = self.trips_df.drop(columns=columns_to_drop)
+        
+        self.trips_df.columns = ['route_id', 'service_id', 'trip_id', 'trip_headsign', 'direction_id', 'shape_id']
+        self.trips_df = self.trips_df[self.trips_df['trip_id'].isin(unique_trip_ids)]
+        self.trips_df.to_csv(f'{self.__path_to_file}//trips.txt', header=['route_id','service_id','trip_id','trip_headsign','direction_id','shape_id'], index=False)
+        
+        print ('filtering routes_files ...')
+        self.routes_df.columns = ['route_id','agency_id','route_short_name','route_long_name','route_desc','route_type','route_color']
+        unique_routes_ids =  self.trips_df['route_id'].unique()
+        self.routes_df = self.routes_df[self.routes_df['route_id'].isin(unique_routes_ids)]
+        self.routes_df.to_csv(f'{self.__path_to_file}//routes.txt', header=['route_id','agency_id','route_short_name','route_long_name','route_desc','route_type','route_color'], index=False)
+ 
+        
+        return 1
 
     def get_new_stop_id(self):
         self.max_stop_id += 1
@@ -599,40 +497,33 @@ class GTFS ():
 
     def create_new_stop (self, stop_id):
         
-        index = self.stop_df.index[self.stop_df['stop_id'] == stop_id].tolist()
-
-        new_stop = self.stop_df.iloc[index[0]].copy()
         new_stop_id = self.get_new_stop_id()
+        new_stop = self.stop_df[self.stop_df['stop_id'] == stop_id].copy()
         new_stop['stop_id'] = new_stop_id
-        
-        #self.stop_df = self.stop_df.append(new_stop, ignore_index=True)
-        self.stop_df = pd.concat([self.stop_df, new_stop.to_frame().T], ignore_index=True)
-
+        self.stop_df = pd.concat([self.stop_df, new_stop], ignore_index=True)
         return new_stop_id
     
     def inplace_new_stop_on_all_trips (self, route_id, stop_sequence, new_stop_id):
-        trip_ids = self.merged_df.loc[self.merged_df["route_id"] == route_id, "trip_id"]
-        filter_condition = (self.stop_times_df["trip_id"].isin(trip_ids)) & (self.stop_times_df["stop_sequence"] == stop_sequence)
-        self.stop_times_df.loc[filter_condition, "stop_id"] = new_stop_id
-
         
+        trip_ids = self.merged_df[self.merged_df["route_id"] == route_id]["trip_id"].unique()
+        filter_condition = self.stop_times_df.index.get_level_values('trip_id').isin(trip_ids) & (self.stop_times_df.index.get_level_values('stop_sequence') == stop_sequence)
+        self.stop_times_df.loc[filter_condition, "stop_id"] = new_stop_id
+        
+     
         
     
 if __name__ == "__main__":
     
-    path_to_file = r'C:\Users\geosimlab\Documents\Igor\sample_gtfs\separated double stops\\'
-    path_to_GTFS = r'C:\Users\geosimlab\Documents\Igor\israel-public-transportation_gtfs\\'
+    path_to_file = r'C:/Users/geosimlab/Documents/Igor/sample_gtfs/separated double stops//'
+    path_to_GTFS = r'C:/Users/geosimlab/Documents/Igor/israel-public-transportation_gtfs//'
         
     calc = GTFS(path_to_file, path_to_GTFS)
-    calc.correct_repeated_stops_in_trips()
+    #calc.correct_repeated_stops_in_trips()
     #calc.found_repeated_in_trips_stops()
     #calc.create_cut_from_GTFS()
     #calc.modify_time_and_sequence()
-    #calc.modify_time_in_file (r'C:\Users\geosimlab\Documents\Igor\Protocols\\access_1_detail.csv')
+    #calc.modify_time_in_file (r'C:/Users/geosimlab/Documents/Igor/Protocols//access_1_detail.csv')
     #print (calc.change_time ('8:52:00'))
-    
-    #calc.create_tranfers_txt(400, "transfers_start.txt")
-  
-    #calc.create_my_routes()
-    #calc.correcting_files()
+        
+    calc.correcting_files2()
 

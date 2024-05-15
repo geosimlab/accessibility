@@ -57,8 +57,7 @@ def rev_raptor(SOURCE, D_TIME, MAX_TRANSFER, MIN_TRANSFER,
 
     if timetable_mode:
         MaxWaitTime = MaxExtraTime
-        D_TIME = D_TIME - departure_interval
-
+        
     if True:
         try:
             if trans_info == -1:
@@ -245,7 +244,7 @@ def rev_raptor(SOURCE, D_TIME, MAX_TRANSFER, MIN_TRANSFER,
 # use for timetable mode
 def get_t_min(pi_label, keys):
     
-    time_min = 0
+    time_min = 100000
 
     for point in keys:
         
@@ -256,7 +255,7 @@ def get_t_min(pi_label, keys):
 
             time_foot_to_stop_point = get_time_foot_to_stop(pi_label,boarding_point)
             time = boarding_time + time_foot_to_stop_point # + departure_interval 
-            if time_min < time:
+            if  time < time_min:
                 time_min = time
     return time_min
 

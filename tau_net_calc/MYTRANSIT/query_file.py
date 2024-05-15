@@ -184,9 +184,8 @@ def runRaptorWithProtocol(self, sources, raptor_mode, protocol_type, timetable_m
   print("routes_by_stop_dict:\n" + "\n".join([f"{key}: {value}" for key, value in list(routes_by_stop_dict.items())]))
   print("idx_by_route_stop_dict:\n" + "\n".join([f"{key}: {value}" for key, value in list(idx_by_route_stop_dict.items())]))
 
-  print("footpath_dict:\n" + "\n".join([f"{key}: {value}" for key, value in list(footpath_start_dict.items())]))
-  print("footpath_dict:\n" + "\n".join([f"{key}: {value}" for key, value in list(footpath_process_dict.items())]))
-  print("footpath_dict:\n" + "\n".join([f"{key}: {value}" for key, value in list(footpath_finish_dict.items())]))
+  print("footpath_dict:\n" + "\n".join([f"{key}: {value}" for key, value in list(footpath_dict.items())]))
+  
   """ 
       
   self.textLog.append(f'<a>Loading dictionary done</a>')
@@ -756,13 +755,13 @@ def  make_protocol_detailed(raptor_mode, D_TIME, dictInput, protocol_full_path, 
 
          
          if raptor_mode == 1:
-            if SOURCE > stop_max_number:
+            if SOURCE > stop_max_number and SOURCE < 10000000:
               symbol1 = building_symbol
             else:
               symbol1 = stop_symbol   
               
          if raptor_mode == 2:
-            if SOURCE_REV > stop_max_number:
+            if SOURCE_REV > stop_max_number and SOURCE_REV < 10000000:
               symbol1 = building_symbol
             else:
               symbol1 = stop_symbol   
