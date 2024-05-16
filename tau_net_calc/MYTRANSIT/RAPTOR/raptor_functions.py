@@ -223,10 +223,16 @@ def post_processing (DESTINATION: int, pi_label, MIN_TRANSFER, MaxWalkDist, time
             
             if timetable_mode and mode_raptor == 2:
                 
-                #end_time = 0 
+                #end_time = 0
+
+                 
+
                 if len(journey) != 0:
-                
-                    start_time = journey[-1][3]
+
+                    if journey[-1][0] == 'walking':
+                        start_time = journey[-1][4]
+                    else:    
+                        start_time = journey[-1][3]
 
                     if len(journey) == 1 and journey[0][0] == 'walking':
                         new_value = journey[0][4] - departure_interval
@@ -236,10 +242,11 @@ def post_processing (DESTINATION: int, pi_label, MIN_TRANSFER, MaxWalkDist, time
                     if len(journey) > 1:
                         if journey[1][0] != 'walking':
                             end_time = journey[0][3]+ journey[1][0]
-                
+                    
+                    
                     duration = end_time - start_time
 
-                    if duration > Maximal_travel_time or end_time > D_Time - departure_interval:
+                    if (duration > Maximal_travel_time) or (end_time > D_Time - departure_interval):
                         append = False 
                  
             
@@ -270,13 +277,7 @@ def post_processingAll(call_name, SOURCE, D_TIME, label, pi_label, MIN_TRANSFER,
                continue        
             pareto_set = post_processing (p_i, pi_label, MIN_TRANSFER, MaxWalkDist, timetable_mode, Maximal_travel_time, D_TIME, mode, departure_interval)           
             
-
             total_time_to_dest = -1           
-            total_walk_time = -1
-            total_waiting_time = -1 
-            total_boarding_count = -1
-            total_drive_time = -1
-            
             
             #print (f'pareto_set {pareto_set}')
             
@@ -290,17 +291,13 @@ def post_processingAll(call_name, SOURCE, D_TIME, label, pi_label, MIN_TRANSFER,
             
              journey = pareto_set[0][1]
              if call_name == "raptor":
-              total_time_to_dest,total_walk_time,total_waiting_time,total_boarding_count,total_drive_time=\
-                post_processing_2(D_TIME, journey)
+                total_time_to_dest = post_processing_2(D_TIME, journey)
              else:
-                total_time_to_dest,total_walk_time,total_waiting_time,total_boarding_count,total_drive_time=\
-                revpost_processing_2(D_TIME, journey)
+                total_time_to_dest = revpost_processing_2(D_TIME, journey)
             else:
              count_not_accessible = count_not_accessible + 1
             
-            newDict[p_i] = \
-            [SOURCE, begin_time, total_time_to_dest, total_walk_time, total_waiting_time,
-             total_boarding_count, total_drive_time, pareto_set ]   
+            newDict[p_i] = [SOURCE, begin_time, total_time_to_dest, pareto_set ]   
         
    #print (f' avg len_pareto {len_pareto_set/count_stops}')
    reachedLabels = newDict
@@ -463,98 +460,43 @@ def get_earliest_trip_new(stoptimes_dict: dict, route: int, arrival_time_at_pi, 
     return -1, -1  # No trip is found after arrival_time_at_pi
     
 
-"""
-This function designed for getting raptor statistics as it is described in Return parameters
-It is called after function post_processing that returns a jorney array that is input parameter 
-for this function. It is supposed that SOURCE and DESTINATION were given
-"""
 def post_processing_2(D_TIME, journey) -> tuple:
-    """
-     Returns:
-        Origin STOP_ID, START time, Destination STOP_ID, TOTAL JOURNEY time TO destination,
-          TOTAL WALK TIME (INCLUDING WAK TO THE STOP OF THE FIRST BOARDING 
-          AND WALK TO DESTINATION FORM THE LAST ALIGHTING STOP), 
-          TOTAL Waiting time AT STOPS, TOTAL Number of BOARDINGS (IS 0 IF REACHED BY WALK ONLY)
-    """ 
+ 
     
-    total_time_to_dest = 0 
-    total_walk_time = 0
-    total_waiting_time = 0
-    total_boarding_count = 0
-    total_drive_time = 0           
-    first_leg_found = False
-    last_arrive_time = 0
-    
-    for leg in journey:       
-             if leg[0] == 'walking':
-               #total_walk_time = total_walk_time + leg[3].total_seconds() 
-               total_walk_time = total_walk_time + leg[3]
-               last_arrive_time = leg[4]     
-               if not first_leg_found:
-                    first_leg_found = True        
-             else:               
-               total_boarding_count = total_boarding_count + 1
-               #total_drive_time = total_drive_time + (leg[3] - leg[0]).total_seconds()
-               total_drive_time = total_drive_time + (leg[3] - leg[0])
-               
-               if  first_leg_found:  #distract from boarding time previous arrive time
-                  if last_arrive_time != 0:
-                        #total_waiting_time = total_waiting_time + (leg[0] - last_arrive_time).total_seconds() 
-                        total_waiting_time = total_waiting_time + (leg[0] - last_arrive_time)
-               else:
-                  #total_waiting_time = (leg[0] - D_TIME).total_seconds()  
-                  total_waiting_time = (leg[0] - D_TIME)
-                  first_leg_found = True                  
-               last_arrive_time = leg[3]
-            
-    total_time_to_dest = total_walk_time + total_waiting_time + total_drive_time
+    if len (journey)> 1 and journey[0][0] == "walking" and journey[1][0] != "walking":
+        start_time = journey[0][4] - journey[0][3]
+        if journey[-1][0] == 'walking':
+            end_time = journey[-1][4] 
+        else:
+            end_time = journey[-1][3]  
 
-    return total_time_to_dest,total_walk_time,total_waiting_time,total_boarding_count,total_drive_time 
+        duration = end_time - start_time
+
+    else:
+         duration = journey[0][3]
+         
+    total_time_to_dest = duration 
+    return total_time_to_dest
 
 def revpost_processing_2(D_TIME, journey) -> tuple:
-    """
-     Returns:
-        Origin STOP_ID, START time, Destination STOP_ID, TOTAL JOURNEY time TO destination,
-          TOTAL WALK TIME (INCLUDING WAK TO THE STOP OF THE FIRST BOARDING 
-          AND WALK TO DESTINATION FORM THE LAST ALIGHTING STOP), 
-          TOTAL Waiting time AT STOPS, TOTAL Number of BOARDINGS (IS 0 IF REACHED BY WALK ONLY)
-    """ 
-    
-    total_time_to_dest = 0 
-    total_walk_time = 0
-    total_waiting_time = 0
-    total_boarding_count = 0
-    total_drive_time = 0           
-    first_leg_found = False
-    last_arrive_time = 0
         
-    for leg in journey:       
-             if leg[0] == 'walking':
-               #total_walk_time = total_walk_time + leg[3].total_seconds() 
-               total_walk_time = total_walk_time + leg[3]
-               last_arrive_time = leg[4]
-               if not first_leg_found:
-                    first_leg_found = True        
-             else:               
-               total_boarding_count = total_boarding_count + 1
-               #total_drive_time = total_drive_time - (leg[3] - leg[0]).total_seconds()
-               total_drive_time = total_drive_time - (leg[3] - leg[0])
-               
+    if len(journey) != 0:
 
-               if  first_leg_found:  #distract from boarding time previous arrive time
-                  if last_arrive_time != 0:
-                   #total_waiting_time = total_waiting_time - (leg[0] - last_arrive_time).total_seconds() 
-                   total_waiting_time = total_waiting_time - (leg[0] - last_arrive_time)
-               else:
-                  #total_waiting_time = - (leg[0] - D_TIME).total_seconds()  
-                  total_waiting_time = - (leg[0] - D_TIME)
-                  first_leg_found = True                  
-               last_arrive_time = leg[3]
+                    if journey[-1][0] == 'walking':
+                        start_time = journey[-1][4]
+                    else:    
+                        start_time = journey[-1][3]
 
-    
-    total_time_to_dest = total_walk_time + total_waiting_time + total_drive_time
-    
+                    if len(journey) == 1 and journey[0][0] == 'walking':
+                        
+                        end_time = journey[0][4] + journey[0][3]
+                    
+                    if len(journey) > 1:
+                        if journey[1][0] != 'walking':
+                            end_time = journey[0][3]+ journey[1][0]
 
-    return total_time_to_dest, total_walk_time, total_waiting_time, total_boarding_count, total_drive_time 
+                    total_time_to_dest = end_time - start_time              
+
+    return total_time_to_dest
 
      

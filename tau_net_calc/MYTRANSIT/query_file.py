@@ -238,8 +238,10 @@ def runRaptorWithProtocol(self, sources, raptor_mode, protocol_type, timetable_m
     top_bound_min = top_bound_min + time_step_min
    protocol_header += '\n'  
    #increase by one the last top bound
-   last_top = grades[intervals_number-1][1] + 1
-   grades[intervals_number-1][1] = last_top
+   #last_top = grades[intervals_number-1][1]
+   #grades[intervals_number-1][1] = last_top
+
+  #print (f'grades {grades}')
    
   if protocol_type==2:   
    
@@ -367,11 +369,22 @@ def make_protocol_summary (SOURCE, dictInput, f, grades, use_fields, attribute_d
   counts = {x: 0 for x in range(0, len(time_grad))} #counters for grades
   agrregates = {x: 0 for x in range(0, len(time_grad))} #counters for agrregates
   
- 
+  """
+  print (f'item count = {len(dictInput)}')
+  t1= time_grad[0]
+  t_min = t1[0]*60
+  t2= time_grad[len(time_grad)-1]
+  t_max = t2[1]*60
+  print (f't_min = {t_min} t_max {t_max}')
+  """
+
   with open(f, 'a') as filetowrite:
    for dest, info in dictInput.items():
 
     time_to_dest = int (round(info[2]))
+
+    #if time_to_dest > t_max:
+    #  print (f'time_to_dest {time_to_dest} SOURCE {SOURCE}')
     
     for i in range (0, len(time_grad)) :
      grad = time_grad[i]
@@ -415,12 +428,12 @@ def  make_protocol_detailed(raptor_mode, D_TIME, dictInput, protocol_full_path, 
     
     SOURCE =  info[0]
     '''
-    Examle info[7] = pareto_set =
+    Examle info[3] = pareto_set =
     [(0, [('walking', 2003, 24206.0, Timedelta('0 days 00:02:47'),Timestamp('2023-06-30 08:37:13')), 
     (Timestamp('2023-06-30 08:36:59'), 24206, 14603, Timestamp('2023-06-30 08:33:36'), '3150_67'), 
     ('walking', 14603, 1976.0, Timedelta('0 days 00:02:03.300000'), Timestamp('2023-06-30 08:31:32.700000'))])]    
     '''
-    pareto_set = info[7]
+    pareto_set = info[3]
     
     if pareto_set is None or dest is None:
       
