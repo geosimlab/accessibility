@@ -53,11 +53,16 @@ def rev_raptor(SOURCE, D_TIME, MAX_TRANSFER, MIN_TRANSFER,
     MaxWalkDist2_time = MaxWalkDist2
     MaxWalkDist3_time = MaxWalkDist3
 
+    
     min_time = D_TIME - Maximal_travel_time
 
     if timetable_mode:
         MaxWaitTime = MaxExtraTime
-        
+        D_TIME = D_TIME - departure_interval
+        min_time = D_TIME - Maximal_travel_time
+
+    
+
     if True:
         try:
             if trans_info == -1:
@@ -83,7 +88,7 @@ def rev_raptor(SOURCE, D_TIME, MAX_TRANSFER, MIN_TRANSFER,
                     marked_stop_dict[p_dash] = 1
         except  KeyError as e:
             pass
-        #print ('walk friom source')
+        
         #print (f' pi_label {pi_label}')
         #print (f' marked_stop {marked_stop}')   
 

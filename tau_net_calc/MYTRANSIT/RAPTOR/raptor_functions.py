@@ -235,18 +235,26 @@ def post_processing (DESTINATION: int, pi_label, MIN_TRANSFER, MaxWalkDist, time
                         start_time = journey[-1][3]
 
                     if len(journey) == 1 and journey[0][0] == 'walking':
-                        new_value = journey[0][4] - departure_interval
-                        journey[0] = (journey[0][0], journey[0][1], journey[0][2], journey[0][3], new_value) 
+                        #new_value = journey[0][4] - departure_interval
+                        #journey[0] = (journey[0][0], journey[0][1], journey[0][2], journey[0][3], new_value) 
                         end_time = journey[0][4] + journey[0][3]
                     
                     if len(journey) > 1:
                         if journey[1][0] != 'walking':
                             end_time = journey[0][3]+ journey[1][0]
+
+                    if len(journey) == 1:
+                        print  ('len(journey) = 1')        
+                        print  (f'duration {duration}')
+                        print  (f'Maximal_travel_time {Maximal_travel_time}')
+                        print  (f'end_time {end_time}')
+                        print  (f'D_Time {D_Time}')
                     
                     
                     duration = end_time - start_time
 
-                    if (duration > Maximal_travel_time) or (end_time > D_Time - departure_interval):
+                    #if (duration > Maximal_travel_time) or (end_time > D_Time - departure_interval):
+                    if (duration > Maximal_travel_time) or (end_time > D_Time):    
                         append = False 
                  
             
