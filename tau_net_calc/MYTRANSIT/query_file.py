@@ -168,9 +168,7 @@ def runRaptorWithProtocol(self, sources, raptor_mode, protocol_type, timetable_m
   if verify_break(self):
       return 0
   QApplication.processEvents()
-  stops_dict, stoptimes_dict, footpath_dict, routes_by_stop_dict,\
-              idx_by_route_stop_dict = \
-              myload_all_dict (self, PathToNetwork, raptor_mode)
+  stops_dict, stoptimes_dict, footpath_dict, routes_by_stop_dict, idx_by_route_stop_dict = myload_all_dict (self, PathToNetwork, raptor_mode)
         
   if verify_break(self):
       return 0
@@ -241,7 +239,7 @@ def runRaptorWithProtocol(self, sources, raptor_mode, protocol_type, timetable_m
    #last_top = grades[intervals_number-1][1]
    #grades[intervals_number-1][1] = last_top
 
-  #print (f'grades {grades}')
+  
    
   if protocol_type==2:   
    
@@ -321,15 +319,6 @@ def runRaptorWithProtocol(self, sources, raptor_mode, protocol_type, timetable_m
           if protocol_type == 2 :           
             make_protocol_detailed (raptor_mode, D_TIME, reachedLabels, f, timetable_mode)
            
-                 
-  #print (f'total_time1 {total_time1}')
-  #print (f'total_time2 {total_time2}')
-  #print (f'total_time3 {total_time3}')
-  #print (f'total_time4 {total_time4}')
-  #print (f'total_time5 {total_time5}')
-  #print (f'total_time6 {total_time6}') 
-
-
   
 
   self.setMessage(f'Calculating done')
@@ -363,46 +352,71 @@ def write_info (self,Layer, LayerDest, curr_getDateTime, folder_name, selected_o
 
 # for type_protokol = 1 
 def make_protocol_summary (SOURCE, dictInput, f, grades, use_fields, attribute_dict):
-  
+    
   time_grad = grades
   #[[-1,0], [0,10],[10,20],[20,30],[30,40],[40,50],[50,61] ]
   counts = {x: 0 for x in range(0, len(time_grad))} #counters for grades
   agrregates = {x: 0 for x in range(0, len(time_grad))} #counters for agrregates
-  
-  """
-  print (f'item count = {len(dictInput)}')
-  t1= time_grad[0]
-  t_min = t1[0]*60
-  t2= time_grad[len(time_grad)-1]
-  t_max = t2[1]*60
-  print (f't_min = {t_min} t_max {t_max}')
-  """
+
+  #f1 = r'c:/temp/rep.txt'
 
   with open(f, 'a') as filetowrite:
-   for dest, info in dictInput.items():
+   #with open(f1, 'a') as rep:
+    for dest, info in dictInput.items():
 
-    time_to_dest = int (round(info[2]))
-
-    #if time_to_dest > t_max:
-    #  print (f'time_to_dest {time_to_dest} SOURCE {SOURCE}')
+     time_to_dest = int (round(info[2]))
     
-    for i in range (0, len(time_grad)) :
-     grad = time_grad[i]
-     if time_to_dest > grad[0]*60 and time_to_dest <= grad[1]*60:
-      counts[i] = counts[i] + 1
-      if use_fields:
+     for i in range (0, len(time_grad)) :
+      grad = time_grad[i]
+      if time_to_dest > grad[0]*60 and time_to_dest <= grad[1]*60:
+       counts[i] = counts[i] + 1
+      
+       #if i == 1:
+       #      rep.write(str(dest) + "\n")  
+       #      print ('str(dest)')
+       if use_fields:
         
-        agrregates[i] = agrregates[i] + attribute_dict.get(int(dest), 0)
+         agrregates[i] = agrregates[i] + attribute_dict.get(int(dest), 0)
 
-      break
+       break
      
-   row = str(SOURCE)  
-   for i in range (0, len (time_grad)) :  
-    row = f'{row},{counts[i]}'
-    if use_fields:
-      row = f'{row},{agrregates[i]}'
+    row = str(SOURCE)  
+    for i in range (0, len (time_grad)) :  
+     row = f'{row},{counts[i]}'
+     if use_fields:
+       row = f'{row},{agrregates[i]}'
+    filetowrite.write(row + "\n")
+  """
+  time_grad = grades
+  #[[-1,0], [0,10],[10,20],[20,30],[30,40],[40,50],[50,61] ]
+  counts = {x: 0 for x in range(0, len(time_grad))} #counters for grades
+  agrregates = {x: 0 for x in range(0, len(time_grad))} #counters for agrregates
+ 
+  f1 = r'c:/temp/rep.txt'
+  row = ''
+  with open(f, 'a') as filetowrite:
+   with open(f1, 'a') as rep:
+    for dest, info in dictInput.items():
+
+      time_to_dest = int (round(info[2]))
+      for i in range (0, len(time_grad)) :
+        grad = time_grad[i]
+        if time_to_dest > grad[0]*60 and time_to_dest <= grad[1]*60:
+          counts[i] = counts[i] + 1
+          if i == 5:
+            rep.write(str(dest) + "\n")
+          if use_fields:
+            agrregates[i] = agrregates[i] + attribute_dict.get(int(dest), 0)
+
+          break
+     
+      row = str(SOURCE)  
+      for i in range (0, len (time_grad)) :  
+        row = f'{row},{counts[i]}'
+        if use_fields:
+          row = f'{row},{agrregates[i]}'
    filetowrite.write(row + "\n")
-   
+   """ 
  
 # for type_protokol =2 
 def  make_protocol_detailed(raptor_mode, D_TIME, dictInput, protocol_full_path, timetable_mode):
@@ -755,26 +769,26 @@ def  make_protocol_detailed(raptor_mode, D_TIME, dictInput, protocol_full_path, 
          
         
          #destination_type = "S"
-         if Destination > stop_max_number:
+         if Destination > stop_max_number and Destination < 10000000000:
            destination_type = building_symbol
          else:
            destination_type = stop_symbol  
 
 
-         if SOURCE > stop_max_number:
+         if SOURCE > stop_max_number and SOURCE < 10000000000:
            symbol1 = building_symbol
          else:
            symbol1 = stop_symbol
 
          
          if raptor_mode == 1:
-            if SOURCE > stop_max_number and SOURCE < 10000000:
+            if SOURCE > stop_max_number and SOURCE < 10000000000:
               symbol1 = building_symbol
             else:
               symbol1 = stop_symbol   
               
          if raptor_mode == 2:
-            if SOURCE_REV > stop_max_number and SOURCE_REV < 10000000:
+            if SOURCE_REV > stop_max_number and SOURCE_REV < 10000000000:
               symbol1 = building_symbol
             else:
               symbol1 = stop_symbol   
@@ -818,7 +832,11 @@ def  make_protocol_detailed(raptor_mode, D_TIME, dictInput, protocol_full_path, 
            if len(journey) > 1:
             sarrival_time = seconds_to_time(journey[-2][3] + journey[-1][3])
            else: 
-            sarrival_time = seconds_to_time(journey[0][3] + journey[0][4])
+            
+            if journey[0][0] == "walking":
+              sarrival_time = seconds_to_time(journey[0][3] + journey[0][4])
+            else:
+              sarrival_time = seconds_to_time(journey[0][3])
               
                   
 

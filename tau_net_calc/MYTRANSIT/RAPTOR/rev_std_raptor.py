@@ -55,11 +55,12 @@ def rev_raptor(SOURCE, D_TIME, MAX_TRANSFER, MIN_TRANSFER,
 
     
     min_time = D_TIME - Maximal_travel_time
+    TIME_START = D_TIME
 
     if timetable_mode:
         MaxWaitTime = MaxExtraTime
-        D_TIME = D_TIME - departure_interval
-        min_time = D_TIME - Maximal_travel_time
+        TIME_START = D_TIME - departure_interval
+        min_time = D_TIME - Maximal_travel_time - MaxExtraTime
 
     
 
@@ -78,7 +79,7 @@ def rev_raptor(SOURCE, D_TIME, MAX_TRANSFER, MIN_TRANSFER,
 
                 if to_pdash_time > MaxWalkDist3_time:
                    continue
-                new_p_dash_time = D_TIME - to_pdash_time
+                new_p_dash_time = TIME_START - to_pdash_time
                 label[0][p_dash] = new_p_dash_time
                 star_label[p_dash] = new_p_dash_time
                 pi_label[0][p_dash] = ('walking', SOURCE, p_dash, to_pdash_time, new_p_dash_time)
@@ -136,12 +137,13 @@ def rev_raptor(SOURCE, D_TIME, MAX_TRANSFER, MIN_TRANSFER,
             QApplication.processEvents()
             boarding_time, boarding_point = -1, -1           
             current_trip_t = -1
-
+            
+           
             if not stops_dict.get(route):
                continue
 
             for p_i in stops_dict[route][current_stopindex_by_route - 1:]: 
-               
+                
                 
                 to_process = True
                 
@@ -150,11 +152,20 @@ def rev_raptor(SOURCE, D_TIME, MAX_TRANSFER, MIN_TRANSFER,
                     try:
                         arr_by_t_at_pi = current_trip_t[current_stopindex_by_route-1][1]  
                     except:
+                        
                         continue    
-                      
+
+                    
+
                     if min_time > arr_by_t_at_pi: 
+                        
                         to_process=False
-                                              
+
+                    # no rewrite if exist best solve!!!
+                    if not isinstance(pi_label[k][p_i], int):
+                        if pi_label[k][p_i][3] > arr_by_t_at_pi:
+                            to_process = False                          
+
                     if to_process and boarding_point != p_i: #and boarding_time >= arr_by_t_at_pi :
                      
                      label[k][p_i], star_label[p_i] = arr_by_t_at_pi, arr_by_t_at_pi
@@ -209,7 +220,7 @@ def rev_raptor(SOURCE, D_TIME, MAX_TRANSFER, MIN_TRANSFER,
                 current_stopindex_by_route = current_stopindex_by_route + 1
 
         if k == 1 and timetable_mode:
-            t_min = get_t_min(pi_label, routes_by_stop_dict.keys())
+            t_min = get_t_min(pi_label, routes_by_stop_dict.keys(), departure_interval)
             min_time = t_min - Maximal_travel_time
 
         #print (f' part 2 pi_label {pi_label}')
@@ -247,7 +258,7 @@ def rev_raptor(SOURCE, D_TIME, MAX_TRANSFER, MIN_TRANSFER,
     return out
 # returns (maximum boarding time for the first bus - time to reach this stop)
 # use for timetable mode
-def get_t_min(pi_label, keys):
+def get_t_min(pi_label, keys, departure_interval):
     
     time_min = 100000
 
@@ -259,8 +270,8 @@ def get_t_min(pi_label, keys):
             boarding_time = pi_label[1][point][0]
 
             time_foot_to_stop_point = get_time_foot_to_stop(pi_label,boarding_point)
-            time = boarding_time + time_foot_to_stop_point # + departure_interval 
-            if  time < time_min:
+            time = boarding_time + time_foot_to_stop_point + departure_interval 
+            if  time_min > time:
                 time_min = time
     return time_min
 

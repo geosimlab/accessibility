@@ -20,4 +20,16 @@ maxwaittime = 15
 maxwaittimetransfer = 15
 maxtimetravel = 60
 timeinterval = 10
+pathtoprotocols_car = C:/
+layer_car = 
+selectedonly1_car = False
+layerdest_car = 
+selectedonly2_car = False
+field_car = 
+usefield_car = True
+layerroad_car = 
+FieldSpeed_car = 0
+speed_car = 50
+maxtimetravel_car = 10
+timeinterval_car = 1
 

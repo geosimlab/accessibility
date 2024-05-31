@@ -5,7 +5,13 @@ from qgis.PyQt.QtGui import QIcon, QFont
 from .form_settings import Settings
 from .form_raptor_detailed import RaptorDetailed
 from .form_raptor_summary import RaptorSummary
+from .form_car import CarAccessibility
+from PyQt5.QtWidgets import QApplication
+
+
 import os
+from qgis.core import QgsPointXY
+from datetime import datetime
 
 class AccessibilityTools(QWidget):
     def __init__(self):
@@ -54,11 +60,13 @@ class AccessibilityTools(QWidget):
 
         group5 = QTreeWidgetItem(self.tree_widget,['Car accessibility AREA, by origins or destinations'])
         self.item12 = QTreeWidgetItem(group5, ['Forward accessibility'])
+        self.item12.setFont(0,font)
         self.item13 = QTreeWidgetItem(group5, ['Backward accessibility'])
         group5.setExpanded(True)
 
         group6 = QTreeWidgetItem(self.tree_widget,['Car accessibility MAP'])
         self.item14 = QTreeWidgetItem(group6, ['Forward accessibility'])
+        self.item14.setFont(0,font)
         self.item15 = QTreeWidgetItem(group6, ['Backward accessibility'])
         group6.setExpanded(True)
 
@@ -135,6 +143,17 @@ class AccessibilityTools(QWidget):
           raptor_summary = RaptorSummary(mode = 2, protocol_type = 1, title = "Public transport accessibility MAP, backward accessibility MAP, arrival time interval", timetable_mode = True)
           raptor_summary.textInfo.setPlainText("Sample description backward raptor")
           raptor_summary.show()  
+
+        if item == self.item12:
+          car_accessibility = CarAccessibility(mode = 1, protocol_type = 1, title = "Car accessibility AREA, by origins or destinations, forward accessibility")
+          car_accessibility.textInfo.setPlainText("Sample description car accessibility")
+          car_accessibility.show()  
+
+        if item == self.item14:
+          car_accessibility = CarAccessibility(mode = 1, protocol_type = 2, title = "Car accessibility MAP, forward accessibility")
+          car_accessibility.textInfo.setPlainText("Sample description car accessibility")
+          car_accessibility.show()  
+          
 
     
 

@@ -77,7 +77,7 @@ for i, geom in enumerate(points_copy.geometry):
 print("time:", datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
 
-with open(r'c:/temp/close_pairs.txt', 'w') as file:
+with open(r'c:/temp/footpath_AIR.txt', 'w') as file:
     file.write(f'from_stop_id,to_stop_id,min_transfer_time\n')
     for pair in close_pairs:
         id_from_points_layer = pair[0]

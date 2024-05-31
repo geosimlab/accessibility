@@ -10,7 +10,6 @@ from zipfile import ZipFile
 import codecs
 import time
 from collections import defaultdict
-import numpy as np
 import datetime
 
 class GTFS ():
@@ -316,7 +315,9 @@ class GTFS ():
         routes_result_df = pd.DataFrame(result_routes)
 
         self.trips_df = trips_result_df 
-        self.routes_df = routes_result_df 
+        self.trips_df.columns = ['route_id', 'service_id', 'trip_id', 'trip_headsign', 'direction_id', 'shape_id']
+        self.routes_df = routes_result_df
+        self.routes_df.columns = ['route_id','agency_id','route_short_name','route_long_name','route_desc','route_type','route_color'] 
         
         return 1
     
@@ -360,7 +361,7 @@ class GTFS ():
         self.load_GTFS()
         self.create_my_routes()
         self.correct_repeated_stops_in_trips()
-
+        
         trips_group = self.stop_times_df.groupby("trip_id") 
         
         self.stop_times_df.reset_index()
@@ -390,7 +391,7 @@ class GTFS ():
         #self.stop_times_df = self.stop_times_df[~self.stop_times_df['trip_id'].isin(trips_to_delete)]
         self.stop_times_df = self.stop_times_df[~self.stop_times_df.index.get_level_values('trip_id').isin(trips_to_delete)]
         print (f'remained len stop_times_df {len(self.stop_times_df)} from {old_len_stop_times}')
-
+        
         self.save_GTFS()
         print("time:", datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
         
@@ -423,16 +424,19 @@ class GTFS ():
         self.stop_times_df.reset_index
         self.stop_times_df = self.stop_times_df.set_index(['trip_id', 'stop_sequence'])
 
+        print (f'Merging data ...')
+        
+        self.merged_df = pd.merge(self.routes_df, self.trips_df, on="route_id")
+        self.merged_df = pd.merge(self.merged_df, self.stop_times_df, on="trip_id")
+
         print (f'Grouping data ...')
         grouped = self.merged_df.groupby('route_id')
-
+        
         self.max_stop_id = self.stop_df['stop_id'].max()
 
         all_routes = len(grouped)
-        #print("time:", datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
         count = 0
         
-
         new_stops = []
         for route_id, group in grouped:
             count += 1
@@ -452,6 +456,13 @@ class GTFS ():
                     new_stops.append((route_id, stop_sequence, new_stop_id))
                 else:
                     stop_ids.append(stop_id)
+            
+            """
+            if route_id == '2287_1':
+                print(f'', end='\n')
+                print(f'route_id == 2287_1 stop_ids {stop_ids}')
+                return 0
+            """    
         print(f'', end='\n')
         count = 0
         len_stops = len(new_stops)               
@@ -491,8 +502,8 @@ class GTFS ():
 
     def get_new_stop_id(self):
         self.max_stop_id += 1
-        if self.max_stop_id < 1000000:
-            self.max_stop_id = 100000000
+        if self.max_stop_id < 10000000000:
+            self.max_stop_id = 10000000000
         return self.max_stop_id
 
     def create_new_stop (self, stop_id):
@@ -521,9 +532,9 @@ if __name__ == "__main__":
     #calc.correct_repeated_stops_in_trips()
     #calc.found_repeated_in_trips_stops()
     #calc.create_cut_from_GTFS()
-    #calc.modify_time_and_sequence()
+    calc.modify_time_and_sequence()
     #calc.modify_time_in_file (r'C:/Users/geosimlab/Documents/Igor/Protocols//access_1_detail.csv')
     #print (calc.change_time ('8:52:00'))
         
-    calc.correcting_files2()
+    #calc.correcting_files2()
 

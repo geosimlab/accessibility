@@ -4,6 +4,14 @@ Module contains function related to RAPTOR, rRAPTOR, One-To-Many rRAPTOR, HypRAP
 from collections import deque as deque
 from PyQt5.QtWidgets import QApplication
 
+def seconds_to_time(total_seconds):
+    total_seconds = round(total_seconds)
+    hours = total_seconds // 3600
+    minutes = (total_seconds % 3600) // 60
+    seconds = total_seconds % 60
+    time_str = "{:02d}:{:02d}:{:02d}".format(hours, minutes, seconds)
+    return time_str
+
 def initialize_raptor(routes_by_stop_dict: dict, SOURCE: int, MAX_TRANSFER: int) -> tuple:
     '''
     Initialize values for RAPTOR.
@@ -60,24 +68,30 @@ def get_latest_trip_new(stoptimes_dict: dict, route: int, arrival_time_at_pi, pi
         >>> output = get_latest_trip_new(stoptimes_dict, 1000, pd.to_datetime('2019-06-10 17:40:00'), 0, pd.to_timedelta(0, unit='seconds'))
     '''
     
-    #max_waiting_time = timedelta(seconds = max_wait_time)
-    #change_time = timedelta(days=change_time.days, seconds=change_time.seconds)
-    
     for trip_idx, trip in (stoptimes_dict[route].items()): 
             
-            
             # ! this error occurs due to the removal of stop_times > 23:59 !
+            """
             try:
                 t1 = trip[pi_index-1][1] 
             except IndexError:
-                return -1, -1  
             
+                return -1, -1  
+            """
+            
+            try:
+                t1 = trip[pi_index-1][1] 
+            except IndexError:
+            
+                continue
+                
+
             if t1 == 0:
                 continue
            
 
             if (t1 >= arrival_time_at_pi + change_time) and (t1 <= arrival_time_at_pi + max_waiting_time) :  
-                          
+                
                 return f'{route}_{trip_idx}', stoptimes_dict[route][trip_idx]
     return -1, -1  # No trip is found after arrival_time_at_pi
     
@@ -189,85 +203,93 @@ def post_processing (DESTINATION: int, pi_label, MIN_TRANSFER, MaxWalkDist, time
                     break   
 
             journey.reverse()
-            
-            #print (f'journey {journey}')
-            #print (f'journey[-1][3] {journey[-1][3]}')
-            #print (f'MaxWalkDist {MaxWalkDist}')
-            #print (f'transfer_needed {transfer_needed}')
-            #print (f'MIN_TRANSFER {MIN_TRANSFER}')
-
-            
-            #if len(journey) > 0 and not (journey[-1][0] == 'walking' and journey[-1][3].total_seconds() > MaxWalkDist) and (transfer_needed >= MIN_TRANSFER):
-            
             append = True                            
-            
-            #print (f'timetable_mode {timetable_mode}')
-            #print (f'mode {mode}')
-            if timetable_mode and mode_raptor == 1:
-                
-                if len (journey)> 1 and journey[0][0] == "walking" and journey[1][0] != "walking":
 
-                    new_value = journey[1][0] - departure_interval
-                    journey[0] = (journey[0][0], journey[0][1], journey[0][2], journey[0][3], new_value)    
-                    
-                    start_time = journey[0][4] - journey[0][3]
-                    if journey[-1][0] == 'walking':
-                        end_time = journey[-1][4] 
+            if timetable_mode:
+                                
+                if len (journey) > 1 and journey[0][0] == "walking" and journey[1][0] != "walking":
+                   
+                    #new_value = D_Time + journey[0][3] + departure_interval
+                    if mode_raptor == 1:
+                        new_value = journey[1][0] - departure_interval
                     else:
-                        end_time = journey[-1][3]  
+                        #### it is TESTING
+                        new_value = journey[1][0] + departure_interval
+                        #new_value = journey[1][0]
+                        
+                    journey[0] = (journey[0][0], journey[0][1], journey[0][2], journey[0][3], new_value)
 
-                    duration = end_time - start_time
-
-                    if duration > Maximal_travel_time or start_time < D_Time:
-                        append = False
             
-            if timetable_mode and mode_raptor == 2:
+                duration, start_time, end_time = get_duration_for_timetable_mode (journey, mode_raptor)
                 
-                #end_time = 0
-
-                 
-
-                if len(journey) != 0:
-
-                    if journey[-1][0] == 'walking':
-                        start_time = journey[-1][4]
-                    else:    
-                        start_time = journey[-1][3]
-
-                    if len(journey) == 1 and journey[0][0] == 'walking':
-                        #new_value = journey[0][4] - departure_interval
-                        #journey[0] = (journey[0][0], journey[0][1], journey[0][2], journey[0][3], new_value) 
-                        end_time = journey[0][4] + journey[0][3]
-                    
-                    if len(journey) > 1:
-                        if journey[1][0] != 'walking':
-                            end_time = journey[0][3]+ journey[1][0]
-
-                    if len(journey) == 1:
-                        print  ('len(journey) = 1')        
-                        print  (f'duration {duration}')
-                        print  (f'Maximal_travel_time {Maximal_travel_time}')
-                        print  (f'end_time {end_time}')
-                        print  (f'D_Time {D_Time}')
-                    
-                    
-                    duration = end_time - start_time
-
-                    #if (duration > Maximal_travel_time) or (end_time > D_Time - departure_interval):
-                    if (duration > Maximal_travel_time) or (end_time > D_Time):    
+                if mode_raptor == 1:
+                    if (duration > Maximal_travel_time) or start_time < D_Time:
+                       append = False 
+                
+                if mode_raptor == 2:
+                    if (duration > Maximal_travel_time) or end_time > D_Time - 300:
                         append = False 
-                 
+                            
             
-            if len(journey) > 0 and not (journey[-1][0] == 'walking' and journey[-1][3] > MaxWalkDist) and (transfer_needed+1 >= MIN_TRANSFER):    
+            if len(journey) > 0 and not (journey[-1][0] == 'walking' and journey[-1][3] > MaxWalkDist) and (transfer_needed + 1 >= MIN_TRANSFER):    
                 if append:
                     pareto_set.append((transfer_needed, journey))
         
+
         if len(pareto_set) == 0:
           return None, None, None,None
+        
         return pareto_set
 
   
+def get_duration_for_timetable_mode (journey, mode_raptor):
+    duration = 0
+    start_time = 0
+    end_time = 0
+    
+    if mode_raptor == 1:
+                
+                if len (journey) == 1 and journey[0][0] == "walking":
+                    duration = journey[0][3]
+                    start_time = journey[0][4]-journey[0][3] 
+                    end_time = journey[0][4]
+                    return duration, start_time, end_time
 
+                if len (journey) > 1:
+                    if journey[0][0] == "walking":
+                        start_time = journey[0][4] - journey[0][3] 
+                    else:
+                        start_time = journey[0][0]
+
+                    if journey[-1][0] == "walking":
+                        end_time = journey[-1][4]
+                    else:
+                        end_time = journey[-1][3]
+
+    if mode_raptor == 2:
+                
+                if len (journey) == 1 and journey[0][0] == "walking":
+                    duration = journey[0][3]
+                    start_time = journey[0][4] + journey[0][3] 
+                    end_time = journey[0][4]
+                    return duration, start_time, end_time
+
+                if len (journey) > 1:
+                    if journey[0][0] == "walking":
+                        end_time = journey[0][4] + journey[0][3] 
+                    else:
+                        end_time = journey[0][3]
+
+                    if journey[-1][0] == "walking":
+                        start_time = journey[-1][4]  
+                    else:
+                        start_time = journey[-1][3]
+
+    duration = end_time - start_time
+                    
+                               
+    return duration, start_time, end_time
+    
 
 def post_processingAll(call_name, SOURCE, D_TIME, label, pi_label, MIN_TRANSFER, MaxWalkDist, timetable_mode, Maximal_travel_time, departure_interval, mode) -> tuple:
    newDict = dict()   
@@ -286,22 +308,22 @@ def post_processingAll(call_name, SOURCE, D_TIME, label, pi_label, MIN_TRANSFER,
             pareto_set = post_processing (p_i, pi_label, MIN_TRANSFER, MaxWalkDist, timetable_mode, Maximal_travel_time, D_TIME, mode, departure_interval)           
             
             total_time_to_dest = -1           
-            
-            #print (f'pareto_set {pareto_set}')
-            
+                        
             if pareto_set != (None, None, None, None) and len(pareto_set) > 0:
              #Just one journey with minimal time will be in pareto set
              if call_name == "raptor":
-              optimal_pair = get_optimal_journey(pareto_set)
+              optimal_pair = get_optimal_journey(pareto_set, 1)
              else:
-              optimal_pair = get_rev_optimal_journey(pareto_set) 
+              optimal_pair = get_optimal_journey(pareto_set, 2) 
              pareto_set = [optimal_pair]
             
              journey = pareto_set[0][1]
+
              if call_name == "raptor":
-                total_time_to_dest = post_processing_2(D_TIME, journey)
+                total_time_to_dest, _, _ = get_duration_for_timetable_mode (journey, 1)
              else:
-                total_time_to_dest = revpost_processing_2(D_TIME, journey)
+                total_time_to_dest, _, _ = get_duration_for_timetable_mode (journey, 2)
+                
             else:
              count_not_accessible = count_not_accessible + 1
             
@@ -310,83 +332,37 @@ def post_processingAll(call_name, SOURCE, D_TIME, label, pi_label, MIN_TRANSFER,
    #print (f' avg len_pareto {len_pareto_set/count_stops}')
    reachedLabels = newDict
    return  reachedLabels
-
-
-
-
-def get_optimal_journey(pareto_set):
-   result = None
-   res = {}
-   item_in_pareto_set = 0
-   
-   for transfers, journey in pareto_set:
-        item_in_pareto_set = item_in_pareto_set + 1
-        count_leg = 0
-        time_finish = ""
-
-        for leg in journey:
-            count_leg = count_leg + 1
-            if leg[0] == 'walking':
-               #current_arrive_time = leg[4].time()                
-               current_arrive_time = leg[4]
-            else:
-               #current_arrive_time = leg[3].time()
-               current_arrive_time = leg[3]
-            time_finish = current_arrive_time
-
-        res[item_in_pareto_set] = []
-        res[item_in_pareto_set].append((count_leg, time_finish))
-                        
-
-   # найти в res такой item_in_pareto_set у которого time_finish минимальный, 
-   # если минимальных несколько то тот у которого меньше count_leg
-   # find in res an item_in_pareto_set whose time_finish is minimal, 
-   # if there are several minimal ones, then the one with less count_leg 
-               
-   min_item = min(res, key=lambda x: (res[x][0][1], res[x][0][0]))
-   transfers, journey = pareto_set[min_item - 1]
-   result = (transfers, journey)
-   
-   return result  
       
-def get_rev_optimal_journey(pareto_set):
-   result = None
-   res = {}
-   item_in_pareto_set = 0
-
+def get_optimal_journey(pareto_set, raptor_mode):
    
+   res = []
    
+   id = 0   
    for transfers, journey in pareto_set:
-        item_in_pareto_set = item_in_pareto_set + 1
-        count_leg = 0
-        time_finish = ""
-
-        
-        for leg in journey:
-            count_leg = count_leg + 1
-            if leg[0] == 'walking':
-               #current_arrive_time = leg[4].time()                
-               current_arrive_time = leg[4]
-            else:
-               #current_arrive_time = leg[3].time()
-               current_arrive_time = leg[3]
-            time_finish = current_arrive_time
-
-        res[item_in_pareto_set] = []
-        res[item_in_pareto_set].append((count_leg, time_finish))
+        duration , _, _ = get_duration_for_timetable_mode (journey, raptor_mode)    
+        res.append((id, transfers, duration))
+        id = id + 1
    
+   # Перебор всех элементов в массиве
+   min_duration = float('inf')
+   min_count_leg = float('inf')
+   min_element = None
+   for (id, count_leg, duration) in res:
+        if duration < min_duration:
+            min_duration = duration
+            min_count_leg = count_leg
+            min_element = id
+        # Если duration равен минимальному, проверить count_leg
+        elif duration == min_duration:
+            if count_leg < min_count_leg:
+                min_count_leg = count_leg
+                min_element = id
 
-   # найти в res такой item_in_pareto_set у которого time_start max, 
-   # если max несколько то тот у которого меньше count_leg
-   # find in res an item_in_pareto_set whose time_start is max, 
-   # if there are several minimal ones, then the one with less count_leg
+   #transfers, journey = pareto_set[min_element - 1]
+   transfers, journey = pareto_set[min_element]  #????????
+   result = (transfers, journey) 
+   return result
    
-   item = max(res, key=lambda x: (res[x][0][1], -x))
-   transfers, journey = pareto_set[item - 1]
-   result = (transfers, journey)
-   
-   return result  
-
                      
 
 def initialize_rev_raptor(routes_by_stop_dict: dict, SOURCE: int, MAX_TRANSFER: int) -> tuple:
@@ -447,18 +423,15 @@ def get_earliest_trip_new(stoptimes_dict: dict, route: int, arrival_time_at_pi, 
         >>> output = get_earliest_trip_new(stoptimes_dict, 1000, pd.to_datetime('2019-06-10 17:40:00'), 0, pd.to_timedelta(0, unit='seconds'))
     '''
     
-    
-    #max_waiting_time = timedelta(seconds = max_wait_time)
-    #change_time = timedelta(days=change_time.days, seconds=change_time.seconds)
         
     for trip_idx, trip in (stoptimes_dict[route].items()):
-
+        
         # ! this error occurs due to the removal of stop_times > 23:59 !
         try:
             t1 = trip[pi_index-1][1] 
         except IndexError:
-     
-            return -1, -1 
+            continue
+            #return -1, -1 
                         
         if (t1  <= arrival_time_at_pi - change_time)   and (t1 >= arrival_time_at_pi - max_waiting_time) :
                        
@@ -466,45 +439,5 @@ def get_earliest_trip_new(stoptimes_dict: dict, route: int, arrival_time_at_pi, 
 
 
     return -1, -1  # No trip is found after arrival_time_at_pi
-    
-
-def post_processing_2(D_TIME, journey) -> tuple:
- 
-    
-    if len (journey)> 1 and journey[0][0] == "walking" and journey[1][0] != "walking":
-        start_time = journey[0][4] - journey[0][3]
-        if journey[-1][0] == 'walking':
-            end_time = journey[-1][4] 
-        else:
-            end_time = journey[-1][3]  
-
-        duration = end_time - start_time
-
-    else:
-         duration = journey[0][3]
-         
-    total_time_to_dest = duration 
-    return total_time_to_dest
-
-def revpost_processing_2(D_TIME, journey) -> tuple:
-        
-    if len(journey) != 0:
-
-                    if journey[-1][0] == 'walking':
-                        start_time = journey[-1][4]
-                    else:    
-                        start_time = journey[-1][3]
-
-                    if len(journey) == 1 and journey[0][0] == 'walking':
-                        
-                        end_time = journey[0][4] + journey[0][3]
-                    
-                    if len(journey) > 1:
-                        if journey[1][0] != 'walking':
-                            end_time = journey[0][3]+ journey[1][0]
-
-                    total_time_to_dest = end_time - start_time              
-
-    return total_time_to_dest
 
      

@@ -106,6 +106,9 @@ class PKL_class ():
 
     def build_footpath_dict(self, obj_txt, file_name) -> dict:
         
+        filename = r'c:/temp/footpath_AIR.txt'
+        #obj_txt = pd.read_csv(filename, sep=',')
+
         
         footpath_dict = {}
         g = obj_txt.groupby("from_stop_id")
@@ -296,8 +299,11 @@ class PKL_class ():
 
 if __name__ == "__main__":    
     
-    path_to_pkl = r"C:/Users/geosimlab/Documents/Igor/israel-public-transportation_gtfs/dict_builder/separated double stops"
-    path_to_GTFS = r"C:/Users/geosimlab/Documents/Igor/sample_gtfs/separated double stops"
+    #path_to_pkl = r"C:/Users/geosimlab/Documents/Igor/israel-public-transportation_gtfs/dict_builder/new 5routes rev"
+    #path_to_GTFS = r"C:/Users/geosimlab/Documents/Igor/sample_gtfs/5routes like qgis v1"
+    path_to_GTFS = r"C:/Users/geosimlab/Documents/Igor/sample_gtfs/separated double stops rev"
+    path_to_pkl = r"C:/Users/geosimlab/Documents/Igor/israel-public-transportation_gtfs/dict_builder\separated double stops rev"
+    
     path_to_shape_buildings = r"C:/Users/geosimlab/Documents/Igor/qgis_prj/foot road TLV/TLV_centroids/TLV_centroids.shp"
     #path_to_shape_buildings = ""
         
