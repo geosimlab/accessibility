@@ -107,8 +107,13 @@ class CarAccessibility(QDialog, FORM_CLASS):
 
             self.fillComboBoxWithLayerFields()
             self.fillComboBoxWithLayerFieldsSpeed()
-            self.cmbLayersDest.currentIndexChanged.connect(self.fillComboBoxWithLayerFields)
-            self.cmbLayersRoad.currentIndexChanged.connect(self.fillComboBoxWithLayerFieldsSpeed)
+            self.fillComboBoxFieldsDirection()
+            #self.cmbLayersDest.currentIndexChanged.connect(self.fillComboBoxWithLayerFields)
+            #self.cmbLayersRoad.currentIndexChanged.connect(self.fillComboBoxWithLayerFieldsSpeed)
+            self.cmbLayersRoad.currentIndexChanged.connect
+            (
+            lambda: (self.fillComboBoxWithLayerFieldsSpeed(), self.fillComboBoxFieldsDirection)
+            )
 
             if self.protocol_type == 1:
               #self.txtMaxTimeTravel.setVisible(False)
@@ -222,11 +227,14 @@ class CarAccessibility(QDialog, FORM_CLASS):
           obj.setText(obj.text())   
 
     def readParameters(self):
-           self.config.read(self.user_home + "/parameters_accessibility.txt")
+      self.config.read(self.user_home + "/parameters_accessibility.txt")
+      if 'FieldDirection_car' not in self.config['Settings']:
+        self.config['Settings']['FieldDirection_car'] = '0'
+        #self.saveParameters()
 
     # update config file   
     def saveParameters(self):
-
+      
       f = self.user_home + "/parameters_accessibility.txt" 
       self.config.read(f)
       
@@ -234,6 +242,7 @@ class CarAccessibility(QDialog, FORM_CLASS):
       self.config['Settings']['PathToProtocols_car'] = self.txtPathToProtocols.text()
       self.config['Settings']['Layer_car'] = self.cmbLayers.currentText()
       self.config['Settings']['FieldSpeed_car'] = str(self.cmbFieldsSpeed.currentIndex())
+      self.config['Settings']['FieldDirection_car'] = str(self.cmbFieldsDirection.currentIndex())
       
       if hasattr(self, 'cbSelectedOnly1'):
         self.config['Settings']['SelectedOnly1_car'] = str(self.cbSelectedOnly1.isChecked())
@@ -266,6 +275,7 @@ class CarAccessibility(QDialog, FORM_CLASS):
         self.cmbLayers.setCurrentText(self.config['Settings']['Layer_car'])
 
       self.cmbFieldsSpeed.setCurrentIndex(int(self.config['Settings']['FieldSpeed_car']))  
+      self.cmbFieldsDirection.setCurrentIndex(int(self.config['Settings']['FieldDirection_car']))  
 
       try:
         SelectedOnly1 = self.config['Settings']['SelectedOnly1_car'].lower() == "true"  
@@ -433,6 +443,7 @@ class CarAccessibility(QDialog, FORM_CLASS):
       
       strategy_id = 1
       idx_field = int(self.config['Settings']['FieldSpeed_car']) - 1
+      idx_field_direction = int(self.config['Settings']['FieldDirection_car']) - 1
       
       points_to_tie = self.points
       use_aggregate = self.config['Settings']['UseField_car'] == "True"
@@ -441,7 +452,7 @@ class CarAccessibility(QDialog, FORM_CLASS):
       max_time_minutes = int(self.config['Settings']['MaxTimeTravel_car'])
       time_step_minutes = int(self.config['Settings']['TimeInterval_car'])
 
-      ShortestPath = ShortestPathUtils (self,layer_road, idx_field, layer_origins, points_to_tie, speed, strategy_id, path_to_protocol, max_time_minutes, time_step_minutes, self.protocol_type, use_aggregate, field_aggregate)
+      ShortestPath = ShortestPathUtils (self, layer_road, idx_field, idx_field_direction, layer_origins, points_to_tie, speed, strategy_id, path_to_protocol, max_time_minutes, time_step_minutes, self.mode, self.protocol_type, use_aggregate, field_aggregate)
       ShortestPath.run()
 
     def prepare(self):  
@@ -519,25 +530,28 @@ class CarAccessibility(QDialog, FORM_CLASS):
             if key == "selectedonly1_car":
               config_info.append(f"<a>Selected feature only from layer of origins (points/polygons): {value}</a>")  
 
-            if key == "layerdest_car":
-              config_info.append(f"<a>Layer of destinations (points/polygons): {value}</a>")
-
-            if key == "selectedonly2_car":
-              config_info.append(f"<a>Selected feature only from layer of destinations (points/polygons): {value}</a>")  
-
             if key == "layerroad_car":
               config_info.append(f"<a>Layer of road: {value}</a>")  
 
             if key == "fieldspeed_car":
-              config_info.append(f"<a>Index of field with speed: {value}</a>")    
+              config_info.append(f"<a>Field with speed: {self.cmbFieldsSpeed.currentText()}</a>")    
+
+            if key == "fielddirection_car":
+              config_info.append(f"<a>Field with direction value: {self.cmbFieldsDirection.currentText()}</a>")      
            
             if key == "speed_car":
               config_info.append(f"<a>Speed drive: {value} km/h</a>") 
-
-            if key == "field_car":
-                config_info.append(f"<a>Field to aggregate: {value}</a>")
+            
 
             if self.protocol_type == 2:    
+              if key == "layerdest_car":
+                config_info.append(f"<a>Layer of destinations (points/polygons): {value}</a>")
+
+              if key == "selectedonly2_car":
+                config_info.append(f"<a>Selected feature only from layer of destinations (points/polygons): {value}</a>") 
+
+              if key == "field_car":
+                config_info.append(f"<a>Field to aggregate: {value}</a>")
 
               if key == "usefield_car":
                 config_info.append(f"<a>Run aggregate: {value}</a>")      
@@ -566,6 +580,23 @@ class CarAccessibility(QDialog, FORM_CLASS):
       self.cmbFieldsSpeed.addItem("no use field")
       for field in fields:
         self.cmbFieldsSpeed.addItem(field)
+
+    def fillComboBoxFieldsDirection(self):
+      self.cmbFieldsDirection.clear()
+      selected_layer_name = self.cmbLayersRoad.currentText()
+      selected_layer = QgsProject.instance().mapLayersByName(selected_layer_name)
+      if selected_layer:
+        layer = selected_layer[0]
+          
+      try:
+        fields = [field.name() for field in layer.fields()]
+      except:
+        return 0
+      
+      
+      self.cmbFieldsDirection.addItem("no use field")
+      for field in fields:
+        self.cmbFieldsDirection.addItem(field)    
     
     def fillComboBoxWithLayerFields(self):
       self.cmbFields.clear()

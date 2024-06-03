@@ -62,13 +62,16 @@ class AccessibilityTools(QWidget):
         self.item12 = QTreeWidgetItem(group5, ['Forward accessibility'])
         self.item12.setFont(0,font)
         self.item13 = QTreeWidgetItem(group5, ['Backward accessibility'])
+        self.item13.setFont(0,font)
         group5.setExpanded(True)
 
         group6 = QTreeWidgetItem(self.tree_widget,['Car accessibility MAP'])
         self.item14 = QTreeWidgetItem(group6, ['Forward accessibility'])
         self.item14.setFont(0,font)
         self.item15 = QTreeWidgetItem(group6, ['Backward accessibility'])
+        self.item15.setFont(0,font)
         group6.setExpanded(True)
+        
 
         group7 = QTreeWidgetItem(self.tree_widget,['Relative accessibility, PT versus Car'])
         self.item16 = QTreeWidgetItem(group7, ['Forward accessibility'])
@@ -147,10 +150,20 @@ class AccessibilityTools(QWidget):
         if item == self.item12:
           car_accessibility = CarAccessibility(mode = 1, protocol_type = 1, title = "Car accessibility AREA, by origins or destinations, forward accessibility")
           car_accessibility.textInfo.setPlainText("Sample description car accessibility")
-          car_accessibility.show()  
+          car_accessibility.show()
+
+        if item == self.item13:
+          car_accessibility = CarAccessibility(mode = 2, protocol_type = 1, title = "Car accessibility AREA, by origins or destinations, backward accessibility")
+          car_accessibility.textInfo.setPlainText("Sample description car accessibility")
+          car_accessibility.show()    
 
         if item == self.item14:
           car_accessibility = CarAccessibility(mode = 1, protocol_type = 2, title = "Car accessibility MAP, forward accessibility")
+          car_accessibility.textInfo.setPlainText("Sample description car accessibility")
+          car_accessibility.show()
+        
+        if item == self.item15:
+          car_accessibility = CarAccessibility(mode = 1, protocol_type = 2, title = "Car accessibility MAP, backward accessibility")
           car_accessibility.textInfo.setPlainText("Sample description car accessibility")
           car_accessibility.show()  
           

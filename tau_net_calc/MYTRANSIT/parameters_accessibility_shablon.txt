@@ -32,4 +32,5 @@ FieldSpeed_car = 0
 speed_car = 50
 maxtimetravel_car = 10
 timeinterval_car = 1
+Fielddirection_car = 0
 

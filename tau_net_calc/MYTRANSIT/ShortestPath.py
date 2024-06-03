@@ -8,7 +8,7 @@ from PyQt5.QtCore import QVariant
 from qgis.core import QgsVectorFileWriter, QgsFeatureRequest, QgsGeometry, QgsSpatialIndex, QgsCoordinateReferenceSystem, QgsFeature
 
 class ShortestPathUtils:
-    def __init__(self, parent, road_layer, idx_field_speed, layer_origins, points_to_tie, speed, strategy_id, path_to_protocol, max_time_minutes, time_step_minutes, protocol_type, use_aggregate, field_aggregate):
+    def __init__(self, parent, road_layer, idx_field_speed, idx_field_direction, layer_origins, points_to_tie, speed, strategy_id, path_to_protocol, max_time_minutes, time_step_minutes, mode, protocol_type, use_aggregate, field_aggregate):
         
         self.points_to_tie = points_to_tie
         self.strategy_id = int(strategy_id)
@@ -18,8 +18,10 @@ class ShortestPathUtils:
         self.speed = speed
         self.road_layer = road_layer
         self.idx_field_speed = idx_field_speed
+        self.idx_field_direction = idx_field_direction
         self.layer_origins = layer_origins
         self.protocol_type = protocol_type
+        self.mode = mode
         self.curr_DateTime = self.getDateTime()
         self.parent = parent
         self.use_aggregate = use_aggregate
@@ -43,13 +45,13 @@ class ShortestPathUtils:
         self.dict_vertex_nearest_buildings = {}
 
         Field = self.field_aggregate
-        if self.layer_origins.fields().indexOf(Field) == -1:
+        if self.protocol_type == 2 and self.use_aggregate and self.layer_origins.fields().indexOf(Field) == -1:
                 self.parent.textLog.append(f'<a><b><font color="red"> WARNING: field "{Field}" no exist in layer, aggregate no run</font> </b></a>')    
                 self.use_aggregate = False
 
         if self.use_aggregate:
             for feature in self.layer_origins.getFeatures():
-                if not (isinstance(feature[Field], int) or (isinstance(feature[Field], str) and feature[Field].isdigit())):
+                if self.protocol_type == 2 and self.use_aggregate and (not (isinstance(feature[Field], int) or (isinstance(feature[Field], str) and feature[Field].isdigit()))):
                     self.parent.textLog.append(f'<a><b><font color="red"> WARNING: type of field "{Field}" to aggregate  is no digital, aggregate no run</font> </b></a>')
                     self.use_aggregate = False
                 break
@@ -94,18 +96,48 @@ class ShortestPathUtils:
         #crs_src = QgsCoordinateReferenceSystem("EPSG:4326")  # WGS84
         #crs_dest = QgsCoordinateReferenceSystem("EPSG:2039")  # UTM Zone 36N
         #self.transform = QgsCoordinateTransform(crs_src, crs_dest, QgsProject.instance())
+        
+        
 
-        self.director = QgsVectorLayerDirector(self.road_layer, -1, '', '', '', QgsVectorLayerDirector.DirectionBoth)
+        if self.idx_field_direction != -1:
+
+            valid_values = {"T", "F", "B"}
+            field = self.road_layer.fields().at(self.idx_field_direction)
+            field_type = field.type()
+            
+            if field_type != QVariant.String:
+                self.parent.textLog.append(f'<a><b><font color="red"> WARNING: The field "{field.name()}" must be a text type of length 1 and use values ​​(T, F, B). The direction of movement field will not be included in the calculations</font> </b></a>')
+                self.idx_field_direction = -1
+                
+            else:
+                for feature in self.road_layer.getFeatures():
+                    field_value = feature.attribute(self.idx_field_direction)
+                    if not (isinstance(field_value, str) and len(field_value) == 1 and field_value in valid_values):
+                        self.parent.textLog.append(f'<a><b><font color="red"> WARNING: The field "{field.name()}" must be a text type of length 1 and use values ​​(T, F, B). The direction of movement field will not be included in the calculations</font> </b></a>')
+                        self.idx_field_direction = -1
+                        break 
+
+        
+        if self.mode == 2 and self.idx_field_direction != -1:
+            self.change_direction_for_backward_mode()
+        self.director = QgsVectorLayerDirector(self.road_layer, self.idx_field_direction, '', '', '', QgsVectorLayerDirector.DirectionBoth)
 
         defaultValue = int(self.speed)
-        toMetricFactor = 1  # for speed m/sec
         
-        field = self.road_layer.fields().at(self.idx_field_speed)
-        field_type = field.type()
-        if not (field_type in [QVariant.Int, QVariant.Double, QVariant.LongLong, QVariant.UInt, QVariant.ULongLong]):
-            self.idx_field_speed = -1
+        toMetricFactor = 1  # for speed m/sec
+        #toMetricFactor = 0.277778
+        
+        if self.idx_field_speed != -1:
+            field = self.road_layer.fields().at(self.idx_field_speed)
+            
+            field_type = field.type()
+            if not (field_type in [QVariant.Int, QVariant.Double, QVariant.LongLong, QVariant.UInt, QVariant.ULongLong]):
+                self.parent.textLog.append(f'<a><b><font color="red"> WARNING: The field "{field.name()}" must be a digilal type. The speed of movement field will not be included in the calculations</font> </b></a>')
+                self.idx_field_speed = -1
 
-
+        if self.idx_field_speed != -1:
+            self.change_null_speed_to_defaulf()
+        
         if self.strategy_id == 1:
             strategy = QgsNetworkSpeedStrategy(self.idx_field_speed, defaultValue, toMetricFactor)
         else:
@@ -169,7 +201,52 @@ class ShortestPathUtils:
                 self.makeProtocolArea()
             else: 
                 self.makeProtocolMap()
+
+    def change_direction_for_backward_mode(self):
+
+        self.road_layer.startEditing()
+        changes = {}
+        #i = 0
+
+        for feature in self.road_layer.getFeatures():
+            #i += 1
+            #if i % 100 == 0:  # Обновлять сообщение и обрабатывать события каждые 100 итераций
+            #    self.parent.setMessage(f'Updating direction line №{i}')
+            #    QApplication.processEvents()
+
+            current_value = feature.attribute(self.idx_field_direction)
+            if current_value == "T":
+                new_value = "F"
+            elif current_value == "F":
+                new_value = "T"
+            else:
+                continue
+            changes[feature.id()] = {self.idx_field_direction: new_value}
     
+        # Применение изменений пакетно
+        self.road_layer.dataProvider().changeAttributeValues(changes)
+
+    def change_null_speed_to_defaulf(self):
+
+        self.road_layer.startEditing()
+        #i = 0
+        batch_changes = {}
+
+        for feature in self.road_layer.getFeatures():
+            #i += 1
+            #if i % 100 == 0:
+            #    self.parent.setMessage(f'Calc speed line №{i}')
+            #    QApplication.processEvents()
+
+            speed_value = feature.attribute(self.idx_field_speed)
+            if speed_value == 0:
+                batch_changes[feature.id()] = {self.idx_field_speed: int(self.speed)}
+
+        # Применение изменений пакетно
+        if batch_changes:
+            self.road_layer.dataProvider().changeAttributeValues(batch_changes)    
+
+
     def makeProtocolArea(self):
         
         with open(self.f, 'a') as filetowrite: 
@@ -185,7 +262,10 @@ class ShortestPathUtils:
                 cost = round(self.costs[edgeId]/60,2)
                 if cost <= self.max_time_minutes:
                     for building, _ in buildings:
-                        filetowrite.write(f'{self.source},{building},{cost}\n')  
+                        if self.mode == 1:
+                            filetowrite.write(f'{self.source},{building},{cost}\n')
+                        else:
+                            filetowrite.write(f'{building}, {self.source},{cost}\n')
     
     def makeProtocolMap(self):
         massiv = []
@@ -263,7 +343,10 @@ class ShortestPathUtils:
         if self.protocol_type == 2:
             table_header, self.grades = self.prepare_grades()
         else:
-            table_header = "source,destination,accessibility(min)\n"
+            if self.mode == 1:
+                table_header = "source,destination,accessibility(min)\n"
+            else: 
+                table_header = "destination,source,accessibility(min)\n"
 
         self.folder_name = f'{self.path_to_protocol}//{self.curr_DateTime}'
 
@@ -298,8 +381,8 @@ class ShortestPathUtils:
 
     def verify_break (self):
       if self.parent.break_on:
-            self.parent.setMessage ("Process raptor is break")
-            self.parent.textLog.append (f'<a><b><font color="red">Process raptor is break</font> </b></a>')
+            self.parent.setMessage ("Process calculation car accessibility is break")
+            self.parent.textLog.append (f'<a><b><font color="red">Process calculation car accessibility is break</font> </b></a>')
             if self.folder_name !="":
               self.write_info()  
             self.parent.progressBar.setValue(0)  

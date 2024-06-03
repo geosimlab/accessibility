@@ -82,9 +82,9 @@
            <property name="geometry">
             <rect>
              <x>0</x>
-             <y>-48</y>
+             <y>0</y>
              <width>585</width>
-             <height>359</height>
+             <height>398</height>
             </rect>
            </property>
            <property name="sizePolicy">
@@ -108,61 +108,14 @@
               <property name="verticalSpacing">
                <number>3</number>
               </property>
-              <item row="9" column="0">
-               <widget class="QComboBox" name="cmbFieldsSpeed"/>
-              </item>
-              <item row="2" column="1">
-               <widget class="QToolButton" name="toolButton_protocol">
+              <item row="1" column="0">
+               <widget class="QLabel" name="label_13">
                 <property name="text">
-                 <string>...</string>
+                 <string>Output folder</string>
                 </property>
                </widget>
               </item>
-              <item row="6" column="0">
-               <widget class="QLabel" name="label_2">
-                <property name="text">
-                 <string>Layer of road</string>
-                </property>
-               </widget>
-              </item>
-              <item row="15" column="0">
-               <layout class="QHBoxLayout" name="horizontalLayout_18">
-                <property name="spacing">
-                 <number>10</number>
-                </property>
-                <item>
-                 <widget class="QComboBox" name="cmbLayersDest"/>
-                </item>
-                <item>
-                 <widget class="QCheckBox" name="cbSelectedOnly2">
-                  <property name="text">
-                   <string>Selected features only</string>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </item>
-              <item row="2" column="0">
-               <widget class="QLineEdit" name="txtPathToProtocols"/>
-              </item>
-              <item row="8" column="0">
-               <widget class="QLabel" name="label">
-                <property name="text">
-                 <string>Field with speed value</string>
-                </property>
-               </widget>
-              </item>
-              <item row="7" column="0">
-               <widget class="QComboBox" name="cmbLayersRoad"/>
-              </item>
-              <item row="11" column="0">
-               <widget class="QLabel" name="label_17">
-                <property name="text">
-                 <string>Layer of origins (points/polygons)</string>
-                </property>
-               </widget>
-              </item>
-              <item row="14" column="0">
+              <item row="18" column="0">
                <layout class="QHBoxLayout" name="horizontalLayout_17">
                 <item>
                  <widget class="QLabel" name="label_5">
@@ -173,86 +126,7 @@
                 </item>
                </layout>
               </item>
-              <item row="21" column="0">
-               <layout class="QHBoxLayout" name="horizontalLayout_3">
-                <item>
-                 <widget class="QLabel" name="label_6">
-                  <property name="text">
-                   <string>Time interval between stored maps (min)</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLineEdit" name="txtTimeInterval">
-                  <property name="alignment">
-                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </item>
-              <item row="1" column="0">
-               <widget class="QLabel" name="label_13">
-                <property name="text">
-                 <string>Output folder</string>
-                </property>
-               </widget>
-              </item>
-              <item row="12" column="1">
-               <widget class="QToolButton" name="toolButton_layer_refresh">
-                <property name="text">
-                 <string>...</string>
-                </property>
-                <property name="icon">
-                 <iconset>
-                  <normaloff>refresh.png</normaloff>refresh.png</iconset>
-                </property>
-               </widget>
-              </item>
-              <item row="17" column="0">
-               <widget class="QLabel" name="lblFields">
-                <property name="text">
-                 <string>Field to aggregate</string>
-                </property>
-               </widget>
-              </item>
-              <item row="15" column="1">
-               <widget class="QToolButton" name="toolButton_layer_dest_refresh">
-                <property name="text">
-                 <string>...</string>
-                </property>
-                <property name="icon">
-                 <iconset>
-                  <normalon>refresh.png</normalon>
-                 </iconset>
-                </property>
-               </widget>
-              </item>
               <item row="12" column="0">
-               <layout class="QHBoxLayout" name="horizontalLayout_19">
-                <property name="spacing">
-                 <number>10</number>
-                </property>
-                <property name="bottomMargin">
-                 <number>0</number>
-                </property>
-                <item>
-                 <widget class="QComboBox" name="cmbLayers">
-                  <property name="mouseTracking">
-                   <bool>false</bool>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QCheckBox" name="cbSelectedOnly1">
-                  <property name="text">
-                   <string>Selected features only</string>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </item>
-              <item row="10" column="0">
                <layout class="QHBoxLayout" name="horizontalLayout_12">
                 <item>
                  <widget class="QLabel" name="label_4">
@@ -279,6 +153,13 @@
                 </item>
                </layout>
               </item>
+              <item row="21" column="0">
+               <widget class="QLabel" name="lblFields">
+                <property name="text">
+                 <string>Field to aggregate</string>
+                </property>
+               </widget>
+              </item>
               <item row="7" column="1">
                <widget class="QToolButton" name="toolButton_layer_road_refresh">
                 <property name="text">
@@ -291,20 +172,126 @@
                 </property>
                </widget>
               </item>
-              <item row="5" column="0">
-               <layout class="QHBoxLayout" name="horizontalLayout_6"/>
-              </item>
-              <item row="16" column="0">
+              <item row="20" column="0">
                <widget class="QCheckBox" name="cbUseFields">
                 <property name="text">
                  <string>Run aggregate</string>
                 </property>
                </widget>
               </item>
-              <item row="19" column="0">
-               <widget class="QComboBox" name="cmbFields"/>
+              <item row="7" column="0">
+               <widget class="QComboBox" name="cmbLayersRoad"/>
               </item>
-              <item row="20" column="0">
+              <item row="6" column="0">
+               <widget class="QLabel" name="label_2">
+                <property name="text">
+                 <string>Layer of road</string>
+                </property>
+               </widget>
+              </item>
+              <item row="16" column="1">
+               <widget class="QToolButton" name="toolButton_layer_refresh">
+                <property name="text">
+                 <string>...</string>
+                </property>
+                <property name="icon">
+                 <iconset>
+                  <normaloff>refresh.png</normaloff>refresh.png</iconset>
+                </property>
+               </widget>
+              </item>
+              <item row="19" column="0">
+               <layout class="QHBoxLayout" name="horizontalLayout_18">
+                <property name="spacing">
+                 <number>10</number>
+                </property>
+                <item>
+                 <widget class="QComboBox" name="cmbLayersDest"/>
+                </item>
+                <item>
+                 <widget class="QCheckBox" name="cbSelectedOnly2">
+                  <property name="text">
+                   <string>Selected features only</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item row="5" column="0">
+               <layout class="QHBoxLayout" name="horizontalLayout_6"/>
+              </item>
+              <item row="15" column="0">
+               <widget class="QLabel" name="label_17">
+                <property name="text">
+                 <string>Layer of origins (points/polygons)</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QLineEdit" name="txtPathToProtocols"/>
+              </item>
+              <item row="8" column="0">
+               <widget class="QLabel" name="label">
+                <property name="text">
+                 <string>Field with speed value</string>
+                </property>
+               </widget>
+              </item>
+              <item row="25" column="0">
+               <layout class="QHBoxLayout" name="horizontalLayout_3">
+                <item>
+                 <widget class="QLabel" name="label_6">
+                  <property name="text">
+                   <string>Time interval between stored maps (min)</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="txtTimeInterval">
+                  <property name="alignment">
+                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item row="16" column="0">
+               <layout class="QHBoxLayout" name="horizontalLayout_19">
+                <property name="spacing">
+                 <number>10</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>0</number>
+                </property>
+                <item>
+                 <widget class="QComboBox" name="cmbLayers">
+                  <property name="mouseTracking">
+                   <bool>false</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QCheckBox" name="cbSelectedOnly1">
+                  <property name="text">
+                   <string>Selected features only</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item row="19" column="1">
+               <widget class="QToolButton" name="toolButton_layer_dest_refresh">
+                <property name="text">
+                 <string>...</string>
+                </property>
+                <property name="icon">
+                 <iconset>
+                  <normalon>refresh.png</normalon>
+                 </iconset>
+                </property>
+               </widget>
+              </item>
+              <item row="24" column="0">
                <layout class="QHBoxLayout" name="horizontalLayout_4">
                 <item>
                  <widget class="QLabel" name="label_3">
@@ -321,6 +308,29 @@
                  </widget>
                 </item>
                </layout>
+              </item>
+              <item row="23" column="0">
+               <widget class="QComboBox" name="cmbFields"/>
+              </item>
+              <item row="2" column="1">
+               <widget class="QToolButton" name="toolButton_protocol">
+                <property name="text">
+                 <string>...</string>
+                </property>
+               </widget>
+              </item>
+              <item row="13" column="0">
+               <widget class="QLabel" name="label_7">
+                <property name="text">
+                 <string>Field with direction</string>
+                </property>
+               </widget>
+              </item>
+              <item row="9" column="0">
+               <widget class="QComboBox" name="cmbFieldsSpeed"/>
+              </item>
+              <item row="14" column="0">
+               <widget class="QComboBox" name="cmbFieldsDirection"/>
               </item>
              </layout>
             </item>
