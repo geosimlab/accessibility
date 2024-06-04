@@ -5,7 +5,8 @@ import zipfile
 from qgis.analysis import QgsGraphAnalyzer, QgsGraphBuilder, QgsVectorLayerDirector, QgsNetworkSpeedStrategy, QgsNetworkDistanceStrategy
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtCore import QVariant
-from qgis.core import QgsVectorFileWriter, QgsFeatureRequest, QgsGeometry, QgsSpatialIndex, QgsCoordinateReferenceSystem, QgsFeature
+from qgis.core import QgsVectorFileWriter, QgsFeatureRequest, QgsGeometry, QgsSpatialIndex, QgsCoordinateReferenceSystem, QgsFeature, QgsVectorLayer, QgsField
+
 
 class ShortestPathUtils:
     def __init__(self, parent, road_layer, idx_field_speed, idx_field_direction, layer_origins, points_to_tie, speed, strategy_id, path_to_protocol, max_time_minutes, time_step_minutes, mode, protocol_type, use_aggregate, field_aggregate):
@@ -31,8 +32,8 @@ class ShortestPathUtils:
     def create_dict_vertex_nearest_buildings(self):
         # Создаем пространственный индекс для вершин графа
         vertex_index = QgsSpatialIndex()
-        vertex_to_id = {}
-
+        
+        
         for vertex_id in range(self.graph.vertexCount()):
             vertex = self.graph.vertex(vertex_id)
             vertex_point = vertex.point()
@@ -40,7 +41,7 @@ class ShortestPathUtils:
             vertex_feature.setGeometry(QgsGeometry.fromPointXY(vertex_point))
             vertex_feature.setId(vertex_id)
             vertex_index.insertFeature(vertex_feature)
-            vertex_to_id[vertex_point] = vertex_id
+            
 
         self.dict_vertex_nearest_buildings = {}
 
@@ -80,7 +81,7 @@ class ShortestPathUtils:
         
         nearest_ids = self.index_road.nearestNeighbor(point, 1)
         nearest_id = nearest_ids[0]
-        nearest_feature = next(self.road_layer.getFeatures(QgsFeatureRequest().setFilterFid(nearest_id)))
+        nearest_feature = next(self.road_layer_mod.getFeatures(QgsFeatureRequest().setFilterFid(nearest_id)))
         line_geom = nearest_feature.geometry()
         closest_point = line_geom.closestVertex(point)[0]
         idStart = self.graph.findVertex(closest_point)
@@ -98,45 +99,43 @@ class ShortestPathUtils:
         #self.transform = QgsCoordinateTransform(crs_src, crs_dest, QgsProject.instance())
         
         
+        
 
         if self.idx_field_direction != -1:
 
-            valid_values = {"T", "F", "B"}
+            valid_values = {0,1,2}
             field = self.road_layer.fields().at(self.idx_field_direction)
             field_type = field.type()
             
-            if field_type != QVariant.String:
-                self.parent.textLog.append(f'<a><b><font color="red"> WARNING: The field "{field.name()}" must be a text type of length 1 and use values ​​(T, F, B). The direction of movement field will not be included in the calculations</font> </b></a>')
+            if not (field_type in [QVariant.Int, QVariant.Double, QVariant.LongLong, QVariant.UInt, QVariant.ULongLong]):
+                self.parent.textLog.append(f'<a><b><font color="red"> WARNING: The field with direction value"{field.name()}" must be a int type. The direction of movement field will not be included in the calculations</font> </b></a>')
                 self.idx_field_direction = -1
                 
             else:
                 for feature in self.road_layer.getFeatures():
                     field_value = feature.attribute(self.idx_field_direction)
-                    if not (isinstance(field_value, str) and len(field_value) == 1 and field_value in valid_values):
-                        self.parent.textLog.append(f'<a><b><font color="red"> WARNING: The field "{field.name()}" must be a text type of length 1 and use values ​​(T, F, B). The direction of movement field will not be included in the calculations</font> </b></a>')
+                    if not(field_value in valid_values):
+                        self.parent.textLog.append(f'<a><b><font color="red"> WARNING: The field with direction value "{field.name()}" must use values ​​(0,1,2). The direction of movement field will not be included in the calculations</font> </b></a>')
                         self.idx_field_direction = -1
                         break 
-
-        
-        if self.mode == 2 and self.idx_field_direction != -1:
-            self.change_direction_for_backward_mode()
-        self.director = QgsVectorLayerDirector(self.road_layer, self.idx_field_direction, '', '', '', QgsVectorLayerDirector.DirectionBoth)
-
-        defaultValue = int(self.speed)
-        
-        toMetricFactor = 1  # for speed m/sec
-        #toMetricFactor = 0.277778
         
         if self.idx_field_speed != -1:
             field = self.road_layer.fields().at(self.idx_field_speed)
             
             field_type = field.type()
             if not (field_type in [QVariant.Int, QVariant.Double, QVariant.LongLong, QVariant.UInt, QVariant.ULongLong]):
-                self.parent.textLog.append(f'<a><b><font color="red"> WARNING: The field "{field.name()}" must be a digilal type. The speed of movement field will not be included in the calculations</font> </b></a>')
+                self.parent.textLog.append(f'<a><b><font color="red"> WARNING: The field with speed value "{field.name()}" must be a digilal type. The speed of movement field will not be included in the calculations</font> </b></a>')
                 self.idx_field_speed = -1
 
-        if self.idx_field_speed != -1:
-            self.change_null_speed_to_defaulf()
+        if self.idx_field_direction != -1 or self.idx_field_speed != -1:
+            self.change_road_layer()
+
+        
+        self.director = QgsVectorLayerDirector(self.road_layer_mod, self.idx_field_direction, '', '', '', QgsVectorLayerDirector.DirectionBoth)
+
+        defaultValue = int(self.speed)
+        
+        toMetricFactor = 1  # for speed m/sec
         
         if self.strategy_id == 1:
             strategy = QgsNetworkSpeedStrategy(self.idx_field_speed, defaultValue, toMetricFactor)
@@ -144,7 +143,7 @@ class ShortestPathUtils:
             strategy = QgsNetworkDistanceStrategy()
 
         self.director.addStrategy(strategy)
-        self.builder = QgsGraphBuilder(self.road_layer.crs())
+        self.builder = QgsGraphBuilder(self.road_layer_mod.crs())
         QApplication.processEvents()
         self.parent.setMessage(f'Making graph ...')
         QApplication.processEvents()
@@ -156,9 +155,9 @@ class ShortestPathUtils:
         self.parent.setMessage(f'Creating index road...')
         QApplication.processEvents()
         crs_meter = QgsCoordinateReferenceSystem("EPSG:2039")
-        self.road_layer.setCrs(crs_meter)
+        self.road_layer_mod.setCrs(crs_meter)
         self.index_road = QgsSpatialIndex()
-        for feature in self.road_layer.getFeatures():
+        for feature in self.road_layer_mod.getFeatures():
             self.index_road.insertFeature(feature)
         self.parent.progressBar.setValue(2)    
 
@@ -202,49 +201,53 @@ class ShortestPathUtils:
             else: 
                 self.makeProtocolMap()
 
-    def change_direction_for_backward_mode(self):
+    def change_road_layer(self):
+        self.parent.setMessage(f'Modifying road layer ...')
+        features = self.road_layer.getFeatures()
+        new_features = []
 
-        self.road_layer.startEditing()
-        changes = {}
-        #i = 0
+        
+        for feature in features:
+            new_feature = QgsFeature(feature)
 
-        for feature in self.road_layer.getFeatures():
-            #i += 1
-            #if i % 100 == 0:  # Обновлять сообщение и обрабатывать события каждые 100 итераций
-            #    self.parent.setMessage(f'Updating direction line №{i}')
-            #    QApplication.processEvents()
+            if self.idx_field_direction != -1:
+                current_value = new_feature.attribute(self.idx_field_direction)
+        
+                new_value = 2 
 
-            current_value = feature.attribute(self.idx_field_direction)
-            if current_value == "T":
-                new_value = "F"
-            elif current_value == "F":
-                new_value = "T"
-            else:
-                continue
-            changes[feature.id()] = {self.idx_field_direction: new_value}
-    
-        # Применение изменений пакетно
-        self.road_layer.dataProvider().changeAttributeValues(changes)
+                if self.mode == 2:
+                    if current_value == 0:
+                        new_value = 1
+                    elif current_value == 1:
+                        new_value = 0
+                new_feature.setAttribute(self.idx_field_direction, new_value)
 
-    def change_null_speed_to_defaulf(self):
+            
+            if self.idx_field_speed != -1:
+                current_value_speed = new_feature.attribute(self.idx_field_speed)
+                if current_value_speed == 0:
+                    new_feature.setAttribute(self.idx_field_speed, int(self.speed))
+                    
 
-        self.road_layer.startEditing()
-        #i = 0
-        batch_changes = {}
+        
+            new_features.append(new_feature)
 
-        for feature in self.road_layer.getFeatures():
-            #i += 1
-            #if i % 100 == 0:
-            #    self.parent.setMessage(f'Calc speed line №{i}')
-            #    QApplication.processEvents()
+               
+        # Create a new QgsVectorLayer from the modified features
+        layer_fields = self.road_layer.fields()
+        layer_crs = self.road_layer.crs()
+        self.road_layer_mod = QgsVectorLayer(f'LineString?crs={layer_crs.authid()}', 'modified_road_layer', 'memory')
+        self.road_layer_mod_data_provider = self.road_layer_mod.dataProvider()
 
-            speed_value = feature.attribute(self.idx_field_speed)
-            if speed_value == 0:
-                batch_changes[feature.id()] = {self.idx_field_speed: int(self.speed)}
+        
+        self.road_layer_mod_data_provider.addAttributes(layer_fields)
+        self.road_layer_mod.updateFields()
 
-        # Применение изменений пакетно
-        if batch_changes:
-            self.road_layer.dataProvider().changeAttributeValues(batch_changes)    
+        self.road_layer_mod.deleteFeatures([]) 
+        
+        (success, result) = self.road_layer_mod_data_provider.addFeatures(new_features)
+        
+        self.road_layer_mod.updateExtents()
 
 
     def makeProtocolArea(self):
@@ -397,7 +400,7 @@ class ShortestPathUtils:
         """
         zip_filename1 = f'{self.folder_name}//layer_road{self.curr_DateTime}.zip'
         filename1 = f'{self.folder_name}//layer_road_{self.curr_DateTime}.geojson'
-        self.save_layer_to_zip(self.road_layer, zip_filename1, filename1)
+        self.save_layer_to_zip(self.road_layer_mod, zip_filename1, filename1)
 
         zip_filename1 = f'{self.folder_name}//layer_origins{self.curr_DateTime}.zip'
         filename1 = f'{self.folder_name}//layer_origins{self.curr_DateTime}.geojson'

@@ -4,7 +4,7 @@
 
 [general]
 name=TAU Network Calculator
-qgisMinimumVersion=3.1
+qgisMinimumVersion=3.1.1
 description=Accessibility Calculations
 version=3.0
 author=Igor Shusterman (based on dev of Evgeny Kleiman)

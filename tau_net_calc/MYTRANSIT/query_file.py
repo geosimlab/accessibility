@@ -4,7 +4,7 @@ import zipfile
 from datetime import datetime, timedelta, date
 
 from PyQt5.QtWidgets import QApplication
-from qgis.core import QgsProject, QgsVectorFileWriter, QgsVectorLayer, QgsCoordinateTransform 
+from qgis.core import QgsProject, QgsVectorFileWriter, QgsVectorLayer
 
 
 from RAPTOR.std_raptor import raptor
