@@ -33,8 +33,13 @@ class ShortestPathUtils:
         # Создаем пространственный индекс для вершин графа
         vertex_index = QgsSpatialIndex()
         
-        
+        c = 0
         for vertex_id in range(self.graph.vertexCount()):
+
+            c += 1
+            if c%500 == 0:
+                QApplication.processEvents()
+
             vertex = self.graph.vertex(vertex_id)
             vertex_point = vertex.point()
             vertex_feature = QgsFeature()
@@ -129,6 +134,9 @@ class ShortestPathUtils:
 
         if self.idx_field_direction != -1 or self.idx_field_speed != -1:
             self.change_road_layer()
+        else:
+            self.road_layer_mod = self.road_layer
+
 
         
         self.director = QgsVectorLayerDirector(self.road_layer_mod, self.idx_field_direction, '', '', '', QgsVectorLayerDirector.DirectionBoth)
@@ -146,9 +154,12 @@ class ShortestPathUtils:
         self.builder = QgsGraphBuilder(self.road_layer_mod.crs())
         QApplication.processEvents()
         self.parent.setMessage(f'Making graph ...')
+        
         QApplication.processEvents()
         self.director.makeGraph(self.builder, [])
         self.graph = self.builder.graph()
+        time1 = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        self.parent.textLog.append(f'<a>Time after Making graph {time1}</a>') 
         self.parent.progressBar.setValue(1)
 
         # Создание пространственного индекса для поиска ближайших вершин
@@ -157,23 +168,38 @@ class ShortestPathUtils:
         crs_meter = QgsCoordinateReferenceSystem("EPSG:2039")
         self.road_layer_mod.setCrs(crs_meter)
         self.index_road = QgsSpatialIndex()
+        c = 0
         for feature in self.road_layer_mod.getFeatures():
+            c += 1
+            if c%500 == 0:
+                QApplication.processEvents()
             self.index_road.insertFeature(feature)
         self.parent.progressBar.setValue(2)    
-
+        time1 = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        self.parent.textLog.append(f'<a>Time after creating index road {time1}</a>') 
         self.parent.setMessage(f'Creating index buildings...')
         QApplication.processEvents()
         crs_meter = QgsCoordinateReferenceSystem("EPSG:2039")
         self.layer_origins.setCrs(crs_meter)
         self.index_buildings = QgsSpatialIndex()
+        c = 0
         for feature in self.layer_origins.getFeatures():
+            c += 1
+            if c%500 == 0:
+                QApplication.processEvents()
             self.index_buildings.insertFeature(feature)
         
         self.parent.progressBar.setValue(3)
+        time1 = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        self.parent.textLog.append(f'<a>Time after creating index buildings {time1}</a>') 
 
         i =  0
-                
+
+        self.parent.setMessage(f'Creating dict (vertex: nearest buildings) ...')
+        QApplication.processEvents()        
         self.create_dict_vertex_nearest_buildings()
+        time1 = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        self.parent.textLog.append(f'<a>Time after creating dict (vertex: nearest buildings) {time1}</a>') 
         self.create_head_files()
         
         for source, Points in self.points_to_tie:

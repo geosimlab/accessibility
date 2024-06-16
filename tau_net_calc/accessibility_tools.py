@@ -6,6 +6,7 @@ from .form_settings import Settings
 from .form_raptor_detailed import RaptorDetailed
 from .form_raptor_summary import RaptorSummary
 from .form_car import CarAccessibility
+from .form_pkl import form_pkl
 from PyQt5.QtWidgets import QApplication
 
 
@@ -32,8 +33,9 @@ class AccessibilityTools(QWidget):
         #group1.setExpanded(True)
             
         #group2 = QTreeWidgetItem(self.tree_widget,['Data preparation'])
-        self.item2 = QTreeWidgetItem(group1, ['Select GTFS dictionary'])
-        self.item3 = QTreeWidgetItem(group1, ['Build GTFS dictionary'])
+        #self.item2 = QTreeWidgetItem(group1, ['Select GTFS dictionary'])
+        self.item3 = QTreeWidgetItem(group1, ['Build GTFS dictionary (pkl)'])
+        self.item3.setFont(0,font)
         group1.setExpanded(True)
 
         group3 = QTreeWidgetItem(self.tree_widget,['Public transport accessibility AREA, by origins or destinations'])
@@ -104,6 +106,11 @@ class AccessibilityTools(QWidget):
           dialog = Settings()
           dialog.textInfo.setPlainText("Sample description tool")
           dialog.show()
+
+        if item == self.item3:
+          pkl = form_pkl(title = "Build GTFS dictionary (pkl)")
+          pkl.textInfo.setPlainText("Description process of building GTFS dictionary (pkl)")
+          pkl.show()  
 
         if item == self.item4:
           raptor_detailed = RaptorDetailed(mode = 1, protocol_type = 2, title = "Public transport accessibility AREA, by origins, forward accessibility AREA, fixed departure time", timetable_mode = False)

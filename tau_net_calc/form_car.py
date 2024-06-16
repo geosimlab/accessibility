@@ -71,7 +71,7 @@ class CarAccessibility(QDialog, FORM_CLASS):
             
             self.toolButton_layer_dest_refresh.clicked.connect(lambda: self.showAllLayersInCombo(self.cmbLayersDest))
             self.toolButton_layer_refresh.clicked.connect(lambda: self.showAllLayersInCombo(self.cmbLayers))
-            self.toolButton_layer_road_refresh.clicked.connect(lambda: self.showAllLayersInCombo(self.cmbLayers))
+            self.toolButton_layer_road_refresh.clicked.connect(lambda: self.showAllLayersInCombo(self.cmbLayersRoad))
             
            
             
