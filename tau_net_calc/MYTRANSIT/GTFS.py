@@ -13,25 +13,21 @@ import geopandas as gpd
 import codecs
 import os
 from shapely.geometry import Point
-from qgis.core import QgsCoordinateReferenceSystem, QgsPointXY,  QgsGeometry, QgsVectorLayer
+from qgis.core import QgsCoordinateReferenceSystem, QgsPointXY,  QgsGeometry
 
 from zipfile import ZipFile
 from datetime import datetime
 from collections import defaultdict
 from PyQt5.QtWidgets import QApplication
 
-import networkx as nx
-from shapely.geometry import LineString, MultiLineString, shape
-import networkx as nx
-import geopandas as gpd
-from shapely.geometry import LineString
-import pyproj
-import csv
 
+import geopandas as gpd
+
+import pyproj
 
 from scipy.spatial import cKDTree
 import pandas as pd
-from path_to_road import path_to_road
+from footpath_on_road import footpath_on_road
 
 
 class GTFS ():
@@ -468,14 +464,15 @@ class GTFS ():
                 return 0
         QApplication.processEvents()
         self.create_footpath_AIR()
-       
+
+        
         if self.RunCalcFootPathRoad:
             self.parent.setMessage(f'Peparing GTFS. Creating footpath road ...')
             QApplication.processEvents()
             self.parent.progressBar.setValue(9)
             if self.verify_break():
                 return 0
-            footpath_road = path_to_road (self.parent, self.layer_road, self.layer_origins, self.__path_to_file)
+            footpath_road = footpath_on_road (self.parent, self.layer_road, self.layer_origins, self.__path_to_file)
             footpath_road.run()
         
          

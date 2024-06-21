@@ -210,7 +210,7 @@
               <item row="14" column="0">
                <widget class="QCheckBox" name="cbRunCalcFootPathRoad">
                 <property name="text">
-                 <string>Run calculation foot path on road</string>
+                 <string>Run calculation footpath on road</string>
                 </property>
                </widget>
               </item>

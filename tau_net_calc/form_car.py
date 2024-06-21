@@ -12,6 +12,7 @@ from PyQt5.QtCore import Qt, QRegExp, QEvent
 from PyQt5.QtGui import QRegExpValidator, QDesktopServices
 from PyQt5 import uic
 from ShortestPath import ShortestPathUtils
+from converter_layer import MultiLineStringToLineStringConverter
 
 
 import configparser
@@ -452,8 +453,14 @@ class CarAccessibility(QDialog, FORM_CLASS):
       max_time_minutes = int(self.config['Settings']['MaxTimeTravel_car'])
       time_step_minutes = int(self.config['Settings']['TimeInterval_car'])
 
-      ShortestPath = ShortestPathUtils (self, layer_road, idx_field, idx_field_direction, layer_origins, points_to_tie, speed, strategy_id, path_to_protocol, max_time_minutes, time_step_minutes, self.mode, self.protocol_type, use_aggregate, field_aggregate)
-      ShortestPath.run()
+      self.setMessage('Preparing GTFS. Calc footpath on road. Converting layer road multiline to line ...')
+      converter = MultiLineStringToLineStringConverter(self, layer_road)
+      layer_road = converter.execute()
+      if layer_road != 0:
+        ShortestPath = ShortestPathUtils (self, layer_road, idx_field, idx_field_direction, layer_origins, points_to_tie, speed, strategy_id, path_to_protocol, max_time_minutes, time_step_minutes, self.mode, self.protocol_type, use_aggregate, field_aggregate)
+        ShortestPath.run()
+        
+      converter.remove_temp_layer()  
 
     def prepare(self):  
       self.break_on = False

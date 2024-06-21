@@ -151,9 +151,9 @@ def post_processing (DESTINATION: int, pi_label, MIN_TRANSFER, MaxWalkDist, time
             transfer_needed = k - 1
 
             # null transfers:
-            # 1) foot path
-            # 2) foot path + route
-            # 2) foot path + route + foot path
+            # 1) footpath
+            # 2) footpath + route
+            # 2) footpath + route + footpath
             if transfer_needed == -1:
                 transfer_needed = 0
             

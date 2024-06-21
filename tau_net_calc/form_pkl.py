@@ -2,20 +2,20 @@ import os
 import sys
 import qgis.core
 from qgis.PyQt import QtCore
-from qgis.core import QgsProject, QgsWkbTypes, QgsPointXY
+from qgis.core import QgsProject, QgsWkbTypes
 
 import osgeo.gdal
 import osgeo.osr
 
 from PyQt5.QtWidgets import QDialogButtonBox, QDialog, QFileDialog, QApplication, QMessageBox
-from PyQt5.QtCore import Qt, QRegExp, QEvent
-from PyQt5.QtGui import QRegExpValidator, QDesktopServices
+from PyQt5.QtCore import Qt, QEvent
+from PyQt5.QtGui import QDesktopServices
 from PyQt5 import uic
+
 from GTFS import GTFS
 from PKL import PKL
 from datetime import datetime
-
-
+from converter_layer import MultiLineStringToLineStringConverter
 
 import configparser
 
@@ -351,7 +351,7 @@ class form_pkl(QDialog, FORM_CLASS):
         msgBox = QMessageBox()
         msgBox.setIcon(QMessageBox.Question)
         msgBox.setWindowTitle("Confirm")
-        msgBox.setText(f"You have selected the mode for calculating foot path on roads. Calculations can take a long time. Are you sure?")
+        msgBox.setText(f"You have selected the mode for calculating footpath on roads. Calculations can take a long time. Are you sure?")
         msgBox.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
         
         result = msgBox.exec_()
@@ -366,12 +366,20 @@ class form_pkl(QDialog, FORM_CLASS):
 
           if not os.path.exists(pkl_path):
             os.makedirs(pkl_path)
-          calc_GTFS = GTFS(self, path_to_file, path_to_GTFS, layer_origins, layer_road, RunCalcFootPathRoad)
-          res = calc_GTFS.correcting_files()
+
+          self.setMessage('Preparing GTFS. Calc footpath on road. Converting layer road multiline to line ...')
+          converter = MultiLineStringToLineStringConverter(self, layer_road)
+          layer_road = converter.execute()
+          if layer_road != 0:
+                  
+            calc_GTFS = GTFS(self, path_to_file, path_to_GTFS, layer_origins, layer_road, RunCalcFootPathRoad)
+            res = calc_GTFS.correcting_files()
       
-          if res == 1:
-            calc_PKL = PKL (self, dist = 400, path_to_pkl = pkl_path, path_to_GTFS = gtfs_path, layer_buildings = layer_origins, RunCalcFootPathRoad = RunCalcFootPathRoad)
-            calc_PKL.create_files()
+            if res == 1:
+              calc_PKL = PKL (self, dist = 400, path_to_pkl = pkl_path, path_to_GTFS = gtfs_path, layer_buildings = layer_origins, RunCalcFootPathRoad = RunCalcFootPathRoad)
+              calc_PKL.create_files()
+          
+          converter.remove_temp_layer()
       
           self.setMessage(f'Calculating done')
           QApplication.processEvents()
@@ -423,7 +431,7 @@ class form_pkl(QDialog, FORM_CLASS):
 
             if self.cbRunCalcFootPathRoad.isChecked():
               if key == "RunCalcFootPathRoad_pkl":
-                config_info.append(f"<a>Run calculation foot path on road: {value}</a>")    
+                config_info.append(f"<a>Run calculation footpath on road: {value}</a>")    
 
             
             
