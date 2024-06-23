@@ -1,0 +1,5 @@
+# Sphinx default build target
+postgis-intro/doc
+# OSX nonsense
+.DS_Store
+_build

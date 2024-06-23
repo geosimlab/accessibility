@@ -1,0 +1,519 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2012, Paul Ramsey | Mark Leslie
+# This file is distributed under the same license as the Introduction to
+# PostGIS package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2021.
+# Regina Obe <regina@arrival3d.com>, 2022.
+# David Mateos <dmateos@users.noreply.weblate.osgeo.org>, 2023.
+# Paulo Cesar <paulocoronado@gmail.com>, 2024.
+msgid ""
+msgstr ""
+"Project-Id-Version: Introduction to PostGIS 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-01-07 21:46-0500\n"
+"PO-Revision-Date: 2024-05-02 15:45+0000\n"
+"Last-Translator: Paulo Cesar <paulocoronado@gmail.com>\n"
+"Language-Team: Spanish <https://weblate.osgeo.org/projects/postgis-workshop/"
+"about_data/es/>\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 5.4.3\n"
+"Generated-By: Babel 2.9.1\n"
+
+#: ../../en/about_data.rst:4
+msgid "About our data"
+msgstr "Acerca de los datos"
+
+#: ../../en/about_data.rst:6
+msgid ""
+"The data for this workshop is four shapefiles for New York City, and one "
+"attribute table of sociodemographic variables.  We've loaded our shapefiles "
+"as PostGIS tables and will add sociodemographic data later in the workshop."
+msgstr ""
+"Los datos para este taller constan de cuatro shapefiles de la ciudad de "
+"Nueva York y una tabla de atributos de variables sociodemográficas. Hemos "
+"cargado los shapefiles como tablas de PostGIS y los datos sociodemográficos "
+"se añadirán más tarde durante el taller."
+
+#: ../../en/about_data.rst:8
+msgid ""
+"The following describes the number of records and table attributes for each "
+"of our datasets.  These attribute values and relationships are fundamental "
+"to our future analysis."
+msgstr ""
+"A continuación se describe el número de registros y la tabla de atributos "
+"para cada uno de los conjuntos de datos. Estos valores de atributos y "
+"relaciones son fundamentales para nuestros análisis posteriores."
+
+#: ../../en/about_data.rst:10
+msgid ""
+"To explore the nature of your tables in pgAdmin, right-click a highlighted "
+"table and select **Properties**.  You will find a summary of table "
+"properties, including a list of table attributes within the **Columns** tab."
+msgstr ""
+"Para explorar la naturaleza de las tablas en pgAdmin, botón derecho en una "
+"tabla resaltada y seleccionar **Propiedades**. Aparecerá un resumen de las "
+"propiedades de la tabla, incluyendo una lista de los atriburos de la tabla "
+"dentro de la pestaña **Columnas**."
+
+#: ../../en/about_data.rst:15
+#, fuzzy
+msgid "nyc_census_blocks"
+msgstr "nyc_census_blocks"
+
+#: ../../en/about_data.rst:17
+msgid ""
+"A census block is the smallest geography for which census data is reported. "
+"All higher level census geographies (block groups, tracts, metro areas, "
+"counties, etc) can be built from unions of census blocks. We have attached "
+"some demographic data to our collection of blocks."
+msgstr ""
+"Una manzana censal es el área geográfica más pequeña de la que se tienen "
+"datos censales. Todas las geografías censales de nivel superior (grupos de "
+"manzanas, secciones, áreas metropolitanas, condados, etc.) pueden "
+"construirse a partir de uniones de manzanas censales. Hemos adjuntado "
+"algunos datos demográficos a nuestra colección de manzanas."
+
+#: ../../en/about_data.rst:19
+msgid "Number of records: 36592"
+msgstr "Número de registros: 36592"
+
+#: ../../en/about_data.rst:24
+#, fuzzy
+msgid "**blkid**"
+msgstr "**blkid**"
+
+#: ../../en/about_data.rst:25
+msgid ""
+"A 15-digit code that uniquely identifies every census **block**. Eg: "
+"360050001009000"
+msgstr ""
+"Un código de 15 dígitos que identifica de forma única cada **bloque** del "
+"censo. Ej: 360050001009000"
+
+#: ../../en/about_data.rst:26
+#, fuzzy
+msgid "**popn_total**"
+msgstr "**popn_total**"
+
+#: ../../en/about_data.rst:27
+msgid "Total number of people in the census block"
+msgstr "Número total de personas en el bloque del censo"
+
+#: ../../en/about_data.rst:28
+msgid "**popn_white**"
+msgstr "**popn_white**"
+
+#: ../../en/about_data.rst:29
+msgid "Number of people self-identifying as \"White\" in the block"
+msgstr "Número de personas que se auto-identifican como \"Blanco/a\""
+
+#: ../../en/about_data.rst:30
+#, fuzzy
+msgid "**popn_black**"
+msgstr "**popn_black**"
+
+#: ../../en/about_data.rst:31
+msgid "Number of people self-identifying as \"Black\" in the block"
+msgstr "Número de personas que se auto-identifican con \"Negro/a\""
+
+#: ../../en/about_data.rst:32
+#, fuzzy
+msgid "**popn_nativ**"
+msgstr "**popn_nativ**"
+
+#: ../../en/about_data.rst:33
+msgid "Number of people self-identifying as \"Native American\" in the block"
+msgstr ""
+"Número de personas que se auto-identifican como \"Nativo/a Americano/a\""
+
+#: ../../en/about_data.rst:34
+#, fuzzy
+msgid "**popn_asian**"
+msgstr "**popn_asian**"
+
+#: ../../en/about_data.rst:35
+msgid "Number of people self-identifying as \"Asian\" in the block"
+msgstr "Número de personas que se auto-identifican como \"Asiático/a\""
+
+#: ../../en/about_data.rst:36
+#, fuzzy
+msgid "**popn_other**"
+msgstr "**popn_other**"
+
+#: ../../en/about_data.rst:37
+msgid "Number of people self-identifying with other categories in the block"
+msgstr "Número de personas que se auto-identifican como otras categorías"
+
+#: ../../en/about_data.rst:38 ../../en/about_data.rst:63
+#, fuzzy
+msgid "**boroname**"
+msgstr "**boroname**"
+
+#: ../../en/about_data.rst:39 ../../en/about_data.rst:64
+#: ../../en/about_data.rst:109
+msgid ""
+"Name of the New York borough. Manhattan, The Bronx, Brooklyn, Staten Island, "
+"Queens"
+msgstr ""
+"Nombre del distrito de Nueva York New York. Manhattan, The Bronx, Brooklyn, "
+"Staten Island, Queens"
+
+#: ../../en/about_data.rst:40 ../../en/about_data.rst:65
+#: ../../en/about_data.rst:88 ../../en/about_data.rst:116
+msgid "**geom**"
+msgstr "**geom**"
+
+#: ../../en/about_data.rst:41
+msgid "Polygon boundary of the block"
+msgstr "Límite del bloque"
+
+#: ../../en/about_data.rst:45
+msgid "*Black population as a percentage of Total Population*"
+msgstr "*Población negra como porcentaje de la Población Total*"
+
+#: ../../en/about_data.rst:49
+msgid ""
+"To get census data into GIS, you need to join two pieces of information: the "
+"actual data (text), and the boundary files (spatial).  There are many "
+"options for getting the data, including downloading data and boundaries from "
+"the Census Bureau's `American FactFinder <http://factfinder.census.gov>`_."
+msgstr ""
+"Para introducir los datos del censo dentro del SIG, hay que unir dos piezas "
+"de información: los datos reales (texto) y los archivos de limites (espacial)"
+". Hay muchas formas para conseguir estos datos, incluyendo descargar ambos "
+"desde Census Bureau's `American FactFinder <http://factfinder.census.gov>`_."
+
+#: ../../en/about_data.rst:52
+#, fuzzy
+msgid "nyc_neighborhoods"
+msgstr "nyc_neighborhoods"
+
+#: ../../en/about_data.rst:54
+msgid ""
+"New York has a rich history of neighborhood names and extent.  Neighborhoods "
+"are social constructs that do not follow lines laid down by the government. "
+"For example, the Brooklyn neighborhoods of Carroll Gardens, Red Hook, and "
+"Cobble Hill were once collectively known as \"South Brooklyn.\" And now, "
+"depending on which real estate agent you talk to, the same four blocks in "
+"the-neighborhood-formerly-known-as-Red-Hook can be referred to as Columbia "
+"Heights, Carroll Gardens West, or Red Hook!"
+msgstr ""
+"Nueva York tiene una rica historia sobre los nombres y extensiones de sus "
+"barrios. Los barrios son constructos sociales que no siguen las lineas "
+"puestas por el gobierno. Por ejemplo, los barrios de Brooklyn de Carroll "
+"Gardens, Red Hook, y Cobble Hill se conocieron en cierto momento "
+"colectivamente como \"Brooklyn Sur\". Y ahora, en función del agente "
+"inmobiliario con el que se hable, los mismos cuatro bloques del barrio antes "
+"conocido como Red Hook  ¡pueden ser Columbia Heights, Carroll Gardens West, "
+"o Red Hook!"
+
+#: ../../en/about_data.rst:56
+msgid "Number of records: 129"
+msgstr "Número de registros: 129"
+
+#: ../../en/about_data.rst:61 ../../en/about_data.rst:82
+#: ../../en/about_data.rst:106
+#, fuzzy
+msgid "**name**"
+msgstr "**name**"
+
+#: ../../en/about_data.rst:62
+msgid "Name of the neighborhood"
+msgstr "Nombre del barrio"
+
+#: ../../en/about_data.rst:66
+msgid "Polygon boundary of the neighborhood"
+msgstr "Polígono de límite del barrio"
+
+#: ../../en/about_data.rst:70
+msgid "*The neighborhoods of New York City*"
+msgstr "*Los barrios de Nueva York*"
+
+#: ../../en/about_data.rst:73
+msgid "nyc_streets"
+msgstr "nyc_streets"
+
+#: ../../en/about_data.rst:75
+msgid ""
+"The street centerlines form the transportation network of the city. These "
+"streets have been flagged with types in order to distinguish between such "
+"thoroughfares as back alleys, arterial streets, freeways, and smaller "
+"streets. Desirable areas to live might be on residential streets rather than "
+"next to a freeway."
+msgstr ""
+"Las líneas centrales de las calles forman la red de transporte de la ciudad. "
+"Estas calles se han marcado con tipos para distinguir entre vías como "
+"callejones, calles arteriales, autopistas y calles más pequeñas. Las zonas "
+"deseables para vivir pueden estar en calles residenciales y no junto a una "
+"autopista."
+
+#: ../../en/about_data.rst:77
+msgid "Number of records: 19091"
+msgstr "Número de registros: 19091"
+
+#: ../../en/about_data.rst:83
+msgid "Name of the street"
+msgstr "Nombre de la calle"
+
+#: ../../en/about_data.rst:84
+msgid "**oneway**"
+msgstr "**Un solo sentido**"
+
+#: ../../en/about_data.rst:85
+msgid "Is the street one-way? \"yes\" = yes, \"\" = no"
+msgstr "¿La calle es de sentido único? \"Yes\" = sí, \"\" = no"
+
+#: ../../en/about_data.rst:86
+msgid "**type**"
+msgstr "**tipo**"
+
+#: ../../en/about_data.rst:87
+msgid "Road type (primary, secondary, residential, motorway)"
+msgstr "Tipo de carretera (primaria, secundaria, residencial, autopista)"
+
+#: ../../en/about_data.rst:89
+msgid "Linear centerline of the street"
+msgstr "Línea central lineal de la calle"
+
+#: ../../en/about_data.rst:93
+msgid "*The streets of New York City. Major roads are in red.*"
+msgstr "*Las calles de Nueva York. Las carreteras principales están en rojo.*"
+
+#: ../../en/about_data.rst:97
+msgid "nyc_subway_stations"
+msgstr "nyc_subway_stations"
+
+#: ../../en/about_data.rst:99
+msgid ""
+"The subway stations link the upper world where people live to the invisible "
+"network of subways beneath. As portals to the public transportation system, "
+"station locations help determine how easy it is for different people to "
+"enter the subway system."
+msgstr ""
+"Las estaciones de metro conectan a la superficie donde vive la gente con la "
+"red invisible de subterráneos que hay debajo. Como portales del sistema de "
+"transporte público, la ubicación de las estaciones ayuda a determinar la "
+"facilidad con que distintas personas acceden al sistema de metro."
+
+#: ../../en/about_data.rst:101
+msgid "Number of records: 491"
+msgstr "Número de registros: 491"
+
+#: ../../en/about_data.rst:107
+msgid "Name of the station"
+msgstr "Nombre de la estación"
+
+#: ../../en/about_data.rst:108
+msgid "**borough**"
+msgstr "**borough** (distrito)"
+
+#: ../../en/about_data.rst:110
+msgid "**routes**"
+msgstr "**routes** (rutas)"
+
+#: ../../en/about_data.rst:111
+msgid "Subway lines that run through this station"
+msgstr "Líneas de metro que pasan por esta estación"
+
+#: ../../en/about_data.rst:112
+msgid "**transfers**"
+msgstr "**transfers** (transbordos)"
+
+#: ../../en/about_data.rst:113
+msgid "Lines you can transfer to via this station"
+msgstr "Líneas a las que puede hacer transbordo a través de esta estación"
+
+#: ../../en/about_data.rst:114
+msgid "**express**"
+msgstr "**express**(expreso)"
+
+#: ../../en/about_data.rst:115
+msgid "Stations where express trains stop, \"express\" = yes, \"\" = no"
+msgstr "Estaciones donde paran trenes exprés, \"express\" = sí, \"\" = no"
+
+#: ../../en/about_data.rst:117
+msgid "Point location of the station"
+msgstr "Localización puntual de la estación"
+
+#: ../../en/about_data.rst:121
+msgid "*Point locations for New York City subway stations*"
+msgstr "*Localización de las estaciones de metro de Nueva York*"
+
+#: ../../en/about_data.rst:124
+msgid "nyc_census_sociodata"
+msgstr "nyc_census_sociodata"
+
+#: ../../en/about_data.rst:126
+msgid ""
+"There is a rich collection of social-economic data collected during the "
+"census process, but only at the larger geography level of census tract.  "
+"Census blocks combine to form census tracts (and block groups). We have "
+"collected some social-economic at a census tract level to answer some of "
+"these more interesting questions about New York City."
+msgstr ""
+"Existe una rica colección de datos socioeconómicos recopilados durante el el "
+"censo, pero sólo a nivel geográfico más amplio de sección censal. Las "
+"manzanas censales se combinan para formar secciones censales (grupos de "
+"manzanas). Hemos recopilado algunos datos socioeconómicos a nivel de sección "
+"censal para responder a algunas de las preguntas más interesantes sobre la "
+"ciudad de Nueva York."
+
+#: ../../en/about_data.rst:130
+msgid ""
+"The ``nyc_census_sociodata`` is a data table.  We will need to connect it to "
+"Census geographies before conducting any spatial analysis."
+msgstr ""
+"El ``nyc_census_sociodata`` es una tabla de datos. Tendremos que conectarla "
+"a las geografías del Censo antes de realizar cualquier análisis espacial."
+
+#: ../../en/about_data.rst:135
+msgid "**tractid**"
+msgstr "**tractid** (Id de la zona censal)"
+
+#: ../../en/about_data.rst:136
+msgid ""
+"An 11-digit code that uniquely identifies every census **tract**. "
+"(\"36005000100\")"
+msgstr ""
+"Un código de 11 dígitos que identifica unívocamente cada **conjunto censal**"
+". (\"36005000100\")"
+
+#: ../../en/about_data.rst:137
+msgid "**transit_total**"
+msgstr "**transit_total** (tránsito total)"
+
+#: ../../en/about_data.rst:138
+msgid "Number of workers in the tract"
+msgstr "Número de trabajadores en la zona censal"
+
+#: ../../en/about_data.rst:139
+msgid "**transit_private**"
+msgstr "**transit_private** (tránsito privado)"
+
+#: ../../en/about_data.rst:140
+msgid ""
+"Number of workers in the tract who use private automobiles / motorcycles"
+msgstr ""
+"Número de trabajadores de la zona que utilizan automóviles privados / "
+"motocicletas"
+
+#: ../../en/about_data.rst:141
+msgid "**transit_public**"
+msgstr "**transit_public** (tránsito público)"
+
+#: ../../en/about_data.rst:142
+msgid "Number of workers in the tract who take public transit"
+msgstr "Número de trabajadores de la zona que utilizan el transporte público"
+
+#: ../../en/about_data.rst:143
+msgid "**transit_walk**"
+msgstr "**transit_walk** (tránsito peatonal)"
+
+#: ../../en/about_data.rst:144
+msgid "Number of workers in the tract who walk"
+msgstr "Número de trabajadores de la zona que van a pie"
+
+#: ../../en/about_data.rst:145
+msgid "**transit_other**"
+msgstr "**transit_other** (otros tipos de tránsito)"
+
+#: ../../en/about_data.rst:146
+msgid ""
+"Number of workers in the tract who use other forms like walking / biking"
+msgstr ""
+"Número de trabajadores en el tramo que utilizan otras formas como caminar / "
+"ir en bicicleta"
+
+#: ../../en/about_data.rst:147
+msgid "**transit_none**"
+msgstr "**transit_none** ( sin tránsito)"
+
+#: ../../en/about_data.rst:148
+msgid "Number of workers in the tract who work from home"
+msgstr "Número de trabajadores de la zona que trabajan desde casa"
+
+#: ../../en/about_data.rst:149
+msgid "**transit_time_mins**"
+msgstr ""
+
+#: ../../en/about_data.rst:150
+msgid ""
+"Total number of minutes spent in transit by all workers in the tract "
+"(minutes)"
+msgstr ""
+
+#: ../../en/about_data.rst:151
+msgid "**family_count**"
+msgstr ""
+
+#: ../../en/about_data.rst:152
+msgid "Number of families in the tract"
+msgstr ""
+
+#: ../../en/about_data.rst:153
+msgid "**family_income_median**"
+msgstr ""
+
+#: ../../en/about_data.rst:154
+msgid "Median family income in the tract (dollars)"
+msgstr ""
+
+#: ../../en/about_data.rst:155
+msgid "**family_income_mean**"
+msgstr ""
+
+#: ../../en/about_data.rst:156
+msgid "Average family income in the tract (dollars)"
+msgstr ""
+
+#: ../../en/about_data.rst:157
+msgid "**family_income_aggregate**"
+msgstr ""
+
+#: ../../en/about_data.rst:158
+msgid "Total income of all families in the tract (dollars)"
+msgstr ""
+
+#: ../../en/about_data.rst:159
+msgid "**edu_total**"
+msgstr ""
+
+#: ../../en/about_data.rst:160
+msgid "Number of people with educational history"
+msgstr ""
+
+#: ../../en/about_data.rst:161
+msgid "**edu_no_highschool_dipl**"
+msgstr ""
+
+#: ../../en/about_data.rst:162
+msgid "Number of people with no high school diploma"
+msgstr ""
+
+#: ../../en/about_data.rst:163
+msgid "**edu_highschool_dipl**"
+msgstr ""
+
+#: ../../en/about_data.rst:164
+msgid "Number of people with high school diploma and no further education"
+msgstr ""
+
+#: ../../en/about_data.rst:165
+msgid "**edu_college_dipl**"
+msgstr ""
+
+#: ../../en/about_data.rst:166
+msgid "Number of people with college diploma and no further education"
+msgstr ""
+
+#: ../../en/about_data.rst:167
+msgid "**edu_graduate_dipl**"
+msgstr ""
+
+#: ../../en/about_data.rst:168
+msgid "Number of people with graduate school diploma"
+msgstr ""
