@@ -1,0 +1,902 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2012, Paul Ramsey | Mark Leslie
+# This file is distributed under the same license as the Introduction to
+# PostGIS package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2021.
+# Regina Obe <regina@arrival3d.com>, 2022, 2023.
+# Teramoto Ikuhiro <yellow@affrc.go.jp>, 2022, 2023.
+msgid ""
+msgstr ""
+"Project-Id-Version: Introduction to PostGIS 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-01-07 21:46-0500\n"
+"PO-Revision-Date: 2023-08-22 03:08+0000\n"
+"Last-Translator: Teramoto Ikuhiro <yellow@affrc.go.jp>\n"
+"Language-Team: Japanese <https://weblate.osgeo.org/projects/postgis-workshop/"
+"introduction/ja/>\n"
+"Language: ja\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Weblate 4.16.4\n"
+"Generated-By: Babel 2.9.1\n"
+
+#: ../../en/introduction.rst:4
+msgid "Introduction"
+msgstr "導入"
+
+#: ../../en/introduction.rst:7
+msgid "What is a Spatial Database?"
+msgstr "空間データベースとは?"
+
+#: ../../en/introduction.rst:9
+msgid ""
+"PostGIS is a spatial database. Oracle Spatial and SQL Server (2008 and "
+"later) are also spatial databases. But what does that mean; what is it that "
+"makes an ordinary database a spatial database?"
+msgstr ""
+"PostGISは空間データベースです。Oracle SpatialやSQL Server (2008以降)も空間デ"
+"ータベースです。これはどういう意味でしょうか？通常のデータベースを空間データ"
+"ベースにするにはどうすればいいでしょうか？"
+
+#: ../../en/introduction.rst:11
+msgid "The short answer, is..."
+msgstr "短い答えとしては..."
+
+#: ../../en/introduction.rst:13
+msgid ""
+"**Spatial databases store and manipulate spatial objects like any other "
+"object in the database.**"
+msgstr "**空間データベースは空間オブジェクトを、データベース内の他のオブジェクトのよ"
+"うに格納して操作するものです。**"
+
+#: ../../en/introduction.rst:15
+msgid ""
+"The following briefly covers the evolution of spatial databases, and then "
+"reviews three aspects that associate *spatial* data with a database -- data "
+"types, indexes, and functions."
+msgstr ""
+"ここでは、空間データベースの進化について簡単に説明し、データタイプ、インデッ"
+"クス、関数という*空間*データをデータベースに関連づける三つの側面を見ていきま"
+"す。"
+
+#: ../../en/introduction.rst:17
+msgid ""
+"**Spatial data types** refer to shapes such as point, line, and polygon;"
+msgstr "**空間データタイプ**はポイント、ライン、ポリゴンといった形状を指します。"
+
+#: ../../en/introduction.rst:18
+msgid ""
+"Multi-dimensional **spatial indexing** is used for efficient processing of "
+"spatial operations;"
+msgstr "多次元**空間インデックス**は空間演算の効率的な処理に使用されます。"
+
+#: ../../en/introduction.rst:19
+msgid ""
+"**Spatial functions**, posed in :term:`SQL`, are for querying of spatial "
+"properties and relationships."
+msgstr "**空間関数**は :term:`SQL` "
+"で示されていますが、空間プロパティと空間関係に関するクエリに使われます。"
+
+#: ../../en/introduction.rst:21
+msgid ""
+"Combined, spatial data types, indexes, and functions provide a flexible "
+"structure for optimized performance and analysis."
+msgstr "空間データタイプ、インデックス、関数を組み合わせることで、能率と解析の最適化"
+"のための柔軟な構造が得られます。"
+
+#: ../../en/introduction.rst:24
+msgid "In the Beginning"
+msgstr "はじめに"
+
+#: ../../en/introduction.rst:26
+msgid ""
+"In legacy first-generation :term:`GIS` implementations, all spatial data is "
+"stored in flat files and special :term:`GIS` software is required to "
+"interpret and manipulate the data.  These first-generation management "
+"systems are designed to meet the needs of users where all required data is "
+"within the user's organizational domain.  They are proprietary, self-"
+"contained systems specifically built for handling spatial data."
+msgstr ""
+"従来の第1世代の :term:`GIS` 実装では、全ての空間データがフラットなファイルに"
+"格納され、データの解釈と操作に、専用の :term:`GIS` ソフトウェアが必要です。こ"
+"れらの第1世代の管理システムはユーザのニーズに合わせたデザインになっていて、全"
+"ての求められるデータがユーザの組織の内部にありました。これらはプロプライエタ"
+"リで、空間データを処理するために作られた自己完結型システムです。"
+
+#: ../../en/introduction.rst:28
+msgid ""
+"Second-generation spatial systems store some data in relational databases "
+"(usually the \"attribute\" or non-spatial parts) but still lack the "
+"flexibility afforded with direct integration."
+msgstr ""
+"第2世代の空間システムはリレーショナルデータベース (通常は「属性」または非空間"
+"部)内のデータを格納しますが、直接統合するだけの柔軟性はありませんでした。"
+
+#: ../../en/introduction.rst:30
+msgid ""
+"**True spatial databases were born when people started to treat spatial "
+"features as first class database objects.**"
+msgstr "**空間の地物を第一級データベースオブジェクトとして扱うようになった時に真の空"
+"間データベースが生まれました。**"
+
+#: ../../en/introduction.rst:32
+msgid ""
+"Spatial databases fully integrate spatial data with a relational database.  "
+"The system orientation changes from GIS-centric to database-centric."
+msgstr "空間データベースは完全に空間データをリレーショナルデータベースに統合します。"
+"システムの方向性がGIS中心からデータベース中手に変わります。"
+
+#: ../../en/introduction.rst:37
+msgid ""
+"A spatial database management system may be used in applications besides the "
+"geographic world.  Spatial databases are used to manage data related to the "
+"anatomy of the human body, large-scale integrated circuits, molecular "
+"structures, and electro-magnetic fields, among others."
+msgstr ""
+"空間データベース管理システムは地理世界以外のアプリケーションでも使われること"
+"があります。空間データベースは人体解剖、大規模集積回路、分子構造、電磁場等に"
+"関連するデータを管理するために使用されます。"
+
+#: ../../en/introduction.rst:41
+msgid "Spatial Data Types"
+msgstr "空間データタイプ"
+
+#: ../../en/introduction.rst:43
+msgid ""
+"An ordinary database has strings, numbers, and dates. A spatial database "
+"adds additional (spatial) types for representing **geographic features**. "
+"These spatial data types abstract and encapsulate spatial structures such as "
+"boundary and dimension. In many respects, spatial data types can be "
+"understood simply as shapes."
+msgstr ""
+"通常のデータベースは文字列、数字、日付を持ちます。空間データベースでは、追加"
+"的な**地理フィーチャー**タイプを表現する空間タイプが追加されています。"
+
+#: ../../en/introduction.rst:49
+msgid ""
+"Spatial data types are organized in a type hierarchy.  Each sub-type "
+"inherits the structure (attributes) and the behavior (methods or functions) "
+"of its super-type."
+msgstr "空間データ型は階層構造をなしています。各サブタイプは、スーパタイプの構造 "
+"(属性)と振る舞い (メソッドや関数)を継承します。"
+
+#: ../../en/introduction.rst:53
+msgid "Spatial Indexes and Bounding Boxes"
+msgstr "空間インデックスとバウンディングボックス"
+
+#: ../../en/introduction.rst:55
+msgid ""
+"An ordinary database provides **indexes** to allow for fast and random "
+"access to subsets of data.  Indexing for standard types (numbers, strings, "
+"dates) is usually done with `B-tree <http://en.wikipedia.org/wiki/B-tree>`_ "
+"indexes."
+msgstr ""
+"通常のデータベースは、データの部分集合に対する高速かつランダムなアクセスのた"
+"めに**インデックス**を提供します。標準の型 "
+"(数値、文字列、日付)のインデックスには、 `B木 <https://ja.wikipedia.org/wiki/"
+"B%E6%9C%A8>`_ が使われます。"
+
+#: ../../en/introduction.rst:57
+msgid ""
+"A B-tree partitions the data using the natural sort order to put the data "
+"into a hierarchical tree. The natural sort order of numbers, strings, and "
+"dates is simple to determine -- every value is less than, greater than or "
+"equal to every other value."
+msgstr ""
+"B木は、階層木にデータを入れるために自然な並び替え順序を使用してデータを区分け"
+"します。数値、文字列、日付の自然な並び順は簡単に決まります。ある値が、他の値"
+"と比較して、小さいか、大きいか、同じか、を見ます。"
+
+#: ../../en/introduction.rst:59
+msgid ""
+"But because polygons can overlap, can be contained in one another, and are "
+"arrayed in a two-dimensional (or more) space, a B-tree cannot be used to "
+"efficiently index them. Real spatial databases provide a \"spatial index\" "
+"that instead answers the question \"which objects are within this particular "
+"bounding box?\"."
+msgstr ""
+"しかし、ポリゴンは他のポリゴンにオーバラップすることや、包含することがありま"
+"すし、2次元 (以上) の空間に配列されます。このため、効率的なインデックスとして"
+"はB木は使えません。実際の空間データベースでは、B木に代わって「指定したバウン"
+"ディングボックス内にあるオブジェクトはどれか」という質問に答える「空間インデ"
+"ックス」が提供されます。"
+
+#: ../../en/introduction.rst:61
+msgid ""
+"A **bounding box** is the smallest rectangle -- parallel to the coordinate "
+"axes -- capable of containing a given feature."
+msgstr "**バウンディングボックス**は、座標軸に平行で、指定された地物を含むことができ"
+"る最小の長方形です。"
+
+#: ../../en/introduction.rst:67
+msgid ""
+"Bounding boxes are used because answering the question \"is A inside B?\" is "
+"very computationally intensive for polygons but very fast in the case of "
+"rectangles.  Even the most complex polygons and linestrings can be "
+"represented by a simple bounding box."
+msgstr ""
+"「AはBの内側にあるか?」という質問に対する計算は、ポリゴンを使う場合には計算負"
+"荷が非常に高くなり、長方形の場合には非常に速い処理になるため、バウンディング"
+"ボックスが使われます。最も複雑なポリゴンとラインストリングでも、簡単な長方形"
+"で表現できます。"
+
+#: ../../en/introduction.rst:69
+msgid ""
+"Indexes have to perform quickly in order to be useful. So instead of "
+"providing exact results, as B-trees do, spatial indexes provide approximate "
+"results. The question \"what lines are inside this polygon?\" will be "
+"instead interpreted by a spatial index as \"what lines have bounding boxes "
+"that are contained inside this polygon's bounding box?\""
+msgstr ""
+"インデックスは、役に立たせるためには迅速な処理が必要です。空間インデックスはB"
+"木で行っているような正確な結果を提供する代わりに、おおよその答えを出します。"
+"「どの線がこのポリゴンの内側にあるか?」という問いは、空間インデックスでは「ど"
+"のラインのバウンディングボックスがポリゴンのバウンディングボックスの内側にあ"
+"るか?」に解釈されます。"
+
+#: ../../en/introduction.rst:71
+msgid ""
+"The actual spatial indexes implemented by various databases vary widely. The "
+"most common implementations are the `R-Tree <http://en.wikipedia.org/wiki/R-"
+"tree>`_ and `Quadtree <http://en.wikipedia.org/wiki/Quadtree>`_ (used in "
+"PostGIS), but there are also `grid-based indexes <http://en.wikipedia.org/"
+"wiki/Grid_(spatial_index)>`_ and `GeoHash indexes <https://en.wikipedia.org/"
+"wiki/Geohash>`_ implemented in other spatial databases."
+msgstr ""
+"空間インデックスの実装はデータベースシステムによって大きく異なります。最も一"
+"般的な実装は`R木 <https://ja.wikipedia.org/wiki/R%E6%9C%A8>`_ と "
+"`四分木<https://ja.wikipedia.org/wiki/%E5%9B%9B%E5%88%86%E6%9C%A8>`_ です "
+"(PostGISで使われています)。しかし、他の空間データベースシステムでは`grid-"
+"based indexes <http://en.wikipedia.org/wiki/Grid_(spatial_index)>`_ と `"
+"ジオハッシュ <https://ja.wikipedia.org/wiki/"
+"%E3%82%B8%E3%82%AA%E3%83%8F%E3%83%83%E3%82%B7%E3%83%A5>`_ の実装もあります。"
+
+#: ../../en/introduction.rst:74
+msgid "Spatial Functions"
+msgstr "空間関数"
+
+#: ../../en/introduction.rst:76
+msgid ""
+"For manipulating data during a query, an ordinary database provides "
+"**functions** such as concatenating strings, performing hash operations on "
+"strings, doing mathematics on numbers, and extracting information from dates."
+msgstr ""
+"クエリ中のデータ操作のために、通常のデータベースは、文字列結合、文字列のハッ"
+"シュ演算、数値計算、日付からの情報展開等を行う**関数**を提供します。"
+
+#: ../../en/introduction.rst:78
+msgid ""
+"A spatial database provides a complete set of functions for analyzing "
+"geometric components, determining spatial relationships, and manipulating "
+"geometries.  These spatial functions serve as the building block for any "
+"spatial project."
+msgstr ""
+"空間データベースは、ジオメトリ要素の解析、空間関係の計算、ジオメトリ操作に使"
+"う関数の完全なセットを提供します。これらの空間関数は、空間プロジェクトの構成"
+"要素として機能します。"
+
+#: ../../en/introduction.rst:80
+msgid ""
+"The majority of all spatial functions can be grouped into one of the "
+"following five categories:"
+msgstr "全ての空間関数は次の5個のカテゴリのいずれかに入ります:"
+
+#: ../../en/introduction.rst:82
+msgid ""
+"**Conversion**: Functions that *convert* between geometries and external "
+"data formats."
+msgstr "**変換**: ジオメトリの外部データフォーマットとの*変換*を担う関数。"
+
+#: ../../en/introduction.rst:83
+msgid ""
+"**Management**: Functions that *manage* information about spatial tables and "
+"PostGIS administration."
+msgstr "**管理**: 空間テーブルとPostGISシステムの*管理*を担う関数。"
+
+#: ../../en/introduction.rst:84
+msgid ""
+"**Retrieval**: Functions that *retrieve* properties and measurements of a "
+"Geometry."
+msgstr "**検索**: 属性やジオメトリの測定の*検索*を担う関数。"
+
+#: ../../en/introduction.rst:85
+msgid ""
+"**Comparison**: Functions that *compare* two geometries with respect to "
+"their spatial relation."
+msgstr "**比較**: 空間関係に関する二つのジオメトリの*比較*を担う関数。"
+
+#: ../../en/introduction.rst:86
+msgid "**Generation**: Functions that *generate* new geometries from others."
+msgstr "**生成**: 他からの新しいジオメトリの*生成*を担う関数。"
+
+#: ../../en/introduction.rst:88
+msgid ""
+"The list of possible functions is very large, but a common set of functions "
+"is defined by the :term:`OGC` :term:`SFSQL` and implemented (along with "
+"additional useful functions) by PostGIS."
+msgstr ""
+"考えられる関数を一覧にすると非常に大きいですが、一般的な関数のセットは:term:`"
+"OGC` :term:`SFSQL`で定義されていて、PostGISで (便利な追加関数とともに) "
+"実装されています。"
+
+#: ../../en/introduction.rst:91
+msgid "What is PostGIS?"
+msgstr "PostGISとは?"
+
+#: ../../en/introduction.rst:93
+msgid ""
+"PostGIS turns the `PostgreSQL <http://www.postgresql.org/>`_ Database "
+"Management System into a spatial database by adding support for the three "
+"features: spatial types, spatial indexes, and spatial functions.  Because it "
+"is built on PostgreSQL, PostGIS automatically inherits important \"enterprise"
+"\" features as well as open standards for implementation."
+msgstr ""
+"PostGISは `PostgreSQL <http://www.postgresql.org/>`_ データベース管理システム"
+"に、空間型、空間インデックス、空間関数の三つを追加することで、空間データベー"
+"スに変えるものです。PostGISは、PostgreSQL上で構築されているので、重要な「エン"
+"タープライズ」機能と実装のオープン標準を自動的に継承します。"
+
+#: ../../en/introduction.rst:96
+msgid "But what is PostgreSQL?"
+msgstr "ではPostgreSQLとは?"
+
+#: ../../en/introduction.rst:98
+msgid ""
+"PostgreSQL is a powerful relational database management system (RDBMS). It "
+"is released under a BSD-style license and is thus free and open source "
+"software. As with many other open source programs, PostgreSQL is not "
+"controlled by any single company, but has a `global community of developers "
+"<https://www.postgresql.org/community/contributors/>`_ and companies to "
+"develop it."
+msgstr ""
+"PostgreSQLは強力な関係データベース管理システム (RDBMS) です。BSDスタイルライ"
+"センスでリリースされていて、よって、無償のオープンソースソフトウェアです。多"
+"数のオープンソースプログラムと同じで、PostgreSQLは単一の企業に制御されてはい"
+"ません。`開発者のグローバルコミュニティ <https://www.postgresql.org/"
+"community/contributors/>`_ と複数の開発企業とがあります。"
+
+#: ../../en/introduction.rst:100
+msgid ""
+"PostgreSQL was designed from the very start with type extension in mind -- "
+"the ability to add new data types, functions and indexes at run-time. "
+"Because of this, the PostGIS extension can be developed by a separate "
+"development team, yet still integrate very tightly into the core PostgreSQL "
+"database."
+msgstr ""
+"PostgreSQL は、型の拡張を念頭に置いてデザインされたので、新しいデータ型、関数"
+"、インデックスを実行時に追加する能力を持っています。このため、PostGIS "
+"エクステンションは別の開発チームが開発することができるのに、PostgreSQL "
+"データベースに非常に緊密に統合できます。"
+
+#: ../../en/introduction.rst:103
+msgid "Why choose PostgreSQL?"
+msgstr "なぜ PostgreSQL を選んだのですか？"
+
+#: ../../en/introduction.rst:105
+msgid ""
+"A common question from people familiar with open source databases is, \"Why "
+"wasn't PostGIS built on MySQL?\"."
+msgstr "オープンソースデータベースに精通している人々からのよくある質問に「なぜ "
+"PostGIS は MySQL で作らなかったのか？」があります。"
+
+#: ../../en/introduction.rst:107
+msgid "PostgreSQL has:"
+msgstr "PostgreSQL は次の機能を持っています:"
+
+#: ../../en/introduction.rst:109
+msgid "Proven reliability and transactional integrity by default (ACID)"
+msgstr "証明されたデフォルトの信頼性とトランザクション完全性 (ACID)"
+
+#: ../../en/introduction.rst:110
+msgid "Careful support for SQL standards (full SQL92)"
+msgstr "SQL標準 (完全なSQL92) の慎重な対応"
+
+#: ../../en/introduction.rst:111
+msgid "Pluggable type extension and function extension"
+msgstr "入れ替え可能な型拡張と関数拡張"
+
+#: ../../en/introduction.rst:112
+msgid "Community-oriented development model"
+msgstr "コミュニティ指向の開発モデル"
+
+#: ../../en/introduction.rst:113
+msgid ""
+"No limit on column sizes (\"TOAST\"able tuples) to support big GIS objects"
+msgstr "大きな GIS オブジェクトに対応するために必要なカラムサイズ無制限 (\"TOAST"
+"\"可能なタプル) 機能"
+
+#: ../../en/introduction.rst:114
+msgid "Generic index structure (GiST) to allow R-Tree index"
+msgstr "R木インデックスを可能にした一般性のあるインデックス構造 (GiST)"
+
+#: ../../en/introduction.rst:115
+msgid "Easy to add custom functions"
+msgstr "カスタム関数の追加が容易"
+
+#: ../../en/introduction.rst:117
+msgid ""
+"Combined, PostgreSQL provides a very easy development path to add new "
+"spatial types. In the proprietary world, only `Illustra <https://en."
+"wikipedia.org/wiki/Illustra>`_ (now Informix Universal Server) allowed such "
+"easy extension. This is no coincidence; Illustra is a proprietary re-working "
+"of the original PostgreSQL code base from the 1980's."
+msgstr ""
+"あわせて、PostgreSQLは新しい空間型を追加するための非常に簡単な開発パスを提供"
+"してくれます。プロプライエタリの世界では `Illustra <https://en.wikipedia.org/"
+"wiki/Illustra>`_ (現在の Informix Universal Server) だけがこのような簡単なエ"
+"クステンションが可能でした。これは決して偶然ではありません。Illustra は、"
+"1980年代からオリジナルの PostgreSQL "
+"コードベースから作り直したプロプライエタリです。"
+
+#: ../../en/introduction.rst:119
+msgid ""
+"Because the development path for adding types to PostgreSQL was so "
+"straightforward, it made sense to start there. When MySQL released basic "
+"spatial types in version 4.1, the PostGIS team took a look at their code, "
+"and the exercise reinforced the original decision to use PostgreSQL."
+msgstr ""
+"PostgreSQL への型の追加の開発順路が非常に素直だったので、ここから開始するのは"
+"意味のある事です。MySQL が 4.1版で基本的な空間型をリリースした時に、PostGIS "
+"チームはコードを見て、前に PostgreSQL を使用した決断を補強しました。"
+
+#: ../../en/introduction.rst:121
+msgid ""
+"Because MySQL spatial objects had to be hacked on top of the string type as "
+"a special case, the MySQL code was spread over the entire code base. "
+"Development of PostGIS 0.1 took under a month. Doing a \"MyGIS\" 0.1 would "
+"have taken a lot longer, and as such, might never have seen the light of day."
+msgstr ""
+"MySQL 空間オブジェクトは文字列型の先頭を特別に扱う必要がありました。このため"
+"、MySQLコードはコードベース全体に及びました。PostGIS "
+"0,1の開発は1ヶ月とかかりませんでした。\"MyGIS\" 0.1を開発しようとしていたなら"
+"、もっと長い時間が必要になり、日の目を見なかったかも知れません。"
+
+#: ../../en/introduction.rst:124
+msgid "Why not files?"
+msgstr "なぜファイルではないのですか？"
+
+#: ../../en/introduction.rst:126
+msgid ""
+"The `Shapefile <http://en.wikipedia.org/wiki/Shapefile>`_ (and other formats "
+"like the Esri File Geodatabase and the `GeoPackage <https://www.geopackage."
+"org/>`_) have been a standard way of storing and interacting with spatial "
+"data since GIS software was first written. However, these \"flat\" files "
+"have the following disadvantages:"
+msgstr ""
+"GIS ソフトウェアが最初に書かれた時から、`Shapefile <http://en.wikipedia.org/"
+"wiki/Shapefile>`_ (と Esri File Geodatabase や `GeoPackage <https://www."
+"geopackage.org/>`_ のような他のフォーマット) は、空間データの格納と使用の標準"
+"的な手法であり続けました。しかしながら、これらの「平坦な」ファイルは次の欠点"
+"を持ちます:"
+
+#: ../../en/introduction.rst:128
+msgid ""
+"**Files require special software to read and write.**  SQL is an abstraction "
+"for random data access and analysis. Without that abstraction, you will need "
+"to write all the access and analysis code yourself."
+msgstr ""
+"**ファイルは読み書きに特別なソフトウェアを必要とします** SQLはランダムデータ"
+"アクセスや分析のための抽象化です。この抽象化が無い場合には、全てのアクセスと"
+"分析のコードを自身で書く必要があります。"
+
+#: ../../en/introduction.rst:129
+msgid ""
+"**Concurrent users can cause corruption and slowdowns.** While it's possible "
+"to write extra code to ensure that multiple writes to the same file do not "
+"corrupt the data, by the time you have solved the problem and also solved "
+"the associated performance problem, you will have written the better part of "
+"a database system. Why not just use a standard database?"
+msgstr ""
+"**複数ユーザの同時利用は破損と速度低下を引き起こす可能性があります**。同一フ"
+"ァイルへの複数書き込みがデータ破損を起こさないことを保証するよう外部コードを"
+"書くことができますが、こういった問題解決と関連する効率上の問題を解決するまで"
+"の時間で、データベースシステムの大部分を書くことができます。標準データベース"
+"を使用することをお勧めします。"
+
+#: ../../en/introduction.rst:130
+msgid ""
+"**Complicated questions require complicated software to answer.** "
+"Complicated and interesting questions (spatial joins, aggregations, etc) "
+"that are expressible in one line of SQL in the database take hundreds of "
+"lines of specialized code to answer when programming against files."
+msgstr ""
+"**複雑な質問に答えるには複雑なソフトウェアが必要です**。データベース内の1行の"
+"SQLで表現できる、複雑で興味深い質問 (空間結合、集約など) は、ファイルに対する"
+"プログラムを書く時は、答えるのに数百行の特別なコードを必要とします。"
+
+#: ../../en/introduction.rst:132
+msgid ""
+"Most users of PostGIS are setting up systems where multiple applications "
+"will be expected to access the data, so having a standard SQL access method "
+"simplifies deployment and development. Some users are working with large "
+"data sets; with files, they might be segmented into multiple files, but in a "
+"database they can be stored as a single large table."
+msgstr ""
+"ほとんどの PostGIS ユーザは複数アプリケーションがデータにアクセスすることを期"
+"待するシステムをセットアップしているので、標準 SQL アクセス方法を持つことで、"
+"配備と開発を単純化できます。大きなデータセットで作業を行うユーザは、ファイル"
+"を使う場合には複数ファイルに分割することになるかも知れませんが、データベース"
+"では単一の巨大テーブルとして保存することができます。"
+
+#: ../../en/introduction.rst:134
+msgid ""
+"In summation, the combination of support for multiple users, complex ad hoc "
+"queries, and performance on large data sets are what sets spatial databases "
+"apart from file-based systems."
+msgstr ""
+"要約すると、複数ユーザ、複雑なアドホッククエリ、大きなデータセットのパフォー"
+"マンスに関する対応の組合せによって、空間データベースをファイルベースのシステ"
+"ムから分離することができます。"
+
+#: ../../en/introduction.rst:137
+msgid "A brief history of PostGIS"
+msgstr "PostGIS の歴史"
+
+#: ../../en/introduction.rst:139
+msgid ""
+"In the May of 2001, `Refractions Research <http://www.refractions.net/>`_  "
+"released the first version of PostGIS. PostGIS 0.1 had objects, indexes and "
+"a handful of functions. The result was a database suitable for storage and "
+"retrieval, but not analysis."
+msgstr ""
+"2001年5月、`Refractions Research <http://www.refractions.net/>`_ は PostGIS "
+"の最初のバージョンをリリースしました。PostGIS 0.1 は、オブジェクト、インデッ"
+"クス、少数の関数がありました。データベースは保存と検索には適切ですが、解析に"
+"は不向きだとの結果でした。"
+
+#: ../../en/introduction.rst:141
+msgid ""
+"As the number of functions increased, the need for an organizing principle "
+"became clear.  The \"Simple Features for SQL\" (:term:`SFSQL`) specification "
+"from the Open Geospatial Consortium provided such structure with guidelines "
+"for function naming and requirements."
+msgstr ""
+"関数の数が増えるにつれ、組織化の原理の必要性が明らかになりました。Open "
+"Geospatial Consortium から出ている \"Simple Features for SQL\" "
+"(:term:`SFSQL`) "
+"仕様は、関数命名と要件に関するガイドラインとともに、この構造を提供しました。"
+
+#: ../../en/introduction.rst:143
+msgid ""
+"With PostGIS support for simple analysis and spatial joins, `Mapserver "
+"<http://mapserver.org/>`_ became the first external application to provide "
+"visualization of data in the database."
+msgstr ""
+"PostGIS の単純な解析と空間結合への対応で `Mapserver <http://mapserver.org/>`"
+"_ は、データベース内のデータの可視化機能を提供する最初の外部アプリケーション"
+"になりました。"
+
+#: ../../en/introduction.rst:145
+msgid ""
+"Over the next several years the number of PostGIS functions grew, but its "
+"power remained limited. Many of the most interesting functions (e.g., "
+"ST_Intersects(), ST_Buffer(), ST_Union()) were very difficult to code.  "
+"Writing them from scratch promised years of work."
+msgstr ""
+"次の数年間で PostGIS 関数の数は増えましたが、その能力は制限されたままでした。"
+"最も興味深い関数の多数 (例えば ST_Intersects(), ST_Buffer(), ST_Union()) は、"
+"コーディングが非常に難しいものでした。それらを最初から書くには何年もの仕事が"
+"必要となりました。"
+
+#: ../../en/introduction.rst:147
+msgid ""
+"Fortunately a second project, the \"Geometry Engine, Open Source\" or `GEOS "
+"<http://trac.osgeo.org/geos>`_, came along. The GEOS library provides the "
+"necessary algorithms for implementing the :term:`SFSQL` specification. By "
+"linking in GEOS, PostGIS provided complete support for :term:`SFSQL` by "
+"version 0.8."
+msgstr ""
+"幸運なことに、二つ目のプロジェクトの「Geometry Engine, Open Source」あるいは "
+"`GEOS <http://trac.osgeo.org/geos>`_ が登場しました。GEOS "
+"ライブラリは、:term:`SFSQL` "
+"仕様を実装するために必要なアルゴリズムを提供します。GEOS をリンクすることで "
+"PostGIS は 0.8 までに、:term:`SFSQL` の完全な対応ができるようになりました。"
+
+#: ../../en/introduction.rst:149
+msgid ""
+"As PostGIS data capacity grew, another issue surfaced: the representation "
+"used to store geometry proved relatively inefficient. For small objects like "
+"points and short lines, the metadata in the representation had as much as a "
+"300% overhead. For performance reasons, it was necessary to put the "
+"representation on a diet.  By shrinking the metadata header and required "
+"dimensions, overhead greatly reduced. In PostGIS 1.0, this new, faster, "
+"lightweight representation became the default."
+msgstr ""
+"PostGIS データ容量が増加するにつれ、他の問題が表面化しました。ジオメトリ保存"
+"に使われる表現では比較的非効率です。ポイントや短いラインストリングのように小"
+"さいオブジェクトでは、表現のメタデータには300% のオーバヘッドがあります。効率"
+"性のため、表現をダイエットする必要がありました。メタデータヘッダと求めらえれ"
+"る次元の収縮によって、オーバヘッドは非常に減収します。PostGIS 1.0 "
+"では、新しく、速く、軽い表現がデフォルトになりました。"
+
+#: ../../en/introduction.rst:151
+msgid ""
+"Recent releases of PostGIS continue to add features and performance "
+"improvements, as well as support for new features in the PostgreSQL core "
+"system."
+msgstr "PostGIS の最近のリリースでは、PostgreSQL コアシステム内の新機能対応だけでなく"
+"、機能追加と性能改善の追加を継続しています。"
+
+#: ../../en/introduction.rst:154
+msgid "Who uses PostGIS?"
+msgstr "PostGIS を使用するのは誰ですか？"
+
+#: ../../en/introduction.rst:156
+msgid ""
+"For a complete list of case studies, see the `PostGIS case studies <https://"
+"postgis.net/category/casestudy/>`_ page."
+msgstr ""
+"ケーススタディの完全なリストについては `PostGIS case studies <https://postgis"
+".net/category/casestudy/>`_ ページをご覧下さい。"
+
+#: ../../en/introduction.rst:159
+msgid "Institut Geographique National, France"
+msgstr "フランス IGN (Institut Geographique National)"
+
+#: ../../en/introduction.rst:161
+msgid ""
+"IGN is the national mapping agency of France, and uses PostGIS to store the "
+"high resolution topographic map of the country, \"BDUni\". BDUni has more "
+"than 100 million features, and is maintained by a staff of over 100 field "
+"staff who verify observations and add new mapping to the database daily. The "
+"IGN installation uses the database transactional system to ensure "
+"consistency during update processes, and a `warm standby system <https://www."
+"postgresql.org/docs/devel/warm-standby.html>`_ to maintain uptime in the "
+"event of a system failure."
+msgstr ""
+"IGNはフランスの地図作成機関で、PostGIS を国の高解像度地形図 \"BDUni\" "
+"の保存に使用しています。BDUniには1億を超える地物があり、観測を検証し、"
+"データベースに新しい地図を毎日追加する 100人以上の現地作業員によって維持され"
+"ています。IGNの設備は、データベーストランザクションシステムを使用して更新処理"
+"中の一貫性を確保し、また `温待機システム <https://www.postgresql.org/docs/"
+"devel/warm-standby.html>`_ "
+"を使用してシステム障害が発生した場合でも稼働するようにしています。"
+
+#: ../../en/introduction.rst:164
+msgid "RedFin"
+msgstr "RedFin"
+
+#: ../../en/introduction.rst:166
+msgid ""
+"`RedFin <https://www.redfin.com>`_ is a real estate agency with a web-based "
+"service for exploring properties and estimate values. Their system was "
+"originally built on MySQL, but they found that moving to PostgreSQL and "
+"PostGIS provided `huge benefits in performance and reliability <https://www."
+"redfin.com/news/elephant_versus_dolphin_which_is_faster_which_is_smarter/>`_."
+msgstr ""
+"`RedFin <https://www.redfin.com>`_ は実在する不動産会社で、不動産の探索や価格"
+"の見積もりを行うウェブベースのサービスを提供しています。この会社のシステムは"
+"元はMySQLベースで作られていましたが、PostgreSQLとPostGISへの移行で`"
+"効率と信頼性の利益が大きい <https://www.redfin.com/news/"
+"elephant_versus_dolphin_which_is_faster_which_is_smarter/>`_ "
+"ことが分かりました。"
+
+#: ../../en/introduction.rst:169
+msgid "What applications support PostGIS?"
+msgstr "PostGISに対応したアプリケーションはどれですか?"
+
+#: ../../en/introduction.rst:171
+msgid ""
+"PostGIS has become a widely used spatial database, and the number of third-"
+"party programs that support storing and retrieving data using it has "
+"increased as well. The `programs that support PostGIS <http://trac.osgeo.org/"
+"postgis/wiki/UsersWikiToolsSupportPostgis>`_ include both open source and "
+"proprietary software on both server and desktop systems."
+msgstr ""
+"PostGISは空間データベースとして広く使われ、PostGISを使った格納と検索に対応す"
+"るサードパーティのプログラムも非常に増加しました。`programs that support "
+"PostGIS <http://trac.osgeo.org/postgis/wiki/UsersWikiToolsSupportPostgis>`_ "
+"には、オープンソースとプロプライエタリの両方、かつサーバとデスクトップの両方"
+"のソフトウェアの一覧があります。"
+
+#: ../../en/introduction.rst:173
+msgid ""
+"The following table shows a list of some of the software that leverages "
+"PostGIS:"
+msgstr "次にPostGISを利用するソフトウェアの一覧を示します:"
+
+#: ../../en/introduction.rst:176
+msgid "Open/Free"
+msgstr "オープン/フリー"
+
+#: ../../en/introduction.rst:176
+msgid "Closed/Proprietary/Paid services"
+msgstr "クローズ/プロプライエタリ/有料サービス"
+
+#: ../../en/introduction.rst:179
+msgid "Loading/Extracting"
+msgstr "ロード/抽出"
+
+#: ../../en/introduction.rst:181
+msgid "Shp2Pgsql"
+msgstr "Shp2Pgsql"
+
+#: ../../en/introduction.rst:182
+msgid "ogr2ogr"
+msgstr "ogr2ogr"
+
+#: ../../en/introduction.rst:183
+msgid "Dxf2PostGIS"
+msgstr "Dxf2PostGIS"
+
+#: ../../en/introduction.rst:184
+msgid "GeoKettle"
+msgstr "GeoKettle"
+
+#: ../../en/introduction.rst:186 ../../en/introduction.rst:187
+msgid "Web-Based"
+msgstr "ウェブベース"
+
+#: ../../en/introduction.rst:189
+msgid "Mapserver"
+msgstr "Mapserver"
+
+#: ../../en/introduction.rst:190
+msgid "GeoServer /geoNode"
+msgstr "GeoServer /geoNode"
+
+#: ../../en/introduction.rst:191
+msgid "pg_tileserv"
+msgstr "pg_tileserv"
+
+#: ../../en/introduction.rst:192
+msgid "pg_featureserv"
+msgstr "pg_featureserv"
+
+#: ../../en/introduction.rst:193
+msgid "Deegree"
+msgstr "Deegree"
+
+#: ../../en/introduction.rst:194 ../../en/introduction.rst:197
+msgid "Carto"
+msgstr "Carto"
+
+#: ../../en/introduction.rst:195
+msgid "QGIS Server"
+msgstr "QGIS Server"
+
+#: ../../en/introduction.rst:196
+msgid "MapGuide Open Source (using FDO)"
+msgstr "MapGuide Open Source (FDO使用)"
+
+#: ../../en/introduction.rst:201 ../../en/introduction.rst:202
+msgid "Desktop"
+msgstr "デスクトップ"
+
+#: ../../en/introduction.rst:203
+msgid "QGIS"
+msgstr "QGIS"
+
+#: ../../en/introduction.rst:204
+msgid "OpenJUMP"
+msgstr "OpenJUMP"
+
+#: ../../en/introduction.rst:205
+msgid "GRASS"
+msgstr "GRASS"
+
+#: ../../en/introduction.rst:206
+msgid "pgAdmin"
+msgstr "pgAdmin"
+
+#: ../../en/introduction.rst:207
+msgid "DBeaver"
+msgstr "DBeaver"
+
+#: ../../en/introduction.rst:208
+msgid "GvSIG"
+msgstr "GvSIG"
+
+#: ../../en/introduction.rst:209
+msgid "SAGA"
+msgstr "SAGA"
+
+#: ../../en/introduction.rst:210
+msgid "uDig"
+msgstr "uDig"
+
+#: ../../en/introduction.rst:181
+msgid "Safe FME Desktop Translator/Converter"
+msgstr "Safe FME Desktop Translator/Converter"
+
+#: ../../en/introduction.rst:182
+msgid "Dbt"
+msgstr "Dbt"
+
+#: ../../en/introduction.rst:188
+msgid "Cadcorp GeognoSIS"
+msgstr "Cadcorp GeognoSIS"
+
+#: ../../en/introduction.rst:189
+msgid "ESRI ArcGIS Server / Online"
+msgstr "ESRI ArcGIS Server / Online"
+
+#: ../../en/introduction.rst:193
+msgid "Services / DbaaS"
+msgstr "Services / DbaaS"
+
+#: ../../en/introduction.rst:195
+msgid "Aiven for PostgreSQL"
+msgstr "Aiven for PostgreSQL"
+
+#: ../../en/introduction.rst:196
+msgid "Amazon RDS / Aurora for PostgreSQL"
+msgstr "Amazon RDS / Aurora for PostgreSQL"
+
+#: ../../en/introduction.rst:198
+msgid "Crunchy Bridge"
+msgstr "Crunchy Bridge"
+
+#: ../../en/introduction.rst:199
+msgid "Microsoft Azure for PostgreSQL"
+msgstr "Microsoft Azure for PostgreSQL"
+
+#: ../../en/introduction.rst:200
+msgid "Google Cloud SQL for PostgreSQL"
+msgstr "Google Cloud SQL for PostgreSQL"
+
+#: ../../en/introduction.rst:204
+msgid "Cadcorp SIS"
+msgstr "Cadcorp SIS"
+
+#: ../../en/introduction.rst:205
+msgid "ESRI Desktop/Pro"
+msgstr "ESRI Desktop/Pro"
+
+#: ../../en/introduction.rst:206
+msgid "GeoConcept"
+msgstr "GeoConcept"
+
+#: ../../en/introduction.rst:207
+msgid "Global Mapper"
+msgstr "Global Mapper"
+
+#: ../../en/introduction.rst:208
+msgid "Manifold"
+msgstr "Manifold"
+
+#: ../../en/introduction.rst:209
+msgid "MapInfo"
+msgstr "MapInfo"
+
+#: ../../en/introduction.rst:210
+msgid "Microimages TNTmips GIS"
+msgstr "Microimages TNTmips GIS"
+
+#~ msgid "GeoServer (Java-based WFS / WMS -server )"
+#~ msgstr "GeoServer (Javaベースの WFS / WMS サーバ)"
+
+#~ msgid "SharpMap SDK - for ASP.NET 2.0"
+#~ msgstr "SharpMap SDK - ASP.NET 2.0用"
+
+#~ msgid "mezoGIS"
+#~ msgstr "mezoGIS"
+
+#~ msgid "OpenEV"
+#~ msgstr "OpenEV"
+
+#~ msgid "SharpMap SDK for Microsoft.NET 2.0"
+#~ msgstr "Microsoft.NET 2.0用SharpMap SDK"
+
+#~ msgid "ZigGIS for ArcGIS/ArcObjects.NET"
+#~ msgstr "ArcGIS/ArcObjects.NET用ZigGIS"
+
+#~ msgid "Ionic Red Spider (now ERDAS)"
+#~ msgstr "Ionic Red Spider (現ERDAS)"
+
+#~ msgid "Iwan Mapserver"
+#~ msgstr "Iwan Mapserver"
+
+#~ msgid "MapDotNet Server"
+#~ msgstr "MapDotNet Server"
+
+#~ msgid "MapGuide Enterprise (using FDO)"
+#~ msgstr "MapGuide Enterprise (FDO使用)"
+
+#~ msgid "ESRI ArcGIS"
+#~ msgstr "ESRI ArcGIS"
+
+#~ msgid "AutoCAD Map 3D (using FDO)"
+#~ msgstr "AutoCAD Map 3D (FDO使用)"

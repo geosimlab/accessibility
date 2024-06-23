@@ -1,0 +1,857 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2012, Paul Ramsey | Mark Leslie
+# This file is distributed under the same license as the Introduction to PostGIS package.
+# Chen <onsummer@foxmail.com>, 2022.
+# Regina Obe <regina@arrival3d.com>, 2022, 2023.
+# Zuochenwei <zuochenwei5@gmail.com>, 2024.
+msgid ""
+msgstr ""
+"Project-Id-Version: Introduction to PostGIS 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-01-07 21:46-0500\n"
+"PO-Revision-Date: 2024-02-07 05:45+0000\n"
+"Last-Translator: Zuochenwei <zuochenwei5@gmail.com>\n"
+"Language-Team: Chinese (Simplified) <https://weblate.osgeo.org/projects/"
+"postgis-workshop/introduction/zh_Hans/>\n"
+"Language: zh_Hans\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Weblate 5.3\n"
+
+#: ../../en/introduction.rst:4
+msgid "Introduction"
+msgstr "介绍"
+
+#: ../../en/introduction.rst:7
+msgid "What is a Spatial Database?"
+msgstr "什么是空间数据库？"
+
+#: ../../en/introduction.rst:9
+msgid ""
+"PostGIS is a spatial database. Oracle Spatial and SQL Server (2008 and "
+"later) are also spatial databases. But what does that mean; what is it that "
+"makes an ordinary database a spatial database?"
+msgstr ""
+"PostGIS 是一个空间数据库。Oracle Spatial 和 SQL Server（2008以及更新的版本）"
+"也有空间数据库。但是，具体是什么意思？如何让一个普通的数据库成为空间数据库？"
+
+#: ../../en/introduction.rst:11
+msgid "The short answer, is..."
+msgstr "简单的说，那就是："
+
+#: ../../en/introduction.rst:13
+msgid ""
+"**Spatial databases store and manipulate spatial objects like any other "
+"object in the database.**"
+msgstr "**空间数据库在数据库中，可以像操作普通数据一样操作空间数据对象。**"
+
+#: ../../en/introduction.rst:15
+msgid ""
+"The following briefly covers the evolution of spatial databases, and then "
+"reviews three aspects that associate *spatial* data with a database -- data "
+"types, indexes, and functions."
+msgstr ""
+"下面将简要介绍空间数据库的发展，然后回顾将*空间*数据与数据库关联起来的三个方"
+"面——数据类型、索引和函数。"
+
+#: ../../en/introduction.rst:17
+msgid ""
+"**Spatial data types** refer to shapes such as point, line, and polygon;"
+msgstr "**空间数据类型**是指形状，例如点、线、面；"
+
+#: ../../en/introduction.rst:18
+msgid ""
+"Multi-dimensional **spatial indexing** is used for efficient processing of "
+"spatial operations;"
+msgstr "多维**空间索引**用于提升空间数据处理的效率;"
+
+#: ../../en/introduction.rst:19
+msgid ""
+"**Spatial functions**, posed in :term:`SQL`, are for querying of spatial "
+"properties and relationships."
+msgstr "**空间函数**，是定义在:term: ' SQL '中，用于处理空间属性和关系。"
+
+#: ../../en/introduction.rst:21
+msgid ""
+"Combined, spatial data types, indexes, and functions provide a flexible "
+"structure for optimized performance and analysis."
+msgstr "空间数据类型、索引和函数相结合为优化性能和分析提供了灵活的结构。"
+
+#: ../../en/introduction.rst:24
+msgid "In the Beginning"
+msgstr "开始"
+
+#: ../../en/introduction.rst:26
+msgid ""
+"In legacy first-generation :term:`GIS` implementations, all spatial data is "
+"stored in flat files and special :term:`GIS` software is required to "
+"interpret and manipulate the data.  These first-generation management "
+"systems are designed to meet the needs of users where all required data is "
+"within the user's organizational domain.  They are proprietary, self-"
+"contained systems specifically built for handling spatial data."
+msgstr ""
+"在早期的第一代地理信息系统 "
+":term:`GIS`实现中，所有的空间数据都存储在平面文件中，需要特殊的 :term:`GIS`软"
+"件来解释和操作这些数据。这些第一代的管理系统被设计用来满足用户的需求，其中所"
+"有需要的数据都在用户的组织领域内。它们是专门为处理空间数据而构建的专有、自包"
+"含的系统。"
+
+#: ../../en/introduction.rst:28
+msgid ""
+"Second-generation spatial systems store some data in relational databases "
+"(usually the \"attribute\" or non-spatial parts) but still lack the "
+"flexibility afforded with direct integration."
+msgstr "第二代空间系统将一些数据存储在关系数据库中（通常是“属性”或非空间部分），但仍"
+"然缺乏直接集成所提供的灵活性。"
+
+#: ../../en/introduction.rst:30
+msgid ""
+"**True spatial databases were born when people started to treat spatial "
+"features as first class database objects.**"
+msgstr "**当人们开始将空间特性视为一等数据库对象时，真正的空间数据库就诞生了。**"
+
+#: ../../en/introduction.rst:32
+msgid ""
+"Spatial databases fully integrate spatial data with a relational database.  "
+"The system orientation changes from GIS-centric to database-centric."
+msgstr "空间数据库完全集成空间数据到一个关系型数据库。系统定位变化从GIS中心到数据库中"
+"心。"
+
+#: ../../en/introduction.rst:37
+msgid ""
+"A spatial database management system may be used in applications besides the "
+"geographic world.  Spatial databases are used to manage data related to the "
+"anatomy of the human body, large-scale integrated circuits, molecular "
+"structures, and electro-magnetic fields, among others."
+msgstr "空间数据库管理系统可以用于地理世界之外的应用。空间数据库用于管理与人体解剖、"
+"大规模集成电路、分子结构和电磁场等相关的数据。"
+
+#: ../../en/introduction.rst:41
+msgid "Spatial Data Types"
+msgstr "空间数据类型"
+
+#: ../../en/introduction.rst:43
+msgid ""
+"An ordinary database has strings, numbers, and dates. A spatial database "
+"adds additional (spatial) types for representing **geographic features**. "
+"These spatial data types abstract and encapsulate spatial structures such as "
+"boundary and dimension. In many respects, spatial data types can be "
+"understood simply as shapes."
+msgstr ""
+"普通数据库包含字符串、数字和日期。而空间数据库则添加了额外的（空间）类型，用"
+"于表示**地理要素**。这些空间数据类型对地理结构进行了抽象和封装，如边界和维度"
+"。在许多方面，空间数据类型可以简单地被理解为形状。"
+
+#: ../../en/introduction.rst:49
+msgid ""
+"Spatial data types are organized in a type hierarchy.  Each sub-type "
+"inherits the structure (attributes) and the behavior (methods or functions) "
+"of its super-type."
+msgstr "空间数据类型按类型层次结构进行组织。每个子类型都继承其超类型的结构（属性）和"
+"行为（方法或函数）。"
+
+#: ../../en/introduction.rst:53
+msgid "Spatial Indexes and Bounding Boxes"
+msgstr "空间索引与边界范围框"
+
+#: ../../en/introduction.rst:55
+msgid ""
+"An ordinary database provides **indexes** to allow for fast and random "
+"access to subsets of data.  Indexing for standard types (numbers, strings, "
+"dates) is usually done with `B-tree <http://en.wikipedia.org/wiki/B-tree>`_ "
+"indexes."
+msgstr ""
+"一个普通的数据库提供**索引**，以便快速和随机地访问数据的子集。对于标准类型（"
+"数字，字符串，日期）的索引通常使用`B-tree <http://en.wikipedia.org/wiki/"
+"B-tree>`_ 索引进行。"
+
+#: ../../en/introduction.rst:57
+msgid ""
+"A B-tree partitions the data using the natural sort order to put the data "
+"into a hierarchical tree. The natural sort order of numbers, strings, and "
+"dates is simple to determine -- every value is less than, greater than or "
+"equal to every other value."
+msgstr "B树通过使用自然排序顺序将数据划分到层次树中。数字、字符串和日期的自然排序顺序"
+"很容易确定——每个值都小于、大于或等于其他任何值。"
+
+#: ../../en/introduction.rst:59
+msgid ""
+"But because polygons can overlap, can be contained in one another, and are "
+"arrayed in a two-dimensional (or more) space, a B-tree cannot be used to "
+"efficiently index them. Real spatial databases provide a \"spatial index\" "
+"that instead answers the question \"which objects are within this particular "
+"bounding box?\"."
+msgstr ""
+"但是，由于多边形可以重叠，可以相互包含，并且在二维（或更多）空间中排列，因此"
+"无法使用B树有效地对它们进行索引。真正的空间数据库提供了一个“空间索引”，它回答"
+"的问题是“哪些对象在这个特定的边界框内？”。"
+
+#: ../../en/introduction.rst:61
+msgid ""
+"A **bounding box** is the smallest rectangle -- parallel to the coordinate "
+"axes -- capable of containing a given feature."
+msgstr "**边界框**是能够包含给定要素的最小矩形，它与坐标轴平行。"
+
+#: ../../en/introduction.rst:67
+msgid ""
+"Bounding boxes are used because answering the question \"is A inside B?\" is "
+"very computationally intensive for polygons but very fast in the case of "
+"rectangles.  Even the most complex polygons and linestrings can be "
+"represented by a simple bounding box."
+msgstr ""
+"边界框的使用是因为回答“A是否在B内？”这个问题对于多边形来说计算量非常大，但对"
+"于矩形来说非常快。即使是最复杂的多边形和线条串也可以用一个简单的边界框来表示"
+"。"
+
+#: ../../en/introduction.rst:69
+msgid ""
+"Indexes have to perform quickly in order to be useful. So instead of "
+"providing exact results, as B-trees do, spatial indexes provide approximate "
+"results. The question \"what lines are inside this polygon?\" will be "
+"instead interpreted by a spatial index as \"what lines have bounding boxes "
+"that are contained inside this polygon's bounding box?\""
+msgstr ""
+"索引必须快速执行才能发挥作用。因此，空间索引提供的是近似结果，而不是像B树那样"
+"提供精确结果。\"哪些线在这个多边形内部？\"这个问题将被空间索引解释为"
+"\"哪些线的边界框包含在这个多边形的边界框内？\""
+
+#: ../../en/introduction.rst:71
+msgid ""
+"The actual spatial indexes implemented by various databases vary widely. The "
+"most common implementations are the `R-Tree <http://en.wikipedia.org/wiki/R-"
+"tree>`_ and `Quadtree <http://en.wikipedia.org/wiki/Quadtree>`_ (used in "
+"PostGIS), but there are also `grid-based indexes <http://en.wikipedia.org/"
+"wiki/Grid_(spatial_index)>`_ and `GeoHash indexes <https://en.wikipedia.org/"
+"wiki/Geohash>`_ implemented in other spatial databases."
+msgstr ""
+"各种数据库实现的实际空间索引差异很大。最常见的实现是`R-Tree <http://en."
+"wikipedia.org/wiki/R-tree>`_和`Quadtree <http://en.wikipedia.org/wiki/"
+"Quadtree>`_ （在PostGIS中使用），但在其他空间数据库中也实现了 "
+"`格网索引<http://en.wikipedia.org/wiki/Grid_(spatial_index)>`_ 和`"
+"GeoHash索引 <https://en.wikipedia.org/wiki/Geohash>`_。这些都是为了更有效地处"
+"理空间数据查询。每种索引类型都有其优点和适用场景，因此在实际应用中需要根据具"
+"体需求选择合适的空间索引类型。"
+
+#: ../../en/introduction.rst:74
+msgid "Spatial Functions"
+msgstr "空间函数"
+
+#: ../../en/introduction.rst:76
+msgid ""
+"For manipulating data during a query, an ordinary database provides "
+"**functions** such as concatenating strings, performing hash operations on "
+"strings, doing mathematics on numbers, and extracting information from dates."
+msgstr ""
+"对于在查询过程中操作数据，普通数据库提供了一些**函数**，例如连接字符串，对字"
+"符串进行哈希操作，对数字进行数学运算，以及从日期中提取信息。这些函数可以帮助"
+"我们更有效地处理和操作数据。同样，空间数据库也提供了一系列的函数和方法，用于"
+"处理空间数据类型，如计算两个地理位置之间的距离，判断一个点是否在一个多边形内"
+"等。这些功能使得空间数据库在处理地理空间数据时更加强大和灵活。"
+
+#: ../../en/introduction.rst:78
+msgid ""
+"A spatial database provides a complete set of functions for analyzing "
+"geometric components, determining spatial relationships, and manipulating "
+"geometries.  These spatial functions serve as the building block for any "
+"spatial project."
+msgstr "空间数据库提供了一整套函数，用于分析几何组件，确定空间关系和操作几何图形。这"
+"些空间函数充当任何空间项目的基础。"
+
+#: ../../en/introduction.rst:80
+msgid ""
+"The majority of all spatial functions can be grouped into one of the "
+"following five categories:"
+msgstr "大多数空间函数可以分为以下五类之一："
+
+#: ../../en/introduction.rst:82
+msgid ""
+"**Conversion**: Functions that *convert* between geometries and external "
+"data formats."
+msgstr "**转换**：将几何数据和外部数据格式之间进行*转换*的函数。"
+
+#: ../../en/introduction.rst:83
+msgid ""
+"**Management**: Functions that *manage* information about spatial tables and "
+"PostGIS administration."
+msgstr "**管理**：用于*管理*空间表和PostGIS管理信息的函数。"
+
+#: ../../en/introduction.rst:84
+msgid ""
+"**Retrieval**: Functions that *retrieve* properties and measurements of a "
+"Geometry."
+msgstr "**检索**：用于*检索*几何数据的属性和测量值的函数。"
+
+#: ../../en/introduction.rst:85
+msgid ""
+"**Comparison**: Functions that *compare* two geometries with respect to "
+"their spatial relation."
+msgstr "**比较**：用于*比较*两个几何数据在空间关系上的函数。"
+
+#: ../../en/introduction.rst:86
+msgid "**Generation**: Functions that *generate* new geometries from others."
+msgstr "**生成**：从其他几何体 *生成* 新几何体的函数。"
+
+#: ../../en/introduction.rst:88
+msgid ""
+"The list of possible functions is very large, but a common set of functions "
+"is defined by the :term:`OGC` :term:`SFSQL` and implemented (along with "
+"additional useful functions) by PostGIS."
+msgstr ""
+"可能的函数列表非常大，但一组通用函数由 :term:`OGC` :term:`SFSQL` 定义并由 "
+"PostGIS 实现（以及其他有用的函数）。"
+
+#: ../../en/introduction.rst:91
+msgid "What is PostGIS?"
+msgstr "什么是 PostGIS？"
+
+#: ../../en/introduction.rst:93
+msgid ""
+"PostGIS turns the `PostgreSQL <http://www.postgresql.org/>`_ Database "
+"Management System into a spatial database by adding support for the three "
+"features: spatial types, spatial indexes, and spatial functions.  Because it "
+"is built on PostgreSQL, PostGIS automatically inherits important \"enterprise"
+"\" features as well as open standards for implementation."
+msgstr ""
+"PostGIS 通过增加对空间类型、空间索引和空间函数这三个功能的支持，将 `"
+"PostgreSQL <http://www.postgresql.org/>`_ 数据库管理系统转变为空间数据库。因"
+"为它是基于PostgreSQL构建的，所以PostGIS会自动继承重要的“企业”功能以及开放的实"
+"施标准。"
+
+#: ../../en/introduction.rst:96
+msgid "But what is PostgreSQL?"
+msgstr "那什么是 PostgreSQL？"
+
+#: ../../en/introduction.rst:98
+msgid ""
+"PostgreSQL is a powerful relational database management system (RDBMS). It "
+"is released under a BSD-style license and is thus free and open source "
+"software. As with many other open source programs, PostgreSQL is not "
+"controlled by any single company, but has a `global community of developers "
+"<https://www.postgresql.org/community/contributors/>`_ and companies to "
+"develop it."
+msgstr ""
+"PostgreSQL 是一个强大的关系数据库管理系统 （RDBMS）。它是在BSD风格的许可证下"
+"发布的，因此是免费的开源软件。与许多其他开源程序一样，PostgreSQL不受任何一家"
+"公司的控制，而是拥有一个由开发人员和公司组成的 `全球开发社区<https://www."
+"postgresql.org/community/contributors/>`_ 来开发它。"
+
+#: ../../en/introduction.rst:100
+msgid ""
+"PostgreSQL was designed from the very start with type extension in mind -- "
+"the ability to add new data types, functions and indexes at run-time. "
+"Because of this, the PostGIS extension can be developed by a separate "
+"development team, yet still integrate very tightly into the core PostgreSQL "
+"database."
+msgstr ""
+"PostgreSQL从一开始就考虑了类型扩展 - 能够在运行时添加新的数据类型，函数和索引"
+"。正因为如此，PostGIS扩展可以由一个单独的开发团队开发，但仍然能非常紧密地集成"
+"到核心PostgreSQL数据库中。"
+
+#: ../../en/introduction.rst:103
+msgid "Why choose PostgreSQL?"
+msgstr "为什么选择 PostgreSQL？"
+
+#: ../../en/introduction.rst:105
+msgid ""
+"A common question from people familiar with open source databases is, \"Why "
+"wasn't PostGIS built on MySQL?\"."
+msgstr "熟悉开源数据库的人经常会问，“为什么不在 MySQL 上构建 PostGIS？”。"
+
+#: ../../en/introduction.rst:107
+msgid "PostgreSQL has:"
+msgstr "PostgreSQL 有："
+
+#: ../../en/introduction.rst:109
+msgid "Proven reliability and transactional integrity by default (ACID)"
+msgstr "默认具备经过验证的可靠性和事务完整性（ACID）"
+
+#: ../../en/introduction.rst:110
+msgid "Careful support for SQL standards (full SQL92)"
+msgstr "对 SQL 标准的精心支持（完整的 SQL92）"
+
+#: ../../en/introduction.rst:111
+msgid "Pluggable type extension and function extension"
+msgstr "插拔式扩展和功能扩展"
+
+#: ../../en/introduction.rst:112
+msgid "Community-oriented development model"
+msgstr "以社区为导向的发展模式"
+
+#: ../../en/introduction.rst:113
+msgid ""
+"No limit on column sizes (\"TOAST\"able tuples) to support big GIS objects"
+msgstr "对列大小（“TOAST”支持元组）没有限制，以支持大型 GIS 对象"
+
+#: ../../en/introduction.rst:114
+msgid "Generic index structure (GiST) to allow R-Tree index"
+msgstr "通用索引结构 （GiST） 允许 R 树索引"
+
+#: ../../en/introduction.rst:115
+msgid "Easy to add custom functions"
+msgstr "易于添加自定义功能"
+
+#: ../../en/introduction.rst:117
+msgid ""
+"Combined, PostgreSQL provides a very easy development path to add new "
+"spatial types. In the proprietary world, only `Illustra <https://en."
+"wikipedia.org/wiki/Illustra>`_ (now Informix Universal Server) allowed such "
+"easy extension. This is no coincidence; Illustra is a proprietary re-working "
+"of the original PostgreSQL code base from the 1980's."
+msgstr ""
+"综合而言，PostgreSQL "
+"提供了一种非常简单的开发路径来添加新的空间类型。在专有领域，只有 `Illustra "
+"<https://en.wikipedia.org/wiki/Illustra>`_（现在的 Informix Universal "
+"Server）允许如此简单的扩展。这并非巧合;Illustra 是对 1980 年代原始 "
+"PostgreSQL 代码库的专有重新编制版本。"
+
+#: ../../en/introduction.rst:119
+msgid ""
+"Because the development path for adding types to PostgreSQL was so "
+"straightforward, it made sense to start there. When MySQL released basic "
+"spatial types in version 4.1, the PostGIS team took a look at their code, "
+"and the exercise reinforced the original decision to use PostgreSQL."
+msgstr ""
+"由于向PostgreSQL添加类型的开发路径非常直接，从那里开始是合理的。当MySQL在4.1"
+"版本中发布基本的空间类型时，PostGIS团队审查了他们的代码，这个过程强化了最初选"
+"择使用PostgreSQL的决定。"
+
+#: ../../en/introduction.rst:121
+msgid ""
+"Because MySQL spatial objects had to be hacked on top of the string type as "
+"a special case, the MySQL code was spread over the entire code base. "
+"Development of PostGIS 0.1 took under a month. Doing a \"MyGIS\" 0.1 would "
+"have taken a lot longer, and as such, might never have seen the light of day."
+msgstr ""
+"由于MySQL空间对象必须作为一种特例添加到字符串类型之上，MySQL的代码分散在整个"
+"代码库中。PostGIS 0.1的开发在不到一个月的时间内完成。要创建一个\"MyGIS\" 0."
+"1可能需要更长时间，因此可能永远不会面世。"
+
+#: ../../en/introduction.rst:124
+msgid "Why not files?"
+msgstr "为什么不用文件？"
+
+#: ../../en/introduction.rst:126
+msgid ""
+"The `Shapefile <http://en.wikipedia.org/wiki/Shapefile>`_ (and other formats "
+"like the Esri File Geodatabase and the `GeoPackage <https://www.geopackage."
+"org/>`_) have been a standard way of storing and interacting with spatial "
+"data since GIS software was first written. However, these \"flat\" files "
+"have the following disadvantages:"
+msgstr ""
+"自从 GIS 软件开发以来，`Shapefile <http://en.wikipedia.org/wiki/"
+"Shapefile>`_（以及 Esri File Geodatabase、`GeoPackage <https://www."
+"geopackage.org/>`_ 等其他格式）一直是存储空间数据、访问空间数据的标准格式。但"
+"是，这些“单一”的文件格式有以下缺点："
+
+#: ../../en/introduction.rst:128
+msgid ""
+"**Files require special software to read and write.**  SQL is an abstraction "
+"for random data access and analysis. Without that abstraction, you will need "
+"to write all the access and analysis code yourself."
+msgstr "**文件需要特殊的软件才能读取和写入。** SQL 是随机数据访问和分析的抽象。如果没"
+"有这种抽象，您将需要自己编写所有访问和分析代码。"
+
+#: ../../en/introduction.rst:129
+msgid ""
+"**Concurrent users can cause corruption and slowdowns.** While it's possible "
+"to write extra code to ensure that multiple writes to the same file do not "
+"corrupt the data, by the time you have solved the problem and also solved "
+"the associated performance problem, you will have written the better part of "
+"a database system. Why not just use a standard database?"
+msgstr ""
+"**并发用户可能会导致损坏和速度变慢。** 虽然可以编写额外的代码来确保对同一文件"
+"的多次写入不会损坏数据，但当您解决了问题并解决了相关的性能问题时，您将编写了"
+"数据库系统更好的部分。为什么不直接使用标准数据库呢？"
+
+#: ../../en/introduction.rst:130
+msgid ""
+"**Complicated questions require complicated software to answer.** "
+"Complicated and interesting questions (spatial joins, aggregations, etc) "
+"that are expressible in one line of SQL in the database take hundreds of "
+"lines of specialized code to answer when programming against files."
+msgstr ""
+"**复杂的问题需要复杂的软件来回答。** 复杂而有趣的问题（空间联接、聚合等）"
+"可以在数据库中的一行 SQL "
+"中表达，在针对文件进行编程时需要数百行专用代码来回答。"
+
+#: ../../en/introduction.rst:132
+msgid ""
+"Most users of PostGIS are setting up systems where multiple applications "
+"will be expected to access the data, so having a standard SQL access method "
+"simplifies deployment and development. Some users are working with large "
+"data sets; with files, they might be segmented into multiple files, but in a "
+"database they can be stored as a single large table."
+msgstr ""
+"PostGIS 的大多数用户正在设置多个应用程序访问数据的系统，因此拥有标准的 SQL 访"
+"问方法可以简化部署和开发。一些用户正在处理大型数据集;对于文件，它们可能会被分"
+"割成多个文件，但在数据库中，它们可以存储为单个大表。"
+
+#: ../../en/introduction.rst:134
+msgid ""
+"In summation, the combination of support for multiple users, complex ad hoc "
+"queries, and performance on large data sets are what sets spatial databases "
+"apart from file-based systems."
+msgstr "总的来说，对多用户的支持、复杂的临时查询以及在大型数据集上的性能是使空间数据"
+"库与基于文件的系统有所区别的关键因素。"
+
+#: ../../en/introduction.rst:137
+msgid "A brief history of PostGIS"
+msgstr "PostGIS 的简单历史"
+
+#: ../../en/introduction.rst:139
+msgid ""
+"In the May of 2001, `Refractions Research <http://www.refractions.net/>`_  "
+"released the first version of PostGIS. PostGIS 0.1 had objects, indexes and "
+"a handful of functions. The result was a database suitable for storage and "
+"retrieval, but not analysis."
+msgstr ""
+"2001 年 5 月，`Refractions Research <http://www.refractions.net/>`_ 发布了 "
+"PostGIS 的第一版。PostGIS 0.1 拥有对象、索引和一些趁手的函数。那时，它只是适"
+"合存储数据和检索数据，并不适合分析数据。"
+
+#: ../../en/introduction.rst:141
+msgid ""
+"As the number of functions increased, the need for an organizing principle "
+"became clear.  The \"Simple Features for SQL\" (:term:`SFSQL`) specification "
+"from the Open Geospatial Consortium provided such structure with guidelines "
+"for function naming and requirements."
+msgstr ""
+"随着函数数量的增加，对组织原则的需求变得明显。开放地理空间联盟（Open "
+"Geospatial Consortium）的\"Simple Features for SQL\"（简称 "
+":term:`SFSQL`）规范提供了这样的结构，其中包括函数命名和要求的指南。"
+
+#: ../../en/introduction.rst:143
+msgid ""
+"With PostGIS support for simple analysis and spatial joins, `Mapserver "
+"<http://mapserver.org/>`_ became the first external application to provide "
+"visualization of data in the database."
+msgstr ""
+"随着PostGIS对简单分析和空间连接的支持，`Mapserver <http://mapserver.org/>`_ "
+"成为第一个外部应用程序，为数据库中的数据提供可视化展示。"
+
+#: ../../en/introduction.rst:145
+msgid ""
+"Over the next several years the number of PostGIS functions grew, but its "
+"power remained limited. Many of the most interesting functions (e.g., "
+"ST_Intersects(), ST_Buffer(), ST_Union()) were very difficult to code.  "
+"Writing them from scratch promised years of work."
+msgstr ""
+"在接下来的几年里，PostGIS功能的数量不断增长，但其功能仍然有限。许多最有趣的函"
+"数（例如，ST_Intersects（）、ST_Buffer（）、ST_Union（））都很难编码。从头开"
+"始编写它们需要多年的工作。"
+
+#: ../../en/introduction.rst:147
+msgid ""
+"Fortunately a second project, the \"Geometry Engine, Open Source\" or `GEOS "
+"<http://trac.osgeo.org/geos>`_, came along. The GEOS library provides the "
+"necessary algorithms for implementing the :term:`SFSQL` specification. By "
+"linking in GEOS, PostGIS provided complete support for :term:`SFSQL` by "
+"version 0.8."
+msgstr ""
+"幸运的是，第二个项目——\"Geometry Engine, Open Source\" 或 `GEOS <http://trac."
+"osgeo.org/geos>`_，也随之出现。GEOS库提供了实现 :term:`SFSQL` "
+"规范所需的算法。通过引入GEOS，PostGIS在版本0.8中为 :term:`SFSQL` "
+"提供了完整的支持。"
+
+#: ../../en/introduction.rst:149
+msgid ""
+"As PostGIS data capacity grew, another issue surfaced: the representation "
+"used to store geometry proved relatively inefficient. For small objects like "
+"points and short lines, the metadata in the representation had as much as a "
+"300% overhead. For performance reasons, it was necessary to put the "
+"representation on a diet.  By shrinking the metadata header and required "
+"dimensions, overhead greatly reduced. In PostGIS 1.0, this new, faster, "
+"lightweight representation became the default."
+msgstr ""
+"随着PostGIS数据容量的增长，出现了另一个问题：用于存储几何信息的表示方式相对低"
+"效。对于小型对象，如点和短线，表示中的元数据可能会有高达300%的额外开销。出于"
+"性能原因，有必要对表示进行精简。通过缩小元数据头和所需的维度，额外开销大大减"
+"少。在PostGIS 1.0中，这种新的、更快速、轻量级的表示方式成为了默认选项。"
+
+#: ../../en/introduction.rst:151
+msgid ""
+"Recent releases of PostGIS continue to add features and performance "
+"improvements, as well as support for new features in the PostgreSQL core "
+"system."
+msgstr "最新版本的 PostGIS 继续添加功能和性能改进，以及对 PostgreSQL "
+"核心系统中新功能的支持。"
+
+#: ../../en/introduction.rst:154
+msgid "Who uses PostGIS?"
+msgstr "谁在用 PostGIS？"
+
+#: ../../en/introduction.rst:156
+msgid ""
+"For a complete list of case studies, see the `PostGIS case studies <https://"
+"postgis.net/category/casestudy/>`_ page."
+msgstr ""
+"有关案例研究的完整列表，请参阅`PostGIS案例研究 <https://postgis.net/category/"
+"casestudy/>`_ 页面。"
+
+#: ../../en/introduction.rst:159
+msgid "Institut Geographique National, France"
+msgstr "法国国家地理研究所"
+
+#: ../../en/introduction.rst:161
+msgid ""
+"IGN is the national mapping agency of France, and uses PostGIS to store the "
+"high resolution topographic map of the country, \"BDUni\". BDUni has more "
+"than 100 million features, and is maintained by a staff of over 100 field "
+"staff who verify observations and add new mapping to the database daily. The "
+"IGN installation uses the database transactional system to ensure "
+"consistency during update processes, and a `warm standby system <https://www."
+"postgresql.org/docs/devel/warm-standby.html>`_ to maintain uptime in the "
+"event of a system failure."
+msgstr ""
+"IGN是法国的国家测绘机构，使用PostGIS来存储该国的高分辨率地形图“BDUni”。BDUni "
+"拥有超过 1 亿个特征，由 100 "
+"多名现场工作人员维护，他们每天验证观测结果并向数据库添加新的地图。IGN "
+"安装使用数据库事务系统来确保更新过程中的一致性，并使用 `热备用 <https://www."
+"postgresql.org/docs/devel/warm-standby.html>`_ "
+"系统在系统发生故障时保持正常运行时间。"
+
+#: ../../en/introduction.rst:164
+msgid "RedFin"
+msgstr "RedFin"
+
+#: ../../en/introduction.rst:166
+msgid ""
+"`RedFin <https://www.redfin.com>`_ is a real estate agency with a web-based "
+"service for exploring properties and estimate values. Their system was "
+"originally built on MySQL, but they found that moving to PostgreSQL and "
+"PostGIS provided `huge benefits in performance and reliability <https://www."
+"redfin.com/news/elephant_versus_dolphin_which_is_faster_which_is_smarter/>`_."
+msgstr ""
+"`RedFin <https://www.redfin.com>`_ 是一家房地产代理公司，提供基于网络的服务，"
+"用于探索房产和估算价值。他们的系统最初是建立在MySQL上的，"
+"但他们发现迁移到PostgreSQL和PostGIS `在性能和可靠性方面提供了巨大好处 "
+"<https://www.redfin.com/news/"
+"elephant_versus_dolphin_which_is_faster_which_is_smarter/>`_。"
+
+#: ../../en/introduction.rst:169
+msgid "What applications support PostGIS?"
+msgstr "什么应用软件支持 PostGIS？"
+
+#: ../../en/introduction.rst:171
+msgid ""
+"PostGIS has become a widely used spatial database, and the number of third-"
+"party programs that support storing and retrieving data using it has "
+"increased as well. The `programs that support PostGIS <http://trac.osgeo.org/"
+"postgis/wiki/UsersWikiToolsSupportPostgis>`_ include both open source and "
+"proprietary software on both server and desktop systems."
+msgstr ""
+"PostGIS已成为一个广泛使用的空间数据库，支持使用它存储和检索数据的第三方程序的"
+"数量也有所增加。`支持PostGIS的程序<http://trac.osgeo.org/postgis/wiki/"
+"UsersWikiToolsSupportPostgis>`_ 包括服务器和桌面系统上的开源软件和专有软件。"
+
+#: ../../en/introduction.rst:173
+msgid ""
+"The following table shows a list of some of the software that leverages "
+"PostGIS:"
+msgstr "下表显示了一些支持PostGIS 的软件列表："
+
+#: ../../en/introduction.rst:176
+msgid "Open/Free"
+msgstr "开源/自由"
+
+#: ../../en/introduction.rst:176
+msgid "Closed/Proprietary/Paid services"
+msgstr "封闭式/专有/付费服务"
+
+#: ../../en/introduction.rst:179
+msgid "Loading/Extracting"
+msgstr "加载/解析"
+
+#: ../../en/introduction.rst:181
+msgid "Shp2Pgsql"
+msgstr "Shp2Pgsql"
+
+#: ../../en/introduction.rst:182
+msgid "ogr2ogr"
+msgstr "ogr2ogr"
+
+#: ../../en/introduction.rst:183
+msgid "Dxf2PostGIS"
+msgstr "Dxf2PostGIS"
+
+#: ../../en/introduction.rst:184
+msgid "GeoKettle"
+msgstr "GeoKettle"
+
+#: ../../en/introduction.rst:186 ../../en/introduction.rst:187
+msgid "Web-Based"
+msgstr "Web 端"
+
+#: ../../en/introduction.rst:189
+msgid "Mapserver"
+msgstr "Mapserver"
+
+#: ../../en/introduction.rst:190
+msgid "GeoServer /geoNode"
+msgstr "GeoServer /geoNode"
+
+#: ../../en/introduction.rst:191
+msgid "pg_tileserv"
+msgstr "pg_tileserv"
+
+#: ../../en/introduction.rst:192
+msgid "pg_featureserv"
+msgstr "pg_featureserv"
+
+#: ../../en/introduction.rst:193
+msgid "Deegree"
+msgstr "Deegree"
+
+#: ../../en/introduction.rst:194 ../../en/introduction.rst:197
+msgid "Carto"
+msgstr "Carto"
+
+#: ../../en/introduction.rst:195
+msgid "QGIS Server"
+msgstr "QGIS Server"
+
+#: ../../en/introduction.rst:196
+msgid "MapGuide Open Source (using FDO)"
+msgstr "MapGuide Open Source (使用 FDO)"
+
+#: ../../en/introduction.rst:201 ../../en/introduction.rst:202
+msgid "Desktop"
+msgstr "桌面端"
+
+#: ../../en/introduction.rst:203
+msgid "QGIS"
+msgstr "QGIS"
+
+#: ../../en/introduction.rst:204
+msgid "OpenJUMP"
+msgstr "OpenJUMP"
+
+#: ../../en/introduction.rst:205
+msgid "GRASS"
+msgstr "GRASS"
+
+#: ../../en/introduction.rst:206
+msgid "pgAdmin"
+msgstr "PgAdmin"
+
+#: ../../en/introduction.rst:207
+msgid "DBeaver"
+msgstr "DBeaver"
+
+#: ../../en/introduction.rst:208
+msgid "GvSIG"
+msgstr "GvSIG"
+
+#: ../../en/introduction.rst:209
+msgid "SAGA"
+msgstr "SAGA"
+
+#: ../../en/introduction.rst:210
+msgid "uDig"
+msgstr "uDig"
+
+#: ../../en/introduction.rst:181
+msgid "Safe FME Desktop Translator/Converter"
+msgstr "Safe FME Desktop Translator/Converter"
+
+#: ../../en/introduction.rst:182
+msgid "Dbt"
+msgstr "Dbt"
+
+#: ../../en/introduction.rst:188
+msgid "Cadcorp GeognoSIS"
+msgstr "Cadcorp GeognoSIS"
+
+#: ../../en/introduction.rst:189
+msgid "ESRI ArcGIS Server / Online"
+msgstr "ESRI ArcGIS Server / Online"
+
+#: ../../en/introduction.rst:193
+msgid "Services / DbaaS"
+msgstr "服务 / 数据库即服务"
+
+#: ../../en/introduction.rst:195
+msgid "Aiven for PostgreSQL"
+msgstr "Aiven for PostgreSQL"
+
+#: ../../en/introduction.rst:196
+msgid "Amazon RDS / Aurora for PostgreSQL"
+msgstr "Amazon RDS / Aurora for PostgreSQL"
+
+#: ../../en/introduction.rst:198
+msgid "Crunchy Bridge"
+msgstr "Crunchy Bridge"
+
+#: ../../en/introduction.rst:199
+msgid "Microsoft Azure for PostgreSQL"
+msgstr "Microsoft Azure for PostgreSQL"
+
+#: ../../en/introduction.rst:200
+msgid "Google Cloud SQL for PostgreSQL"
+msgstr "Google Cloud SQL for PostgreSQL"
+
+#: ../../en/introduction.rst:204
+msgid "Cadcorp SIS"
+msgstr "Cadcorp SIS"
+
+#: ../../en/introduction.rst:205
+msgid "ESRI Desktop/Pro"
+msgstr "ESRI Desktop/Pro"
+
+#: ../../en/introduction.rst:206
+msgid "GeoConcept"
+msgstr "GeoConcept"
+
+#: ../../en/introduction.rst:207
+msgid "Global Mapper"
+msgstr "Global Mapper"
+
+#: ../../en/introduction.rst:208
+msgid "Manifold"
+msgstr "Manifold"
+
+#: ../../en/introduction.rst:209
+msgid "MapInfo"
+msgstr "MapInfo"
+
+#: ../../en/introduction.rst:210
+msgid "Microimages TNTmips GIS"
+msgstr "Microimages TNTmips GIS"
+
+#~ msgid "GeoServer (Java-based WFS / WMS -server )"
+#~ msgstr "GeoServer（基于 Java 的 WFS / WMS 服务器）"
+
+#~ msgid "SharpMap SDK - for ASP.NET 2.0"
+#~ msgstr "SharpMap SDK - 对于 ASP.NET 2.0"
+
+#~ msgid "mezoGIS"
+#~ msgstr "mezoGIS"
+
+#~ msgid "OpenEV"
+#~ msgstr "OpenEV"
+
+#~ msgid "SharpMap SDK for Microsoft.NET 2.0"
+#~ msgstr "SharpMap SDK for Microsoft.NET 2.0"
+
+#~ msgid "ZigGIS for ArcGIS/ArcObjects.NET"
+#~ msgstr "ZigGIS for ArcGIS/ArcObjects.NET"
+
+#~ msgid "Ionic Red Spider (now ERDAS)"
+#~ msgstr "Ionic Red Spider (现在叫 ERDAS)"
+
+#~ msgid "Iwan Mapserver"
+#~ msgstr "Iwan Mapserver"
+
+#~ msgid "MapDotNet Server"
+#~ msgstr "MapDotNet Server"
+
+#~ msgid "MapGuide Enterprise (using FDO)"
+#~ msgstr "MapGuide Enterprise (使用 FDO)"
+
+#~ msgid "ESRI ArcGIS"
+#~ msgstr "ESRI ArcGIS"
+
+#~ msgid "AutoCAD Map 3D (using FDO)"
+#~ msgstr "AutoCAD Map 3D (使用 FDO)"
