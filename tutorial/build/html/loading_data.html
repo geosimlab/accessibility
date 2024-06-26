@@ -1,0 +1,168 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>4. Build GTFS dictionary (pkl) &mdash; Introduction to QGIS plugin &#34;Accessibility calculations&#34;</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+    <link rel="shortcut icon" href="_static/app.png"/>
+      <script src="_static/documentation_options.js?v=4c4d3c97"></script>
+      <script src="_static/doctools.js?v=9a2dae69"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="5. Public transport: Forward/backward accessibility AREA, fixed time" href="raptor_area.html" />
+    <link rel="prev" title="3. Installation" href="installation.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Introduction to QGIS plugin "Accessibility calculations"
+          </a>
+              <div class="version">
+                1.1
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="welcome.html">1. Welcome</a></li>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">2. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">3. Installation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">4. Build GTFS dictionary (<span class="xref std std-term">pkl</span>)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#id1">4.1. Предварительная подготовка</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pkl">4.2. Создание словарей <span class="xref std std-term">pkl</span></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id2">4.3. Диаграммы потоков данных</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="raptor_area.html">5. Public transport: Forward/backward accessibility AREA, fixed time</a></li>
+<li class="toctree-l1"><a class="reference internal" href="raptor_map.html">6. Public transport: Forward/backward accessibility MAP, fixed time</a></li>
+<li class="toctree-l1"><a class="reference internal" href="timetable_mode.html">7. Public transport: Forward/backward accessibility AREA/MAP, Timetable mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="car_accessibility.html">8. Сar: Forward/backward accessibility AREA/MAP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="glossary.html">9. Appendix A: Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">10. Appendix B: License</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Introduction to QGIS plugin "Accessibility calculations"</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active"><span class="section-number">4. </span>Build GTFS dictionary (<span class="xref std std-term">pkl</span>)</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="build-gtfs-dictionary-pkl">
+<span id="loading-data"></span><h1><span class="section-number">4. </span>Build GTFS dictionary (<a class="reference internal" href="glossary.html#term-pkl"><span class="xref std std-term">pkl</span></a>)<a class="headerlink" href="#build-gtfs-dictionary-pkl" title="Link to this heading">¶</a></h1>
+<p>Алгоритмы RAPTOR Forward and RAPTOR Backward для вычислений используют предварительно построенные словари, основанные на файлах в формате <a class="reference internal" href="glossary.html#term-GTFS"><span class="xref std std-term">GTFS</span></a>. Данные словари сохраняются в формате <a class="reference internal" href="glossary.html#term-pkl"><span class="xref std std-term">pkl</span></a>.</p>
+<section id="id1">
+<h2><span class="section-number">4.1. </span>Предварительная подготовка<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h2>
+<p>Необходимо предварительно подготовить следующие данные</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="glossary.html#term-GTFS"><span class="xref std std-term">GTFS</span></a> словарь</p></li>
+<li><p>слой зданий</p></li>
+<li><p>слой дорог</p></li>
+</ul>
+<p><a class="reference internal" href="glossary.html#term-GTFS"><span class="xref std std-term">GTFS</span></a> словарь необходимо скачать с соответствующего ресурса например <a class="reference external" href="https://gtfs.pro/">https://gtfs.pro/</a>
+Слой зданий и слой дорог должны быть загружены в текущий проект <a class="reference internal" href="glossary.html#term-QGIS"><span class="xref std std-term">QGIS</span></a>.</p>
+</section>
+<section id="pkl">
+<h2><span class="section-number">4.2. </span>Создание словарей <a class="reference internal" href="glossary.html#term-pkl"><span class="xref std std-term">pkl</span></a><a class="headerlink" href="#pkl" title="Link to this heading">¶</a></h2>
+<ol class="arabic">
+<li><p>Открыть плагин и выбрать пункт меню <em>Build GTFS dictionary (pkl)</em>.</p>
+<img alt="_images/mainwindow.png" class="inline border" src="_images/mainwindow.png" />
+</li>
+<li><p>Откроется диалоговое окно выбора настроек параметров.</p>
+<img alt="_images/pkl1.png" class="inline border" src="_images/pkl1.png" />
+</li>
+<li><p>В окне настроек необходимо указать следующие параметры:</p>
+<ul class="simple">
+<li><p><span class="guilabel">GTFS folder</span>: Выбор папки, в которой расположены файлы GTFS. В папке должны находиться файлы <code class="docutils literal notranslate"><span class="pre">stops.txt</span></code>, <code class="docutils literal notranslate"><span class="pre">stop_times.txt</span></code>, <code class="docutils literal notranslate"><span class="pre">routes.txt</span></code>, <code class="docutils literal notranslate"><span class="pre">trips.txt</span></code>, <code class="docutils literal notranslate"><span class="pre">calendar.txt</span></code>.</p></li>
+<li><p><span class="guilabel">Layer of roads</span>: Выбор слоя дорог из текущего проекта.</p></li>
+<li><p><span class="guilabel">Layer of buildings</span>: Выбор слоя зданий из текущего проекта.</p></li>
+<li><p><span class="guilabel">Output folder</span>: Выбор папки для вывода pkl файлов. Необходимо, чтобы были права на запись на данную папку.</p></li>
+<li><p><span class="guilabel">Run calculation foothpath on road</span>: Выбор режима расчета foothpath on road. Если режим не выбран, то расчеты расстояний выполняются по воздуху.</p></li>
+</ul>
+</li>
+<li><p>Нажмите кнопку <strong>Run</strong> для запуска процесса формирования словарей GTFS.</p></li>
+<li><p>В процессе формирования словарей  отображается информация о ходе вычислений на вкладке <strong>Log</strong>, в строке состояния и progressbar.</p></li>
+<li><p>Процесс вычислений можно прервать, нажав на кнопку <strong>Break</strong>.</p></li>
+</ol>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Если выбран режим <span class="guilabel">Run calculation foothpath on road</span> вычисления могут занять много времени. Отображается диалоговое окно c предупреждением.</p>
+</div>
+</section>
+<section id="id2">
+<h2><span class="section-number">4.3. </span>Диаграммы потоков данных<a class="headerlink" href="#id2" title="Link to this heading">¶</a></h2>
+<blockquote>
+<div><img alt="_images/flowchart1.jpg" class="inline border" src="_images/flowchart1.jpg" />
+<img alt="_images/flowchart2.jpg" class="inline border" src="_images/flowchart2.jpg" />
+</div></blockquote>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="installation.html" class="btn btn-neutral float-left" title="3. Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="raptor_area.html" class="btn btn-neutral float-right" title="5. Public transport: Forward/backward accessibility AREA, fixed time" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Geosimlab | TLV university.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,110 +1,20 @@
-# Makefile for Sphinx documentation
+# Minimal makefile for Sphinx documentation
 #
 
-# You can set these variables from the command line.
-SPHINXOPTS    =
-SPHINXBUILD   = sphinx-build
+# You can set these variables from the command line, and also
+# from the environment for the first two.
+SPHINXOPTS    ?=
+SPHINXBUILD   ?= sphinx-build
+SOURCEDIR     = source
+BUILDDIR      = build
 
-# Internal variables.
-OUTPUT          = ../../doc
-BUILDDIR				= ../_build
-SOURCE          = .
-CACHE           = $(OUTPUT)/.build/en/doctrees
-ALLSPHINXOPTS   = -d $(CACHE) $(SPHINXOPTS)
+# Put it first so that "make" without argument is like "make help".
+help:
+	@$(SPHINXBUILD) -M help "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
-.PHONY: help
-help: ## Show this help screen
-	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
-
-.PHONY: clean
-clean: ## Remove all output files
-	@rm -rf $(OUTPUT)
-
-.PHONY: html
-html: ## to make standalone en HTML files
-	mkdir -p $(OUTPUT)/en $(CACHE)
-	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(SOURCE) $(OUTPUT)/en
-	@echo
-	@echo "Build finished. The HTML pages are in $(OUTPUT)."
-
-.PHONY: html-translation
-html-translation: ## use `LANG=ja make html-translation`, replace ja with language of your choosing 
-	echo "Building for $(LANG)"
-	mkdir -p $(OUTPUT)/$(LANG) $(OUTPUT)/.build/$(LANG)/doctrees
-	$(SPHINXBUILD) -b html -d $(OUTPUT)/.build/$(LANG)/doctrees -D language=$(LANG) $(SOURCE) $(OUTPUT)/$(LANG)
-
-.PHONY: pot
-pot: ## Make or update translation template files
-	mkdir -p $(OUTPUT) $(CACHE)
-	$(SPHINXBUILD) -M gettext "$(SOURCE)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
-	mv $(BUILDDIR)/gettext/*.pot ../locale/pot
-
-.PHONY: po
-po: ## Make po files for key languages
-	cd ../ && \
-	sphinx-intl update -p locale/pot --language=de --language=ja --language=es && \
-	cp -R locales/* locale && rm -rf locales
+.PHONY: help Makefile
 
 # Catch-all target: route all unknown targets to Sphinx using the new
 # "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
-# %: Makefile
-# 	mkdir -p $(OUTPUT) $(CACHE)
-# 	$(SPHINXBUILD) -M $@ "$(SOURCE)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
-
-#	find $(OUTPUT) -name .svn -type d -exec /bin/rm -rf {} ';'
-
-.PHONY: pickle
-pickle: ## to make pickle files (usable by e.g. sphinx-web)
-	mkdir -p $(OUTPUT) $(OUTPUT)/.build/pickle $(CACHE)
-	$(SPHINXBUILD) -b pickle $(ALLSPHINXOPTS) $(SOURCE) $(OUTPUT)/.build/pickle
-	@echo
-	@echo "Build finished; now you can process the pickle files or run"
-	@echo "  sphinx-web $(OUTPUT)/.build/pickle"
-	@echo "to start the sphinx-web server."
-
-web: pickle
-
-.PHONY: htmlhelp
-htmlhelp: ## to make HTML files and a HTML help project
-	mkdir -p $(CACHE) $(OUTPUT)/.build/htmlhelp
-	$(SPHINXBUILD) -b htmlhelp $(ALLSPHINXOPTS) $(SOURCE) $(OUTPUT)/.build/htmlhelp
-	@echo
-	@echo "Build finished; now you can run HTML Help Workshop with the" \
-	      ".hhp project file in $(OUTPUT)/.build/htmlhelp."
-
-PHONY: latex
-latex: ## to make en LaTeX files, you can set PAPER=a4 or PAPER=letter
-	mkdir -p $(CACHE) $(OUTPUT)/en/.build/latex
-	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) $(SOURCE) $(OUTPUT)/en/.build/latex
-	@echo
-	@echo "Build finished; now you can run 'make' in $(OUTPUT)/en/.build/latex."
-
-PHONY: pdf
-pdf: ## to make en PDF, you can set PAPER=a4 or PAPER=letter
-	mkdir -p $(CACHE) $(OUTPUT)/en/.build/latex
-	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) $(SOURCE) $(OUTPUT)/en/.build/latex && cd $(OUTPUT)/en/.build/latex && make && cp *.pdf ../../
-	@echo "Build finished; pdf file is in $(OUTPUT)/en/"
-
-PHONY: pdf-translation
-pdf-translation: ## to make translated LaTeX files, you can set PAPER=a4 or PAPER=letter. Do `LANG=de make pdf-translation` replacing de with language of your choosing
-	mkdir -p $(CACHE) $(OUTPUT)/$(LANG)/.build/latex
-	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) -D language=$(LANG) $(SOURCE) $(OUTPUT)/$(LANG)/.build/latex && cd $(OUTPUT)/$(LANG)/.build/latex && make && cp *.pdf ../../ 
-
-	@echo
-	@echo "Build finished; pdf is located in $(OUTPUT)/$(LANG)"
-
-.PHONY: changes
-changes: ## to make an overview over all changed/added/deprecated items"
-	mkdir -p $(CACHE) $(OUTPUT)/.build/changes
-	$(SPHINXBUILD) -b changes $(ALLSPHINXOPTS) $(SOURCE) $(OUTPUT)/.build/changes
-	@echo
-	@echo "The overview file is in $(OUTPUT)/.build/changes."
-
-.PHONY: linkcheck
-linkcheck: ## linkcheck to check all external links for integrity
-	mkdir -p $(CACHE) $(OUTPUT)/.build/linkcheck
-	$(SPHINXBUILD) -b linkcheck $(ALLSPHINXOPTS) $(SOURCE) $(OUTPUT)/.build/linkcheck
-	@echo
-	@echo "Link check complete; look for any errors in the above output " \
-	      "or in $(OUTPUT)/.build/linkcheck/output.txt."
-
+%: Makefile
+	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
