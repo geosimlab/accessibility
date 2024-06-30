@@ -136,12 +136,12 @@ class AccessibilityTools(QWidget):
 
         if item == self.item8:
           raptor_summary = RaptorSummary(mode = 1, protocol_type = 1, title = "Public transport accessibility MAP, forward accessibility AREA, fixed departure time", timetable_mode = False)
-          raptor_summary.textInfo.setPlainText("Sample description backward raptor")
+          raptor_summary.textInfo.setPlainText("Sample description forward raptor")
           raptor_summary.show()    
 
         if item == self.item9:
           raptor_summary = RaptorSummary(mode = 1, protocol_type = 1, title = "Public transport accessibility MAP, forward accessibility MAP, departure matches the timetable'", timetable_mode = True)
-          raptor_summary.textInfo.setPlainText("Sample description backward raptor with tametable mode")
+          raptor_summary.textInfo.setPlainText("Sample description forward raptor with tametable mode")
           raptor_summary.show()  
 
         if item == self.item10:

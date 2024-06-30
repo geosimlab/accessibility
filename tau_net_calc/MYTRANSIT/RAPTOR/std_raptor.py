@@ -4,17 +4,13 @@ Module contains RAPTOR implementation.
 
 from RAPTOR.raptor_functions import *
 from PyQt5.QtWidgets import QApplication
-from datetime import timedelta
+
 
 def raptor (SOURCE, D_TIME, MAX_TRANSFER, MIN_TRANSFER, change_time, 
            routes_by_stop_dict, stops_dict, stoptimes_dict, footpath_dict, 
            idx_by_route_stop_dict: dict, Maximal_travel_time, MaxWalkDist1, MaxWalkDist2, MaxWalkDist3, MaxWaitTime, MaxWaitTimeTransfer, timetable_mode, MaxExtraTime, departure_interval) -> list:
         
-    timeres1 = 0
-    timeres2 = 0
-    timeres3 = 0
-    timeres4 = 0
-    timeres5 = 0
+    
    
     my_name = raptor.__name__
     out = []
@@ -207,7 +203,7 @@ def raptor (SOURCE, D_TIME, MAX_TRANSFER, MIN_TRANSFER, change_time,
            
         save_marked_stop = False
         
-        time1, time2, time3, time4, time5, time6 = process_walking_stage(max_time , MaxWalkDist3_time, k, footpath_dict, 
+        process_walking_stage(max_time , MaxWalkDist3_time, k, footpath_dict, 
         marked_stop_dict, marked_stop, label, star_label, pi_label, save_marked_stop)
         
         #print (f' pi_label {pi_label}')
@@ -219,10 +215,8 @@ def raptor (SOURCE, D_TIME, MAX_TRANSFER, MIN_TRANSFER, change_time,
             break
     
     reachedLabels = post_processingAll (my_name, SOURCE, D_TIME, label, pi_label, MIN_TRANSFER, MaxWalkDist3, timetable_mode, Maximal_travel_time, departure_interval, mode = 1)
-        
-    out = reachedLabels
     
-    return out, time1, time2, time3, time4, time5, time6
+    return reachedLabels
 
 # returns (maximum boarding time for the first bus - time to reach this stop)
 # use for timetable mode
@@ -253,12 +247,7 @@ def get_time_foot_to_stop(pi_label, boarding_point):
      
 def process_walking_stage(max_time, WALKING_LIMIT, k,
         footpath_dict, marked_stop_dict, marked_stop, label, star_label, pi_label, save_marked_stop):
-         time1res = timedelta()
-         time2res = timedelta()
-         time3res = timedelta()
-         time4res = timedelta()
-         time5res = timedelta()
-         time6res = timedelta()
+         
 
          marked_stop_copy = [*marked_stop]
          
@@ -281,73 +270,33 @@ def process_walking_stage(max_time, WALKING_LIMIT, k,
             
             for p_dash, to_pdash_time in trans_info:
                 
-                #start_time6 = datetime.now()
-
                 if p_dash not in pi_label[k]:
-                    
-                        
                     continue 
 
                 # this line is "don't rewrite founded bus trip to footleg"
                 if pi_label[k][p_dash] != - 1 and pi_label[k][p_dash][0] != 'walking':
                     
                     continue
-
-                #end_time6 = datetime.now()
-                #time6 = end_time6 - start_time6
-                #time6res += time6
-                
-                
-                #start_time1 = datetime.now()
-                
                 new_p_dash_time = label[k][p] + to_pdash_time
-                
-                #end_time1 = datetime.now()
-                #time1 = end_time1 - start_time1
-                #time1res += time1
-                
-                #start_time2 = datetime.now()
                 
                 if max_time < new_p_dash_time or to_pdash_time > WALKING_LIMIT:
                     
                     continue
-
-                #end_time2 = datetime.now()
-                #time2 = end_time2 - start_time2    
-                #time2res += time2
-
-                #start_time3 = datetime.now()
                 
                 # veryfy cause if exist solve for this p_dash (not was better?)
                 if pi_label[k][p_dash] != -1 and pi_label[k][p_dash][0] == "walking":
                     if new_p_dash_time > pi_label[k][p_dash][4]:
                         
                         continue
-
-                #end_time3 = datetime.now()
-                #time3 = end_time3 - start_time3        
-                #time3res += time3
-
-                #start_time4 = datetime.now()
                 
                 label[k][p_dash], star_label[p_dash] = new_p_dash_time, new_p_dash_time
                 
                 pi_label[k][p_dash] = ('walking', p, p_dash, to_pdash_time, new_p_dash_time)
-                
-                #end_time4 = datetime.now()
-                #time4 = end_time4 - start_time4            
-                #time4res += time4
 
-                #start_time5 = datetime.now()                                    
                 if save_marked_stop and marked_stop_dict[p_dash] == 0:
                     marked_stop.append(p_dash)
                     marked_stop_dict[p_dash] = 1
-                #end_time5 = datetime.now()
-                #time5 = end_time5 - start_time5            
-                #time5res += time5
-
-         
-         return time1res, time2res, time3res, time4res, time5res, time6res
+        
 
          
      

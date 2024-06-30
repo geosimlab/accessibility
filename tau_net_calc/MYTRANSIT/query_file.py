@@ -1,11 +1,11 @@
 
 import os
 import zipfile
-from datetime import datetime, timedelta, date
+from datetime import datetime, date
 
 from PyQt5.QtWidgets import QApplication
-from qgis.core import QgsProject, QgsVectorFileWriter, QgsVectorLayer
-
+from qgis.core import QgsProject, QgsVectorFileWriter
+import pickle
 
 from RAPTOR.std_raptor import raptor
 from RAPTOR.rev_std_raptor import rev_raptor
@@ -27,20 +27,6 @@ def seconds_to_time(total_seconds):
     return time_str
 
 def myload_all_dict(self, PathToNetwork, mode):
-    """
-    Args:
-        PathToNetwork (str): network NETWORK_NAME.
-        
-
-    Returns:
-        stops_dict (dict): preprocessed dict. Format {route_id: [ids of stops in the route]}.
-        stoptimes_dict (dict): keys: route ID, values: list of trips in the increasing order of start time. Format-> dict[route_ID] = [trip_1, trip_2] where trip_1 = [(stop id, arrival time), (stop id, arrival time)]
-        footpath_dict (dict): preprocessed dict. Format {from_stop_id: [(to_stop_id, footpath_time)]}.
-        routes_by_stop_dict (dict): preprocessed dict. Format {stop_id: [id of routes passing through stop]}.
-        idx_by_route_stop_dict (dict): preprocessed dict. Format {(route id, stop id): stop index in route}.
-        
-    """
-    import pickle
     
     path = PathToNetwork
     
@@ -111,11 +97,12 @@ def getDateTime():
 
 def verify_break (self, Layer= "", LayerDest= "", curr_getDateTime = "", folder_name = "", ):
   if self.break_on:
-            self.setMessage ("Process raptor is break")
-            self.textLog.append (f'<a><b><font color="red">Process raptor is break</font> </b></a>')
+            
+            self.textLog.append (f'<a><b><font color="red">Algorithm raptor is break</font> </b></a>')
             if folder_name !="":
               write_info (self, Layer, LayerDest, curr_getDateTime, folder_name, self.cbSelectedOnly1)  
             self.progressBar.setValue(0)  
+            self.setMessage ("Algorithm raptor is break")
             return True
   return False
 
@@ -202,7 +189,8 @@ def runRaptorWithProtocol(self, sources, raptor_mode, protocol_type, timetable_m
   
   attribute_dict = {}
   if UseField:
-        
+    self.setMessage ("Make dictionary for aggregate ...")    
+    QApplication.processEvents()          
     fields = layer_dest.fields()
       
     first_field_name = fields[0].name()
@@ -264,14 +252,6 @@ def runRaptorWithProtocol(self, sources, raptor_mode, protocol_type, timetable_m
   f = f'{folder_name}//access_{curr_getDateTime}.csv'
   with open(f, 'w') as filetowrite:
       filetowrite.write(protocol_header)   
-        
- 
-  total_time1 = timedelta()
-  total_time2 = timedelta()
-  total_time3 = timedelta()
-  total_time4 = timedelta()
-  total_time5 = timedelta()
-  total_time6 = timedelta()
     
   for i in range(0,count):
           
@@ -286,16 +266,11 @@ def runRaptorWithProtocol(self, sources, raptor_mode, protocol_type, timetable_m
           
           if raptor_mode == 1:
            
-           output, time1, time2, time3, time4, time5, time6  = raptor(SOURCE, D_TIME, MAX_TRANSFER, MIN_TRANSFER, CHANGE_TIME_SEC,
+           output  = raptor(SOURCE, D_TIME, MAX_TRANSFER, MIN_TRANSFER, CHANGE_TIME_SEC,
                             routes_by_stop_dict, stops_dict, stoptimes_dict, footpath_dict,  
                             idx_by_route_stop_dict,MaxTimeTravel, MaxWalkDist1, MaxWalkDist2, MaxWalkDist3, MaxWaitTime, MaxWaitTimeTransfer, timetable_mode, MaxExtraTime, DepartureInterval)
            
-           total_time1 += time1
-           total_time2 += time2
-           total_time3 += time3
-           total_time4 += time4
-           total_time5 += time5
-           total_time6 += time6
+           
            
           else:
             
@@ -319,14 +294,12 @@ def runRaptorWithProtocol(self, sources, raptor_mode, protocol_type, timetable_m
           if protocol_type == 2 :           
             make_protocol_detailed (raptor_mode, D_TIME, reachedLabels, f, timetable_mode)
            
-  
-
-  self.setMessage(f'Calculating done')
   QApplication.processEvents()
   time_after_computation = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
   self.textLog.append(f'<a>Time after computation {time_after_computation}</a>')  
 
   write_info (self, Layer, LayerDest, curr_getDateTime, folder_name, selected_only1)
+  self.setMessage(f'Calculating done')
   
 
 def write_info (self,Layer, LayerDest, curr_getDateTime, folder_name, selected_only1):
@@ -337,6 +310,9 @@ def write_info (self,Layer, LayerDest, curr_getDateTime, folder_name, selected_o
 
   zip_filename1 = f'{folder_name}//origins_{Layer}_{curr_getDateTime}.zip'
   filename1 = f'{folder_name}//origins_{Layer}_{curr_getDateTime}.geojson'
+
+  self.setMessage(f'Compressing layer ...')
+  QApplication.processEvents()
   
   save_layer_to_zip(Layer, zip_filename1, filename1, selected_only1)
   
@@ -363,22 +339,22 @@ def make_protocol_summary (SOURCE, dictInput, f, grades, use_fields, attribute_d
   with open(f, 'a') as filetowrite:
    #with open(f1, 'a') as rep:
     for dest, info in dictInput.items():
+       
+      #if int(dest) > 50000 and int(dest) < 10000000000:
 
-     time_to_dest = int (round(info[2]))
+       time_to_dest = int (round(info[2]))
     
-     for i in range (0, len(time_grad)) :
-      grad = time_grad[i]
-      if time_to_dest > grad[0]*60 and time_to_dest <= grad[1]*60:
-       counts[i] = counts[i] + 1
+       for i in range (0, len(time_grad)) :
+        grad = time_grad[i]
+        if time_to_dest > grad[0]*60 and time_to_dest <= grad[1]*60:
+         counts[i] = counts[i] + 1
       
        #if i == 1:
        #      rep.write(str(dest) + "\n")  
        #      print ('str(dest)')
-       if use_fields:
-        
-         agrregates[i] = agrregates[i] + attribute_dict.get(int(dest), 0)
-
-       break
+         if use_fields:
+           agrregates[i] = agrregates[i] + attribute_dict.get(int(dest), 0)
+         break
      
     row = str(SOURCE)  
     for i in range (0, len (time_grad)) :  
@@ -386,37 +362,7 @@ def make_protocol_summary (SOURCE, dictInput, f, grades, use_fields, attribute_d
      if use_fields:
        row = f'{row},{agrregates[i]}'
     filetowrite.write(row + "\n")
-  """
-  time_grad = grades
-  #[[-1,0], [0,10],[10,20],[20,30],[30,40],[40,50],[50,61] ]
-  counts = {x: 0 for x in range(0, len(time_grad))} #counters for grades
-  agrregates = {x: 0 for x in range(0, len(time_grad))} #counters for agrregates
- 
-  f1 = r'c:/temp/rep.txt'
-  row = ''
-  with open(f, 'a') as filetowrite:
-   with open(f1, 'a') as rep:
-    for dest, info in dictInput.items():
-
-      time_to_dest = int (round(info[2]))
-      for i in range (0, len(time_grad)) :
-        grad = time_grad[i]
-        if time_to_dest > grad[0]*60 and time_to_dest <= grad[1]*60:
-          counts[i] = counts[i] + 1
-          if i == 5:
-            rep.write(str(dest) + "\n")
-          if use_fields:
-            agrregates[i] = agrregates[i] + attribute_dict.get(int(dest), 0)
-
-          break
-     
-      row = str(SOURCE)  
-      for i in range (0, len (time_grad)) :  
-        row = f'{row},{counts[i]}'
-        if use_fields:
-          row = f'{row},{agrregates[i]}'
-   filetowrite.write(row + "\n")
-   """ 
+  
  
 # for type_protokol =2 
 def  make_protocol_detailed(raptor_mode, D_TIME, dictInput, protocol_full_path, timetable_mode):
@@ -872,10 +818,12 @@ def save_layer_to_zip(layer_name, zip_filename, filename, selected_only1):
     try:
       layer = QgsProject.instance().mapLayersByName(layer_name)[0]
       temp_file = "temp_layer_file.geojson"
-    
+      QApplication.processEvents()  
       QgsVectorFileWriter.writeAsVectorFormat(layer, temp_file, "utf-8", layer.crs(), "GeoJSON")
-      with zipfile.ZipFile(zip_filename, 'w') as zipf:
+      QApplication.processEvents()  
+      with zipfile.ZipFile(zip_filename, 'w', zipfile.ZIP_DEFLATED) as zipf:
         zipf.write(temp_file, os.path.basename(filename))
+      QApplication.processEvents()    
       os.remove(temp_file)   
     except:
       return 0  
