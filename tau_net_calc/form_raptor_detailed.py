@@ -280,7 +280,7 @@ class RaptorDetailed(QDialog, FORM_CLASS):
       self.config['Settings']['TIME'] = self.dtStartTime.dateTime().toString("HH:mm:ss")
       self.config['Settings']['Speed'] = self.txtSpeed.text()
       self.config['Settings']['MaxWaitTime'] = self.txtMaxWaitTime.text()
-      self.config['Settings']['MaxWaitTimeTrasnfer'] = self.txtMaxWaitTimeTransfer.text()
+      self.config['Settings']['MaxWaitTimeTransfer'] = self.txtMaxWaitTimeTransfer.text()
       self.config['Settings']['MaxTimeTravel'] = self.txtMaxTimeTravel.text()
       
       

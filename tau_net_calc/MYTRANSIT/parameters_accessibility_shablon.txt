@@ -33,4 +33,9 @@ speed_car = 50
 maxtimetravel_car = 10
 timeinterval_car = 1
 Fielddirection_car = 0
+pathtogtfs_pkl = C:/
+pathtoprotocols_pkl = C:/
+layerroad_pkl = 
+layer_pkl = 
+runcalcfootpathroad_pkl = True
 

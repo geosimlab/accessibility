@@ -438,7 +438,7 @@ class ShortestPathUtils:
             
             temp_file = "temp_layer_file.geojson"
             QgsVectorFileWriter.writeAsVectorFormat(layer, temp_file, "utf-8", layer.crs(), "GeoJSON")
-            with zipfile.ZipFile(zip_filename, 'w') as zipf:
+            with zipfile.ZipFile(zip_filename, 'w', zipfile.ZIP_DEFLATED) as zipf:
                 zipf.write(temp_file, os.path.basename(filename))
                 os.remove(temp_file)   
         except:
