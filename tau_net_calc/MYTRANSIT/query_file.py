@@ -82,7 +82,11 @@ def myload_all_dict(self, PathToNetwork, mode):
      QApplication.processEvents()   
      self.progressBar.setValue(5)
     
-    return stops_dict, stoptimes_dict, footpath_dict, routes_by_stop_dict, idx_by_route_stop_dict
+    return (stops_dict, 
+            stoptimes_dict, 
+            footpath_dict, 
+            routes_by_stop_dict, 
+            idx_by_route_stop_dict)
 
 # return postfix for name of filereport
 def getDateTime():
@@ -95,18 +99,35 @@ def getDateTime():
   second = str(current_datetime.second).zfill(2)
   return f'{year}{month}{day}_{hour}{minute}{second}'
 
-def verify_break (self, Layer= "", LayerDest= "", curr_getDateTime = "", folder_name = "", ):
+def verify_break (self, 
+                  Layer= "", 
+                  LayerDest= "", 
+                  curr_getDateTime = "", 
+                  folder_name = ""):
+  
   if self.break_on:
             
             self.textLog.append (f'<a><b><font color="red">Algorithm raptor is break</font> </b></a>')
             if folder_name !="":
-              write_info (self, Layer, LayerDest, curr_getDateTime, folder_name, self.cbSelectedOnly1)  
+              write_info (self, 
+                          Layer, 
+                          LayerDest, 
+                          curr_getDateTime, 
+                          folder_name, 
+                          self.cbSelectedOnly1
+                          )  
             self.progressBar.setValue(0)  
             self.setMessage ("Algorithm raptor is break")
             return True
   return False
 
-def runRaptorWithProtocol(self, sources, raptor_mode, protocol_type, timetable_mode, selected_only1, selected_only2)-> tuple:
+def runRaptorWithProtocol(self, 
+                          sources, 
+                          raptor_mode, 
+                          protocol_type, 
+                          timetable_mode, 
+                          selected_only1, 
+                          selected_only2)-> tuple:
 
   
   count = len(sources)
@@ -155,7 +176,13 @@ def runRaptorWithProtocol(self, sources, raptor_mode, protocol_type, timetable_m
   if verify_break(self):
       return 0
   QApplication.processEvents()
-  stops_dict, stoptimes_dict, footpath_dict, routes_by_stop_dict, idx_by_route_stop_dict = myload_all_dict (self, PathToNetwork, raptor_mode)
+  (
+  stops_dict,
+  stoptimes_dict, 
+  footpath_dict, 
+  routes_by_stop_dict, 
+  idx_by_route_stop_dict
+  ) = myload_all_dict (self, PathToNetwork, raptor_mode)
         
   if verify_break(self):
       return 0
@@ -214,11 +241,18 @@ def runRaptorWithProtocol(self, sources, raptor_mode, protocol_type, timetable_m
    low_bound_min = 0
    top_bound_min = time_step_min
    grades = []
+   """
+   for i in range(0,intervals_number):
+            header += f'{low_bound_min}min-{top_bound_min}min,'
+            if self.use_aggregate:
+                header += f'sum({self.field_aggregate}),'
+   """
+
    for i in range(0, intervals_number):
-    protocol_header +=  f',{low_bound_min}-{top_bound_min} m'
+    protocol_header +=  f',{low_bound_min}min-{top_bound_min}min'
     
     if UseField:
-      protocol_header += f', sum({Field})'
+      protocol_header += f',sum({Field})'
     grades.append ([low_bound_min,top_bound_min])
     low_bound_min = low_bound_min + time_step_min
     top_bound_min = top_bound_min + time_step_min
@@ -255,8 +289,13 @@ def runRaptorWithProtocol(self, sources, raptor_mode, protocol_type, timetable_m
     
   for i in range(0,count):
           
-          if verify_break(self, Layer, LayerDest, curr_getDateTime, folder_name):
-            return 0
+          if verify_break(self, 
+                          Layer, 
+                          LayerDest, 
+                          curr_getDateTime, 
+                          folder_name
+                          ):
+            return 0, folder_name
           
           self.progressBar.setValue(i + 6)
           self.setMessage(f'Calc point №{i+1} from {count}')
@@ -266,17 +305,50 @@ def runRaptorWithProtocol(self, sources, raptor_mode, protocol_type, timetable_m
           
           if raptor_mode == 1:
            
-           output  = raptor(SOURCE, D_TIME, MAX_TRANSFER, MIN_TRANSFER, CHANGE_TIME_SEC,
-                            routes_by_stop_dict, stops_dict, stoptimes_dict, footpath_dict,  
-                            idx_by_route_stop_dict,MaxTimeTravel, MaxWalkDist1, MaxWalkDist2, MaxWalkDist3, MaxWaitTime, MaxWaitTimeTransfer, timetable_mode, MaxExtraTime, DepartureInterval)
+           output  = raptor(SOURCE, 
+                            D_TIME, 
+                            MAX_TRANSFER, 
+                            MIN_TRANSFER, 
+                            CHANGE_TIME_SEC,
+                            routes_by_stop_dict, 
+                            stops_dict, 
+                            stoptimes_dict, 
+                            footpath_dict,  
+                            idx_by_route_stop_dict,
+                            MaxTimeTravel, 
+                            MaxWalkDist1, 
+                            MaxWalkDist2, 
+                            MaxWalkDist3, 
+                            MaxWaitTime, 
+                            MaxWaitTimeTransfer, 
+                            timetable_mode, 
+                            MaxExtraTime, 
+                            DepartureInterval
+                            )
            
            
            
           else:
             
-            output = rev_raptor(SOURCE, D_TIME, MAX_TRANSFER, MIN_TRANSFER, CHANGE_TIME_SEC, 
-                            routes_by_stop_dict, stops_dict, stoptimes_dict, footpath_dict, 
-                            idx_by_route_stop_dict,MaxTimeTravel, MaxWalkDist1, MaxWalkDist2, MaxWalkDist3, MaxWaitTime,MaxWaitTimeTransfer, timetable_mode, MaxExtraTime, DepartureInterval)
+            output = rev_raptor(SOURCE, 
+                                D_TIME, 
+                                MAX_TRANSFER, 
+                                MIN_TRANSFER, 
+                                CHANGE_TIME_SEC, 
+                                routes_by_stop_dict, 
+                                stops_dict, 
+                                stoptimes_dict, 
+                                footpath_dict, 
+                                idx_by_route_stop_dict,
+                                MaxTimeTravel, 
+                                MaxWalkDist1, 
+                                MaxWalkDist2, 
+                                MaxWalkDist3, 
+                                MaxWaitTime,
+                                MaxWaitTimeTransfer, 
+                                timetable_mode, 
+                                MaxExtraTime, 
+                                DepartureInterval)
             
             
           # !testing -deleting item with None value on end
@@ -290,9 +362,20 @@ def runRaptorWithProtocol(self, sources, raptor_mode, protocol_type, timetable_m
           
           # Now write current row   
           if protocol_type == 1:   
-            make_protocol_summary(SOURCE, reachedLabels, f, grades, UseField, attribute_dict) 
+            make_protocol_summary(SOURCE, 
+                                  reachedLabels, 
+                                  f, 
+                                  grades, 
+                                  UseField, 
+                                  attribute_dict
+                                  ) 
           if protocol_type == 2 :           
-            make_protocol_detailed (raptor_mode, D_TIME, reachedLabels, f, timetable_mode)
+            make_protocol_detailed (raptor_mode, 
+                                    D_TIME, 
+                                    reachedLabels, 
+                                    f, 
+                                    timetable_mode
+                                    )
            
   QApplication.processEvents()
   time_after_computation = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -300,6 +383,7 @@ def runRaptorWithProtocol(self, sources, raptor_mode, protocol_type, timetable_m
 
   write_info (self, Layer, LayerDest, curr_getDateTime, folder_name, selected_only1)
   self.setMessage(f'Calculating done')
+  return 1, folder_name
   
 
 def write_info (self,Layer, LayerDest, curr_getDateTime, folder_name, selected_only1):
@@ -314,7 +398,7 @@ def write_info (self,Layer, LayerDest, curr_getDateTime, folder_name, selected_o
   self.setMessage(f'Compressing layer ...')
   QApplication.processEvents()
   
-  save_layer_to_zip(Layer, zip_filename1, filename1, selected_only1)
+  #save_layer_to_zip(Layer, zip_filename1, filename1, selected_only1)
   
   """
   if Layer != LayerDest: 
@@ -327,7 +411,13 @@ def write_info (self,Layer, LayerDest, curr_getDateTime, folder_name, selected_o
   
 
 # for type_protokol = 1 
-def make_protocol_summary (SOURCE, dictInput, f, grades, use_fields, attribute_dict):
+def make_protocol_summary (SOURCE, 
+                           dictInput, 
+                           f, 
+                           grades, 
+                           use_fields, 
+                           attribute_dict
+                           ):
     
   time_grad = grades
   #[[-1,0], [0,10],[10,20],[20,30],[30,40],[40,50],[50,61] ]
@@ -365,7 +455,12 @@ def make_protocol_summary (SOURCE, dictInput, f, grades, use_fields, attribute_d
   
  
 # for type_protokol =2 
-def  make_protocol_detailed(raptor_mode, D_TIME, dictInput, protocol_full_path, timetable_mode):
+def  make_protocol_detailed(raptor_mode, 
+                            D_TIME, 
+                            dictInput, 
+                            protocol_full_path, 
+                            timetable_mode
+                            ):
   
   
   sep=","
@@ -814,7 +909,11 @@ def int1(s):
    result = 0
   return result
 
-def save_layer_to_zip(layer_name, zip_filename, filename, selected_only1):
+def save_layer_to_zip(layer_name, 
+                      zip_filename, 
+                      filename, 
+                      selected_only1
+                      ):
     try:
       layer = QgsProject.instance().mapLayersByName(layer_name)[0]
       temp_file = "temp_layer_file.geojson"

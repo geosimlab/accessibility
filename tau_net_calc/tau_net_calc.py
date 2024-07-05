@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication, Qt
+from qgis.PyQt.QtCore import (QSettings, 
+                              QTranslator, 
+                              QCoreApplication, 
+                              Qt)
 from qgis.PyQt.QtGui import QIcon
 from PyQt5.QtWidgets import QDockWidget,  QAction
 import shutil

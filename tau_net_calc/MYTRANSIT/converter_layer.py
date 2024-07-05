@@ -33,7 +33,7 @@ class MultiLineStringToLineStringConverter:
         for feature in self.layer.getFeatures():
             i += 1
             if i%1000 == 0:
-                self.parent.setMessage(f'Preparing GTFS. Calc footpath on road. Converting layer road multiline to line (link №{i} from {len})...')
+                self.parent.setMessage(f'Converting layer road multiline to line (link №{i} from {len})...')
                 QApplication.processEvents()
                 if self.verify_break():
                     return 0 

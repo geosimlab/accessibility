@@ -78,7 +78,9 @@ class AccessibilityTools(QWidget):
         self.item16 = QTreeWidgetItem(group7, ['Use ready-made protocols'])
         self.item16.setFont(0,font)
         self.item17 = QTreeWidgetItem(group7, ['Forward accessibility'])
+        self.item17.setFont(0,font)
         self.item18 = QTreeWidgetItem(group7, ['Backward accessibility'])
+        self.item18.setFont(0,font)
         group7.setExpanded(True)
 
         icon1 = os.path.join(os.path.dirname(__file__), 'folder.png')
@@ -114,71 +116,125 @@ class AccessibilityTools(QWidget):
           pkl.show()  
 
         if item == self.item4:
-          raptor_detailed = RaptorDetailed(mode = 1, protocol_type = 2, title = "Public transport accessibility AREA, by origins, forward accessibility, fixed departure time", timetable_mode = False)
+          raptor_detailed = RaptorDetailed(mode = 1, 
+                                           protocol_type = 2, 
+                                           title = "Public transport accessibility AREA, by origins, forward accessibility, fixed departure time", 
+                                           timetable_mode = False)
           raptor_detailed.textInfo.setPlainText("Sample description forward raptor")
           raptor_detailed.show()
 
         if item == self.item5:
-          raptor_detailed = RaptorDetailed(mode = 1, protocol_type = 2, title = "Public transport accessibility AREA, by origins, forward accessibility, departure matches the timetable", timetable_mode = True)
+          raptor_detailed = RaptorDetailed(mode = 1, 
+                                           protocol_type = 2, 
+                                           title = "Public transport accessibility AREA, by origins, forward accessibility, departure matches the timetable", 
+                                           timetable_mode = True)
           raptor_detailed.textInfo.setPlainText("Sample description forward raptor with timetable mode")
           raptor_detailed.show()    
 
         if item == self.item6:
-          raptor_detailed = RaptorDetailed(mode = 2, protocol_type = 2, title = "Public transport accessibility AREA, by destinations, backward accessibility, fixed arrival time", timetable_mode = False)
+          raptor_detailed = RaptorDetailed(mode = 2, 
+                                           protocol_type = 2, 
+                                           title = "Public transport accessibility AREA, by destinations, backward accessibility, fixed arrival time", 
+                                           timetable_mode = False)
           raptor_detailed.textInfo.setPlainText("Sample description backward raptor")
           raptor_detailed.show() 
 
         if item == self.item7:
-          raptor_detailed = RaptorDetailed(mode = 2, protocol_type = 2, title = "Public transport accessibility AREA, by destinations, backward accessibility, arrival time interval", timetable_mode = True)
+          raptor_detailed = RaptorDetailed(mode = 2, 
+                                           protocol_type = 2, 
+                                           title = "Public transport accessibility AREA, by destinations, backward accessibility, arrival time interval", 
+                                           timetable_mode = True)
           raptor_detailed.textInfo.setPlainText("Sample description backward raptor")
           raptor_detailed.show()    
 
 
 
         if item == self.item8:
-          raptor_summary = RaptorSummary(mode = 1, protocol_type = 1, title = "Public transport accessibility MAP, forward accessibility, fixed departure time", timetable_mode = False)
+          raptor_summary = RaptorSummary(mode = 1, 
+                                         protocol_type = 1, 
+                                         title = "Public transport accessibility MAP, forward accessibility, fixed departure time", 
+                                         timetable_mode = False
+                                         )
           raptor_summary.textInfo.setPlainText("Sample description forward raptor")
           raptor_summary.show()    
 
         if item == self.item9:
-          raptor_summary = RaptorSummary(mode = 1, protocol_type = 1, title = "Public transport accessibility MAP, forward accessibility, departure matches the timetable'", timetable_mode = True)
+          raptor_summary = RaptorSummary(mode = 1, 
+                                         protocol_type = 1, 
+                                         title = "Public transport accessibility MAP, forward accessibility, departure matches the timetable", 
+                                         timetable_mode = True)
           raptor_summary.textInfo.setPlainText("Sample description forward raptor with tametable mode")
           raptor_summary.show()  
 
         if item == self.item10:
-          raptor_summary = RaptorSummary(mode = 2, protocol_type = 1, title = "Public transport accessibility MAP, backward accessibility, fixed arrival time", timetable_mode = False)
+          raptor_summary = RaptorSummary(mode = 2, 
+                                         protocol_type = 1, 
+                                         title = "Public transport accessibility MAP, backward accessibility, fixed arrival time", 
+                                         timetable_mode = False)
           raptor_summary.textInfo.setPlainText("Sample description backward raptor")
           raptor_summary.show()
 
         if item == self.item11:
-          raptor_summary = RaptorSummary(mode = 2, protocol_type = 1, title = "Public transport accessibility MAP, backward accessibility, arrival time interval", timetable_mode = True)
+          raptor_summary = RaptorSummary(mode = 2, 
+                                         protocol_type = 1, 
+                                         title = "Public transport accessibility MAP, backward accessibility, arrival time interval", 
+                                         timetable_mode = True)
           raptor_summary.textInfo.setPlainText("Sample description backward raptor")
           raptor_summary.show()  
 
         if item == self.item12:
-          car_accessibility = CarAccessibility(mode = 1, protocol_type = 1, title = "Car accessibility AREA, by origins or destinations, forward accessibility")
+          car_accessibility = CarAccessibility(mode = 1, 
+                                               protocol_type = 1, 
+                                               title = "Car accessibility AREA, by origins or destinations, forward accessibility")
           car_accessibility.textInfo.setPlainText("Sample description car accessibility")
           car_accessibility.show()
 
         if item == self.item13:
-          car_accessibility = CarAccessibility(mode = 2, protocol_type = 1, title = "Car accessibility AREA, by origins or destinations, backward accessibility")
+          car_accessibility = CarAccessibility(mode = 2, 
+                                               protocol_type = 1, 
+                                               title = "Car accessibility AREA, by origins or destinations, backward accessibility")
           car_accessibility.textInfo.setPlainText("Sample description car accessibility")
           car_accessibility.show()    
 
         if item == self.item14:
-          car_accessibility = CarAccessibility(mode = 1, protocol_type = 2, title = "Car accessibility MAP, forward accessibility")
+          car_accessibility = CarAccessibility(mode = 1, 
+                                               protocol_type = 2, 
+                                               title = "Car accessibility MAP, forward accessibility")
           car_accessibility.textInfo.setPlainText("Sample description car accessibility")
           car_accessibility.show()
         
         if item == self.item15:
-          car_accessibility = CarAccessibility(mode = 1, protocol_type = 2, title = "Car accessibility MAP, backward accessibility")
+          car_accessibility = CarAccessibility(mode = 1, 
+                                               protocol_type = 2, 
+                                               title = "Car accessibility MAP, backward accessibility")
           car_accessibility.textInfo.setPlainText("Sample description car accessibility")
           car_accessibility.show()  
           
         if item == self.item16:
-          relative = form_relative(title = "Relative accessibility, PT versus Car, using ready protocols")
+          relative = form_relative(title = "Relative accessibility, PT versus Car, use ready-made protocols")
           relative.textInfo.setPlainText("Sample description relative accessibility")
-          relative.show()  
+          relative.show()
+
+        if item == self.item17:
+          raptor_summary = RaptorSummary(mode = 1, 
+                                         protocol_type = 1, 
+                                         title = "Relative accessibility MAP, PT versus Car, forward accessibility, stage 1 - PT", 
+                                         timetable_mode = False, 
+                                         relative_mode = True)
+          raptor_summary.textInfo.setPlainText("Sample description forward raptor")
+          raptor_summary.show()
+
+        if item == self.item18:
+          raptor_summary = RaptorSummary(mode = 2, 
+                                         protocol_type = 1, 
+                                         title = "Relative accessibility MAP, PT versus Car, backward accessibility, stage 1 - PT", 
+                                         timetable_mode = False, 
+                                         relative_mode = True)
+          raptor_summary.textInfo.setPlainText("Sample description backward raptor")
+          raptor_summary.show()  
+
+                
+
     
 
         

@@ -26,7 +26,7 @@ FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'relative.ui'))
 
 class form_relative(QDialog, FORM_CLASS):
-    def __init__(self, title):
+    def __init__(self, title, params = None):
             super().__init__()
             self.setupUi(self)
             self.setModal(False)
@@ -67,8 +67,23 @@ class form_relative(QDialog, FORM_CLASS):
             self.run_button.clicked.connect(self.on_run_button_clicked)
             self.close_button.clicked.connect(self.on_close_button_clicked)
             self.help_button.clicked.connect(self.on_help_button_clicked)
-            
+
             self.ParametrsShow()
+
+            if params:
+               (self.folder_name_PT, self.folder_name_Car) = params
+
+               self.txtPathToPT.setEnabled(False)
+               self.txtPathToCar.setEnabled(False)
+               self.label.setEnabled(False)
+               self.label_13.setEnabled(False)
+               self.toolButton_PT.setEnabled(False)
+               self.toolButton_Car.setEnabled(False)
+
+               self.txtPathToPT.setText(self.folder_name_PT)
+               self.txtPathToCar.setText(self.folder_name_Car)
+
+            
         
 
     def openFolder(self, url):
@@ -273,7 +288,12 @@ class form_relative(QDialog, FORM_CLASS):
               if "Field to aggregate:" in line:
                     field_to_aggregate = line.split(':')[1].strip()            
                   
-        return found_forward, found_map, max_time_travel, time_interval, run_aggregate, field_to_aggregate
+        return  (found_forward, 
+                found_map, 
+                max_time_travel, 
+                time_interval, 
+                run_aggregate, 
+                field_to_aggregate)
               
     def check_folder_and_file(self, path):
      
@@ -281,7 +301,7 @@ class form_relative(QDialog, FORM_CLASS):
         self.setMessage(f"Folder '{path}' no exist")
         return False
                
-      required_patterns = ['access_*.csv', 'log_*.txt', 'origins_*.zip']
+      required_patterns = ['access_*.csv', 'log_*.txt']
       missing_files = []
 
       for pattern in required_patterns:
@@ -344,6 +364,11 @@ class form_relative(QDialog, FORM_CLASS):
         time_after_computation = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         self.textLog.append(f'<a>Time after computation {time_after_computation}</a>') 
         self.textLog.append(f'<a href="file:///{self.folder_name}" target="_blank" >Protocol in folder</a>')
+
+        text = self.textLog.toPlainText()
+        filelog_name = f'{self.folder_name}//log_{self.curr_DateTime}.txt'
+        with open(filelog_name, "w") as file:
+            file.write(text)
         
       
       if not(run):
@@ -374,7 +399,9 @@ class form_relative(QDialog, FORM_CLASS):
         result_df[ratio_col] = result_df[pt_col] / result_df[car_col]
      
       #result_df.dropna(inplace=True)
-      result_df.to_csv(path_output, index=False)
+      result_df.to_csv(path_output, index=False, na_rep='NaN')
+
+      
       
 
     def get_qgis_info(self):
@@ -408,9 +435,9 @@ class form_relative(QDialog, FORM_CLASS):
     
     
     def eventFilter(self, obj, event):
-        if obj == self.cmbLayers and event.type() == QEvent.Wheel:
+        if event.type() == QEvent.Wheel:
             # Если комбо-бокс в фокусе, игнорируем событие прокрутки колесом мыши
-            if self.cmbLayers.hasFocus():
+            if obj.hasFocus():
                 event.ignore()
                 return True
         

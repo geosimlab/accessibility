@@ -6,14 +6,22 @@ from qgis.core import QgsProject, QgsWkbTypes, QgsPointXY
 
 import osgeo.gdal
 import osgeo.osr
+from pathlib import Path
 
-from PyQt5.QtWidgets import QDialogButtonBox, QDialog, QFileDialog, QApplication, QMessageBox
+from PyQt5.QtWidgets import (
+                            QDialogButtonBox, 
+                            QDialog, 
+                            QFileDialog, 
+                            QApplication, 
+                            QMessageBox
+                            )
+
 from PyQt5.QtCore import Qt, QRegExp, QEvent
 from PyQt5.QtGui import QRegExpValidator, QDesktopServices
 from PyQt5 import uic
 from ShortestPath import ShortestPathUtils
 from converter_layer import MultiLineStringToLineStringConverter
-
+from .form_relative import form_relative
 
 import configparser
 
@@ -24,12 +32,20 @@ FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'car.ui'))
 
 class CarAccessibility(QDialog, FORM_CLASS):
-    def __init__(self, mode, protocol_type, title):
+    def __init__(self, 
+                 mode, 
+                 protocol_type, 
+                 title, 
+                 relative_mode = False, 
+                 params = None
+                 ):
             super().__init__()
             self.setupUi(self)
             self.setModal(False)
             self.setWindowFlags(Qt.Window);
             self.user_home = os.path.expanduser("~")
+
+            self.relative_mode = relative_mode
                           
             
             self.setWindowTitle(title)
@@ -52,6 +68,8 @@ class CarAccessibility(QDialog, FORM_CLASS):
             self.protocol_type = protocol_type
             self.title = title
 
+            self.folder_name_Car = ""
+
             self.change_time = 1
             self.progressBar.setValue(0)
                
@@ -63,12 +81,17 @@ class CarAccessibility(QDialog, FORM_CLASS):
             self.toolButton_protocol.clicked.connect(lambda: self.showFoldersDialog(self.txtPathToProtocols))
 
             self.showAllLayersInCombo(self.cmbLayers)
-            self.cmbLayers.installEventFilter(self)
             self.showAllLayersInCombo(self.cmbLayersDest)
-            self.cmbLayersDest.installEventFilter(self)
             self.showAllLayersInCombo(self.cmbLayersRoad)
+
+            self.cmbLayers.installEventFilter(self)
+            self.cmbLayersDest.installEventFilter(self)
             self.cmbLayersRoad.installEventFilter(self)
-                       
+
+            self.cmbFieldsSpeed.installEventFilter(self)
+            self.cmbFields.installEventFilter(self)
+            self.cmbFieldsDirection.installEventFilter(self)
+                    
             
             self.toolButton_layer_dest_refresh.clicked.connect(lambda: self.showAllLayersInCombo(self.cmbLayersDest))
             self.toolButton_layer_refresh.clicked.connect(lambda: self.showAllLayersInCombo(self.cmbLayers))
@@ -87,7 +110,8 @@ class CarAccessibility(QDialog, FORM_CLASS):
             self.close_button.clicked.connect(self.on_close_button_clicked)
             self.help_button.clicked.connect(self.on_help_button_clicked)
 
-            self.cbUseFields.stateChanged.connect(self.EnableComboBox)
+            if not self.relative_mode:
+              self.cbUseFields.stateChanged.connect(self.EnableComboBox)
                         
             # Создание экземпляра регулярного выражения для целых чисел
             regex1 = QRegExp(r"\d*")     
@@ -105,16 +129,12 @@ class CarAccessibility(QDialog, FORM_CLASS):
             self.txtMaxTimeTravel.setValidator(int_validator3)
             self.txtTimeInterval.setValidator(int_validator3)
 
+            
 
-            self.fillComboBoxWithLayerFields()
-            self.fillComboBoxWithLayerFieldsSpeed()
-            self.fillComboBoxFieldsDirection()
-            #self.cmbLayersDest.currentIndexChanged.connect(self.fillComboBoxWithLayerFields)
-            #self.cmbLayersRoad.currentIndexChanged.connect(self.fillComboBoxWithLayerFieldsSpeed)
-            self.cmbLayersRoad.currentIndexChanged.connect
-            (
-            lambda: (self.fillComboBoxWithLayerFieldsSpeed(), self.fillComboBoxFieldsDirection)
-            )
+            self.cmbLayersDest.currentIndexChanged.connect(self.fillComboBoxWithLayerFields)
+            self.cmbLayersRoad.currentIndexChanged.connect(self.fillComboBoxWithLayerFieldsSpeed)
+            self.cmbLayersRoad.currentIndexChanged.connect(self.fillComboBoxFieldsDirection)
+            
 
             if self.protocol_type == 1:
               #self.txtMaxTimeTravel.setVisible(False)
@@ -129,9 +149,23 @@ class CarAccessibility(QDialog, FORM_CLASS):
               self.label_6.setVisible(False)
               self.label_5.setVisible(False)
 
-
-
+            
             self.ParametrsShow()
+
+            if relative_mode:
+                (self.folder_name_PT,
+                self.Field,
+                self.UseField,
+                self.maxtimetravel,
+                self.timeinterval,
+                self.layer,
+                self.selectedonly1,
+                self.layerdest,
+                self.selectedonly2) = params
+
+                self.ParametrsShow_relative()
+
+
     
     def EnableComboBox(self, state):
       
@@ -242,6 +276,7 @@ class CarAccessibility(QDialog, FORM_CLASS):
       
       self.config['Settings']['PathToProtocols_car'] = self.txtPathToProtocols.text()
       self.config['Settings']['Layer_car'] = self.cmbLayers.currentText()
+      self.config['Settings']['LayerDest_car'] = self.cmbLayersDest.currentText()
       self.config['Settings']['FieldSpeed_car'] = str(self.cmbFieldsSpeed.currentIndex())
       self.config['Settings']['FieldDirection_car'] = str(self.cmbFieldsDirection.currentIndex())
       
@@ -265,6 +300,41 @@ class CarAccessibility(QDialog, FORM_CLASS):
           self.config.write(configfile)
       
          
+    def ParametrsShow_relative(self):
+
+      self.cmbLayers.setEnabled(False)
+      self.cbSelectedOnly1.setEnabled(False)
+      self.cmbLayersDest.setEnabled(False)
+      self.cbSelectedOnly2.setEnabled(False)
+
+      self.txtMaxTimeTravel.setEnabled(False)
+      self.txtTimeInterval.setEnabled(False)
+      self.cbUseFields.setEnabled(False)
+      self.cmbFields.setEnabled(False)
+
+      self.toolButton_layer_refresh.setEnabled(False)
+      self.toolButton_layer_dest_refresh.setEnabled(False)
+
+
+      self.lblFields.setEnabled(False)
+      self.label_17.setEnabled(False)
+      self.label_5.setEnabled(False)
+      self.label_3.setEnabled(False)
+      self.label_6.setEnabled(False)
+      
+      # set values
+      
+      self.cmbLayers.setCurrentText(self.layer)
+      self.cbSelectedOnly1.setChecked(self.selectedonly1 == "True")
+      self.cmbLayersDest.setCurrentText(self.layerdest)
+      self.cbSelectedOnly2.setChecked(self.selectedonly2 == "True")
+
+      self.txtMaxTimeTravel.setText(self.maxtimetravel)
+      self.txtTimeInterval.setText(self.timeinterval)
+      self.cbUseFields.setChecked(self.UseField == "True" )
+      self.fillComboBoxWithLayerFields()
+      self.cmbFields.setCurrentText(self.Field)
+   
 
     def ParametrsShow(self):
             
@@ -272,11 +342,8 @@ class CarAccessibility(QDialog, FORM_CLASS):
       
       self.txtPathToProtocols.setText(self.config['Settings']['PathToProtocols_car'])
 
-      if isinstance(self.config['Settings']['Layer_car'], str) and self.config['Settings']['Layer_car'].strip():
-        self.cmbLayers.setCurrentText(self.config['Settings']['Layer_car'])
-
-      self.cmbFieldsSpeed.setCurrentIndex(int(self.config['Settings']['FieldSpeed_car']))  
-      self.cmbFieldsDirection.setCurrentIndex(int(self.config['Settings']['FieldDirection_car']))  
+      #if isinstance(self.config['Settings']['Layer_car'], str) and self.config['Settings']['Layer_car'].strip():
+      self.cmbLayers.setCurrentText(self.config['Settings']['Layer_car'])
 
       try:
         SelectedOnly1 = self.config['Settings']['SelectedOnly1_car'].lower() == "true"  
@@ -285,8 +352,8 @@ class CarAccessibility(QDialog, FORM_CLASS):
       self.cbSelectedOnly1.setChecked(SelectedOnly1)
       
       
-      if isinstance(self.config['Settings']['LayerDest_car'], str) and self.config['Settings']['LayerDest_car'].strip():  
-        self.cmbLayersDest.setCurrentText(self.config['Settings']['LayerDest_car'])
+      #if isinstance(self.config['Settings']['LayerDest_car'], str) and self.config['Settings']['LayerDest_car'].strip():  
+      self.cmbLayersDest.setCurrentText(self.config['Settings']['LayerDest_car'])
 
       try:
         SelectedOnly2 = self.config['Settings']['SelectedOnly2_car'].lower() == "true"  
@@ -294,20 +361,24 @@ class CarAccessibility(QDialog, FORM_CLASS):
         SelectedOnly2 = False
       self.cbSelectedOnly2.setChecked(SelectedOnly2)  
 
-      if isinstance(self.config['Settings']['LayerDest_car'], str) and self.config['Settings']['LayerDest_car'].strip():  
-        self.cmbLayersDest.setCurrentText(self.config['Settings']['LayerDest_car'])
+      #if isinstance(self.config['Settings']['LayerDest_car'], str) and self.config['Settings']['LayerDest_car'].strip():  
+      self.cmbLayersDest.setCurrentText(self.config['Settings']['LayerDest_car'])
 
-      if isinstance(self.config['Settings']['LayerRoad_car'], str) and self.config['Settings']['LayerRoad_car'].strip():  
-        self.cmbLayersRoad.setCurrentText(self.config['Settings']['layerroad_car'])  
+      #if isinstance(self.config['Settings']['LayerRoad_car'], str) and self.config['Settings']['LayerRoad_car'].strip():  
+      self.cmbLayersRoad.setCurrentText(self.config['Settings']['layerroad_car'])  
 
-      self.cmbFieldsSpeed.setCurrentIndex(int(self.config['Settings']['fieldspeed_car']))    
+      self.fillComboBoxWithLayerFieldsSpeed()
+      self.cmbFieldsSpeed.setCurrentIndex(int(self.config['Settings']['FieldSpeed_car']))    
 
+      self.fillComboBoxFieldsDirection()
+      self.cmbFieldsDirection.setCurrentIndex(int(self.config['Settings']['FieldDirection_car']))  
 
       self.txtSpeed.setText(self.config['Settings']['Speed_car'])
 
       use_field = self.config['Settings']['UseField_car'].lower() == "true" 
       self.cbUseFields.setChecked(use_field)
       self.cmbFields.setEnabled(use_field)
+      self.fillComboBoxWithLayerFields()
       self.cmbFields.setCurrentText(self.config['Settings']['Field_car'])
       self.txtMaxTimeTravel.setText( self.config['Settings']['MaxTimeTravel_car'])
       self.txtTimeInterval.setText( self.config['Settings']['TimeInterval_car'])
@@ -438,6 +509,9 @@ class CarAccessibility(QDialog, FORM_CLASS):
       layer_origins = self.config['Settings']['Layer_Car']
       layer_origins = QgsProject.instance().mapLayersByName(layer_origins)[0]  
 
+      layer_dest = self.config['Settings']['LayerDest_Car']
+      layer_dest = QgsProject.instance().mapLayersByName(layer_dest)[0]  
+
       path_to_protocol = self.config['Settings']['pathtoprotocols_car'] 
       #speed = float(self.config['Settings']['Speed_CAR'].replace(',', '.')) * 1000 / 3600  # from km/h to m/sec
       speed = float(self.config['Settings']['Speed_CAR'].replace(',', '.'))
@@ -452,15 +526,52 @@ class CarAccessibility(QDialog, FORM_CLASS):
       
       max_time_minutes = int(self.config['Settings']['MaxTimeTravel_car'])
       time_step_minutes = int(self.config['Settings']['TimeInterval_car'])
-
-      self.setMessage('Preparing GTFS. Calc footpath on road. Converting layer road multiline to line ...')
+      
+      self.setMessage('Calc footpath on road. Converting layer road multiline to line ...')
       converter = MultiLineStringToLineStringConverter(self, layer_road)
       layer_road = converter.execute()
+
+
       if layer_road != 0:
-        ShortestPath = ShortestPathUtils (self, layer_road, idx_field, idx_field_direction, layer_origins, points_to_tie, speed, strategy_id, path_to_protocol, max_time_minutes, time_step_minutes, self.mode, self.protocol_type, use_aggregate, field_aggregate)
-        ShortestPath.run()
+        ShortestPath = ShortestPathUtils (self, 
+                                          layer_road, 
+                                          idx_field, 
+                                          idx_field_direction, 
+                                          layer_origins,
+                                          layer_dest, 
+                                          points_to_tie, 
+                                          speed, 
+                                          strategy_id, 
+                                          path_to_protocol, 
+                                          max_time_minutes, 
+                                          time_step_minutes, 
+                                          self.mode, 
+                                          self.protocol_type, 
+                                          use_aggregate, 
+                                          field_aggregate
+                                          )
+        self.folder_name_Car = ShortestPath.run()
         
-      converter.remove_temp_layer()  
+      converter.remove_temp_layer()
+
+      if self.folder_name_Car   and self.relative_mode:
+          self.close_button.setText("Close and calc relative PT versus Car ")
+          self.close_button.setStyleSheet("QPushButton { color: red !important;}")
+          self.close_button.clicked.connect(self.calc_relative)  
+    
+    def calc_relative(self):
+            
+      self.folder_name_PT = Path(self.folder_name_PT).as_posix()
+      self.folder_name_Car = Path(self.folder_name_Car).as_posix()
+
+      params = (
+                self.folder_name_PT,
+                self.folder_name_Car
+                )
+      relative = form_relative(title = "Relative accessibility, PT versus Car, stage 3", params = params)
+      relative.textInfo.setPlainText("Sample description relative accessibility")
+      relative.show()
+      
 
     def prepare(self):  
       self.break_on = False
@@ -487,7 +598,11 @@ class CarAccessibility(QDialog, FORM_CLASS):
         msgBox = QMessageBox()
         msgBox.setIcon(QMessageBox.Question)
         msgBox.setWindowTitle("Confirm")
-        msgBox.setText(f"Layer contains {len(self.points)+1} feature. No more than 10 objects are recommended. The calculations can take a long time and require a lot of resources. Are you sure?")
+        msgBox.setText(
+                        f"Layer contains {len(self.points)+1} feature.\n"
+                        "No more than 10 objects are recommended.\n"
+                        "The calculations can take a long time and require a lot of resources. Are you sure?"
+                      )
         msgBox.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
         
         result = msgBox.exec_()
@@ -609,6 +724,7 @@ class CarAccessibility(QDialog, FORM_CLASS):
       self.cmbFields.clear()
       selected_layer_name = self.cmbLayersDest.currentText()
       selected_layer = QgsProject.instance().mapLayersByName(selected_layer_name)
+      
       if selected_layer:
         layer = selected_layer[0]
           
@@ -624,15 +740,10 @@ class CarAccessibility(QDialog, FORM_CLASS):
 
     
     def eventFilter(self, obj, event):
-        if obj == self.cmbLayers and event.type() == QEvent.Wheel:
+        
+        if event.type() == QEvent.Wheel:
             # Если комбо-бокс в фокусе, игнорируем событие прокрутки колесом мыши
-            if self.cmbLayers.hasFocus():
-                event.ignore()
-                return True
-            
-        if obj == self.cmbLayersDest and event.type() == QEvent.Wheel:
-            # Если комбо-бокс в фокусе, игнорируем событие прокрутки колесом мыши
-            if self.cmbLayersDest.hasFocus():
+            if obj.hasFocus():
                 event.ignore()
                 return True
             

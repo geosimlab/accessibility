@@ -2,14 +2,43 @@ import os
 from datetime import datetime
 import zipfile
 
-from qgis.analysis import QgsGraphAnalyzer, QgsGraphBuilder, QgsVectorLayerDirector, QgsNetworkSpeedStrategy, QgsNetworkDistanceStrategy
+from qgis.analysis import (QgsGraphAnalyzer, 
+                           QgsGraphBuilder, 
+                           QgsVectorLayerDirector, 
+                           QgsNetworkSpeedStrategy, 
+                           QgsNetworkDistanceStrategy
+                           )
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtCore import QVariant
-from qgis.core import QgsVectorFileWriter, QgsFeatureRequest, QgsGeometry, QgsSpatialIndex, QgsCoordinateReferenceSystem, QgsFeature, QgsVectorLayer, QgsField
+from qgis.core import (QgsVectorFileWriter, 
+                       QgsFeatureRequest, 
+                       QgsGeometry, 
+                       QgsSpatialIndex, 
+                       QgsCoordinateReferenceSystem, 
+                       QgsFeature, 
+                       QgsVectorLayer, 
+                       QgsField
+                       )
 
 
 class ShortestPathUtils:
-    def __init__(self, parent, road_layer, idx_field_speed, idx_field_direction, layer_origins, points_to_tie, speed, strategy_id, path_to_protocol, max_time_minutes, time_step_minutes, mode, protocol_type, use_aggregate, field_aggregate):
+    def __init__(self, 
+                 parent, 
+                 road_layer, 
+                 idx_field_speed, 
+                 idx_field_direction, 
+                 layer_origins, 
+                 layer_dest, 
+                 points_to_tie, 
+                 speed, 
+                 strategy_id, 
+                 path_to_protocol, 
+                 max_time_minutes, 
+                 time_step_minutes, 
+                 mode, 
+                 protocol_type, 
+                 use_aggregate, 
+                 field_aggregate):
         
         self.points_to_tie = points_to_tie
         self.strategy_id = int(strategy_id)
@@ -21,6 +50,7 @@ class ShortestPathUtils:
         self.idx_field_speed = idx_field_speed
         self.idx_field_direction = idx_field_direction
         self.layer_origins = layer_origins
+        self.layer_dest = layer_dest
         self.protocol_type = protocol_type
         self.mode = mode
         self.curr_DateTime = self.getDateTime()
@@ -51,18 +81,19 @@ class ShortestPathUtils:
         self.dict_vertex_nearest_buildings = {}
 
         Field = self.field_aggregate
-        if self.protocol_type == 2 and self.use_aggregate and self.layer_origins.fields().indexOf(Field) == -1:
+            
+        if self.protocol_type == 2 and self.use_aggregate and self.layer_dest.fields().indexOf(Field) == -1:
                 self.parent.textLog.append(f'<a><b><font color="red"> WARNING: field "{Field}" no exist in layer, aggregate no run</font> </b></a>')    
                 self.use_aggregate = False
 
         if self.use_aggregate:
-            for feature in self.layer_origins.getFeatures():
+            for feature in self.layer_dest.getFeatures():
                 if self.protocol_type == 2 and self.use_aggregate and (not (isinstance(feature[Field], int) or (isinstance(feature[Field], str) and feature[Field].isdigit()))):
                     self.parent.textLog.append(f'<a><b><font color="red"> WARNING: type of field "{Field}" to aggregate  is no digital, aggregate no run</font> </b></a>')
                     self.use_aggregate = False
                 break
 
-        for feature in self.layer_origins.getFeatures():
+        for feature in self.layer_dest.getFeatures():
             building_point = feature.geometry().asPoint()
             building_osm_id = feature['osm_id']
 
@@ -139,14 +170,21 @@ class ShortestPathUtils:
 
 
         
-        self.director = QgsVectorLayerDirector(self.road_layer_mod, self.idx_field_direction, '', '', '', QgsVectorLayerDirector.DirectionBoth)
+        self.director = QgsVectorLayerDirector(self.road_layer_mod, 
+                                               self.idx_field_direction,
+                                                 '', '', '', 
+                                               QgsVectorLayerDirector.DirectionBoth
+                                               )
 
         defaultValue = int(self.speed)
         
         toMetricFactor = 1  # for speed m/sec
         
         if self.strategy_id == 1:
-            strategy = QgsNetworkSpeedStrategy(self.idx_field_speed, defaultValue, toMetricFactor)
+            strategy = QgsNetworkSpeedStrategy(self.idx_field_speed, 
+                                               defaultValue, 
+                                               toMetricFactor
+                                               )
         else:
             strategy = QgsNetworkDistanceStrategy()
 
@@ -340,7 +378,7 @@ class ShortestPathUtils:
     def prepare_grades(self): 
         intervals_number= round(self.max_time_minutes/self.time_step_minutes)
         grades = []
-        header = 'source,'
+        header = 'Source_ID,'
         time_step_min = self.time_step_minutes
         low_bound_min = 0
         top_bound_min = time_step_min
@@ -407,6 +445,7 @@ class ShortestPathUtils:
         self.write_info()
 
         self.parent.textLog.append(f'<a href="file:///{self.folder_name}" target="_blank" >Output in folder</a>')
+        return self.folder_name
 
     def verify_break (self):
       if self.parent.break_on:

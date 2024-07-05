@@ -7,8 +7,17 @@ from qgis.core import QgsProject, QgsWkbTypes
 import osgeo.gdal
 import osgeo.osr
 
-from PyQt5.QtWidgets import QDialogButtonBox, QDialog, QFileDialog, QApplication, QMessageBox
-from PyQt5.QtCore import Qt, QRegExp, QDateTime, QEvent
+from PyQt5.QtWidgets import (QDialogButtonBox, 
+                             QDialog, 
+                             QFileDialog, 
+                             QApplication, 
+                             QMessageBox
+                             )
+from PyQt5.QtCore import (Qt, 
+                          QRegExp, 
+                          QDateTime, 
+                          QEvent
+                          )
 from PyQt5.QtGui import QRegExpValidator, QDesktopServices
 from PyQt5 import uic
 from PyQt5 import QtWidgets
@@ -459,7 +468,11 @@ class RaptorDetailed(QDialog, FORM_CLASS):
         msgBox = QMessageBox()
         msgBox.setIcon(QMessageBox.Question)
         msgBox.setWindowTitle("Confirm")
-        msgBox.setText(f"Layer contains {len(sources)+1} feature. No more than 10 objects are recommended. The calculations can take a long time and require a lot of resources. Are you sure?")
+        msgBox.setText(
+                      f"Layer contains {len(sources)+1} feature.\n"
+                      "No more than 10 objects are recommended.\n"
+                      "The calculations can take a long time and require a lot of resources. Are you sure?"
+                      )
         msgBox.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
         
         result = msgBox.exec_()
@@ -469,7 +482,16 @@ class RaptorDetailed(QDialog, FORM_CLASS):
           run = False
                    
       if run:
-         runRaptorWithProtocol(self, sources, mode, protocol_type, timetable_mode, self.cbSelectedOnly1.isChecked(), self.cbSelectedOnly2.isChecked())
+         _, self.folder_name = runRaptorWithProtocol(self, 
+                                                  sources, 
+                                                  mode, 
+                                                  protocol_type, 
+                                                  timetable_mode, 
+                                                  self.cbSelectedOnly1.isChecked(), 
+                                                  self.cbSelectedOnly2.isChecked()
+                                                  )
+         
+         return 1
 
       if not(run):
          self.run_button.setEnabled(True)
@@ -477,6 +499,7 @@ class RaptorDetailed(QDialog, FORM_CLASS):
          self.textLog.clear()
          self.tabWidget.setCurrentIndex(0) 
          self.setMessage("")
+         return 0
 
          
       
@@ -557,22 +580,9 @@ class RaptorDetailed(QDialog, FORM_CLASS):
     
     
     def eventFilter(self, obj, event):
-        if obj == self.cmbLayers and event.type() == QEvent.Wheel:
+        if event.type() == QEvent.Wheel:
             # Если комбо-бокс в фокусе, игнорируем событие прокрутки колесом мыши
-            if self.cmbLayers.hasFocus():
-                event.ignore()
-                return True
-            
-        if obj == self.cmbLayersDest and event.type() == QEvent.Wheel:
-            # Если комбо-бокс в фокусе, игнорируем событие прокрутки колесом мыши
-            if self.cmbLayersDest.hasFocus():
-                event.ignore()
-                return True
-
-        if obj == self.dtStartTime and event.type() == QEvent.Wheel:
-            # Проверяем, находится ли QDateTimeEdit в фокусе
-            if self.dtStartTime.hasFocus():
-                # Игнорируем событие колеса мыши
+            if obj.hasFocus():
                 event.ignore()
                 return True
     

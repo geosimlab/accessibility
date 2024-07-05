@@ -6,9 +6,25 @@ from RAPTOR.raptor_functions import *
 from PyQt5.QtWidgets import QApplication
 
 
-def raptor (SOURCE, D_TIME, MAX_TRANSFER, MIN_TRANSFER, change_time, 
-           routes_by_stop_dict, stops_dict, stoptimes_dict, footpath_dict, 
-           idx_by_route_stop_dict: dict, Maximal_travel_time, MaxWalkDist1, MaxWalkDist2, MaxWalkDist3, MaxWaitTime, MaxWaitTimeTransfer, timetable_mode, MaxExtraTime, departure_interval) -> list:
+def raptor (SOURCE, 
+           D_TIME, 
+           MAX_TRANSFER, 
+           MIN_TRANSFER, 
+           change_time, 
+           routes_by_stop_dict, 
+           stops_dict, 
+           stoptimes_dict, 
+           footpath_dict, 
+           idx_by_route_stop_dict, 
+           Maximal_travel_time, 
+           MaxWalkDist1, 
+           MaxWalkDist2, 
+           MaxWalkDist3, 
+           MaxWaitTime, 
+           MaxWaitTimeTransfer, 
+           timetable_mode, 
+           MaxExtraTime, 
+           departure_interval) -> list:
         
     
    
@@ -197,14 +213,32 @@ def raptor (SOURCE, D_TIME, MAX_TRANSFER, MIN_TRANSFER, change_time,
         
                 save_marked_stop = True
                                 
-                process_walking_stage(max_time, MaxWalkDist2_time, k, footpath_dict,
-                marked_stop_dict,marked_stop, label,star_label,pi_label, save_marked_stop) 
+                process_walking_stage(max_time, 
+                                      MaxWalkDist2_time, 
+                                      k, 
+                                      footpath_dict,
+                                      marked_stop_dict,
+                                      marked_stop, 
+                                      label,
+                                      star_label,
+                                      pi_label, 
+                                      save_marked_stop
+                                      ) 
            
            
         save_marked_stop = False
         
-        process_walking_stage(max_time , MaxWalkDist3_time, k, footpath_dict, 
-        marked_stop_dict, marked_stop, label, star_label, pi_label, save_marked_stop)
+        process_walking_stage(max_time, 
+                              MaxWalkDist3_time, 
+                              k, 
+                              footpath_dict, 
+                              marked_stop_dict, 
+                              marked_stop, 
+                              label, 
+                              star_label, 
+                              pi_label, 
+                              save_marked_stop
+                              )
         
         #print (f' pi_label {pi_label}')
         #print (f' marked_stop {marked_stop}')
@@ -214,7 +248,18 @@ def raptor (SOURCE, D_TIME, MAX_TRANSFER, MIN_TRANSFER, change_time,
         if marked_stop == deque([]):
             break
     
-    reachedLabels = post_processingAll (my_name, SOURCE, D_TIME, label, pi_label, MIN_TRANSFER, MaxWalkDist3, timetable_mode, Maximal_travel_time, departure_interval, mode = 1)
+    reachedLabels = post_processingAll (my_name, 
+                                        SOURCE, 
+                                        D_TIME, 
+                                        label, 
+                                        pi_label, 
+                                        MIN_TRANSFER, 
+                                        MaxWalkDist3, 
+                                        timetable_mode, 
+                                        Maximal_travel_time, 
+                                        departure_interval, 
+                                        mode = 1
+                                        )
     
     return reachedLabels
 
@@ -245,8 +290,17 @@ def get_time_foot_to_stop(pi_label, boarding_point):
 
 
      
-def process_walking_stage(max_time, WALKING_LIMIT, k,
-        footpath_dict, marked_stop_dict, marked_stop, label, star_label, pi_label, save_marked_stop):
+def process_walking_stage(max_time, 
+                          WALKING_LIMIT, 
+                          k,
+                          footpath_dict, 
+                          marked_stop_dict, 
+                          marked_stop, 
+                          label, 
+                          star_label, 
+                          pi_label, 
+                          save_marked_stop
+                          ):
          
 
          marked_stop_copy = [*marked_stop]

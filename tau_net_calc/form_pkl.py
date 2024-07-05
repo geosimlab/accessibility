@@ -7,7 +7,12 @@ from qgis.core import QgsProject, QgsWkbTypes
 import osgeo.gdal
 import osgeo.osr
 
-from PyQt5.QtWidgets import QDialogButtonBox, QDialog, QFileDialog, QApplication, QMessageBox
+from PyQt5.QtWidgets import (QDialogButtonBox, 
+                             QDialog, 
+                             QFileDialog, 
+                             QApplication, 
+                             QMessageBox
+                             )
 from PyQt5.QtCore import Qt, QEvent
 from PyQt5.QtGui import QDesktopServices
 from PyQt5 import uic
@@ -439,9 +444,9 @@ class form_pkl(QDialog, FORM_CLASS):
     
     
     def eventFilter(self, obj, event):
-        if obj == self.cmbLayers and event.type() == QEvent.Wheel:
+        if event.type() == QEvent.Wheel:
             # Если комбо-бокс в фокусе, игнорируем событие прокрутки колесом мыши
-            if self.cmbLayers.hasFocus():
+            if obj.hasFocus():
                 event.ignore()
                 return True
         

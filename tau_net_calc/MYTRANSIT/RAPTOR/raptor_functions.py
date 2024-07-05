@@ -12,7 +12,9 @@ def seconds_to_time(total_seconds):
     time_str = "{:02d}:{:02d}:{:02d}".format(hours, minutes, seconds)
     return time_str
 
-def initialize_raptor(routes_by_stop_dict: dict, SOURCE: int, MAX_TRANSFER: int) -> tuple:
+def initialize_raptor(routes_by_stop_dict, 
+                      SOURCE, 
+                      MAX_TRANSFER) -> tuple:
     '''
     Initialize values for RAPTOR.
 
@@ -47,7 +49,12 @@ def initialize_raptor(routes_by_stop_dict: dict, SOURCE: int, MAX_TRANSFER: int)
     return marked_stop, marked_stop_dict, label, pi_label, star_label
 
 
-def get_latest_trip_new(stoptimes_dict: dict, route: int, arrival_time_at_pi, pi_index: int, change_time, max_waiting_time) -> tuple:
+def get_latest_trip_new(stoptimes_dict, 
+                        route, 
+                        arrival_time_at_pi, 
+                        pi_index, 
+                        change_time, 
+                        max_waiting_time) -> tuple:
     '''
     Get latest trip after a certain timestamp from the given stop of a route.
 
@@ -100,7 +107,15 @@ def get_latest_trip_new(stoptimes_dict: dict, route: int, arrival_time_at_pi, pi
 
 
 
-def post_processing (DESTINATION: int, pi_label, MIN_TRANSFER, MaxWalkDist, timetable_mode, Maximal_travel_time, D_Time, mode_raptor, departure_interval) -> tuple:
+def post_processing (DESTINATION,
+                     pi_label, 
+                     MIN_TRANSFER, 
+                     MaxWalkDist, 
+                     timetable_mode, 
+                     Maximal_travel_time, 
+                     D_Time, 
+                     mode_raptor, 
+                     departure_interval) -> tuple:
     '''
     Post processing for std_RAPTOR. Currently supported functionality:
         1. Rounds in which DESTINATION is reached
@@ -227,7 +242,7 @@ def post_processing (DESTINATION: int, pi_label, MIN_TRANSFER, MaxWalkDist, time
                        append = False 
                 
                 if mode_raptor == 2:
-                    if (duration > Maximal_travel_time) or end_time > D_Time - 300:
+                    if (duration > Maximal_travel_time) or end_time > D_Time - departure_interval:
                         append = False 
                             
             
@@ -235,7 +250,7 @@ def post_processing (DESTINATION: int, pi_label, MIN_TRANSFER, MaxWalkDist, time
                 if append:
                     pareto_set.append((transfer_needed, journey))
         
-
+        
         if len(pareto_set) == 0:
           return None, None, None,None
         
@@ -291,7 +306,17 @@ def get_duration_for_timetable_mode (journey, mode_raptor):
     return duration, start_time, end_time
     
 
-def post_processingAll(call_name, SOURCE, D_TIME, label, pi_label, MIN_TRANSFER, MaxWalkDist, timetable_mode, Maximal_travel_time, departure_interval, mode) -> tuple:
+def post_processingAll(call_name, 
+                       SOURCE, 
+                       D_TIME, 
+                       label, 
+                       pi_label, 
+                       MIN_TRANSFER, 
+                       MaxWalkDist, 
+                       timetable_mode, 
+                       Maximal_travel_time, 
+                       departure_interval, 
+                       mode) -> tuple:
    newDict = dict()   
    stops = label[0].keys()
       
@@ -305,7 +330,14 @@ def post_processingAll(call_name, SOURCE, D_TIME, label, pi_label, MIN_TRANSFER,
             QApplication.processEvents()
             if SOURCE == p_i:
                continue        
-            pareto_set = post_processing (p_i, pi_label, MIN_TRANSFER, MaxWalkDist, timetable_mode, Maximal_travel_time, D_TIME, mode, departure_interval)           
+            pareto_set = post_processing (p_i, 
+                                          pi_label, 
+                                          MIN_TRANSFER, 
+                                          MaxWalkDist, 
+                                          timetable_mode, 
+                                          Maximal_travel_time, 
+                                          D_TIME, mode, 
+                                          departure_interval)           
             
             total_time_to_dest = -1           
                         
@@ -365,7 +397,9 @@ def get_optimal_journey(pareto_set, raptor_mode):
    
                      
 
-def initialize_rev_raptor(routes_by_stop_dict: dict, SOURCE: int, MAX_TRANSFER: int) -> tuple:
+def initialize_rev_raptor(routes_by_stop_dict, 
+                          SOURCE, 
+                          MAX_TRANSFER) -> tuple:
     '''
     Initialize values for RAPTOR.
 
@@ -400,7 +434,12 @@ def initialize_rev_raptor(routes_by_stop_dict: dict, SOURCE: int, MAX_TRANSFER: 
     marked_stop_dict[SOURCE] = 1
     return marked_stop, marked_stop_dict, label, pi_label, star_label, inf_time
 
-def get_earliest_trip_new(stoptimes_dict: dict, route: int, arrival_time_at_pi, pi_index: int, change_time, max_waiting_time) -> tuple:
+def get_earliest_trip_new(stoptimes_dict, 
+                          route, 
+                          arrival_time_at_pi, 
+                          pi_index, 
+                          change_time, 
+                          max_waiting_time) -> tuple:
 
     '''
     Get earliest trip after a certain timestamp from the given stop of a route.

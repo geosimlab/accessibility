@@ -5,10 +5,26 @@ from PyQt5.QtWidgets import QApplication
 from RAPTOR.raptor_functions import *
 
 
-def rev_raptor(SOURCE, D_TIME, MAX_TRANSFER, MIN_TRANSFER, 
-                change_time, routes_by_stop_dict, stops_dict, stoptimes_dict, footpath_dict,
-                idx_by_route_stop_dict,Maximal_travel_time,
-                MaxWalkDist1, MaxWalkDist2, MaxWalkDist3, MaxWaitTime, MaxWaitTimeTransfer, timetable_mode, MaxExtraTime, departure_interval) -> list:
+def rev_raptor(SOURCE, 
+               D_TIME, 
+               MAX_TRANSFER, 
+               MIN_TRANSFER, 
+               change_time, 
+               routes_by_stop_dict, 
+               stops_dict, 
+               stoptimes_dict, 
+               footpath_dict,
+               idx_by_route_stop_dict,
+               Maximal_travel_time,
+               MaxWalkDist1, 
+               MaxWalkDist2, 
+               MaxWalkDist3, 
+               MaxWaitTime, 
+               MaxWaitTimeTransfer, 
+               timetable_mode, 
+               MaxExtraTime, 
+               departure_interval
+               ) -> list:
     '''
     Standard Raptor implementation
 
@@ -39,7 +55,12 @@ def rev_raptor(SOURCE, D_TIME, MAX_TRANSFER, MIN_TRANSFER,
     
     my_name=rev_raptor.__name__
     out = []
-    marked_stop, marked_stop_dict, label, pi_label, star_label, inf_time = initialize_rev_raptor(routes_by_stop_dict, SOURCE, MAX_TRANSFER)
+    (marked_stop, 
+     marked_stop_dict, 
+     label, 
+     pi_label, 
+     star_label, 
+     inf_time)  = initialize_rev_raptor(routes_by_stop_dict, SOURCE, MAX_TRANSFER)
 
     change_time_save = change_time
     
