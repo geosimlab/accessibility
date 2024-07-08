@@ -32,6 +32,9 @@ def raptor (SOURCE,
     out = []
     
     marked_stop, marked_stop_dict, label, pi_label, star_label  = initialize_raptor(routes_by_stop_dict, SOURCE, MAX_TRANSFER)
+
+    #print (f'pi_label [0] {pi_label[0]}')
+    
     
     change_time_save = change_time
     
@@ -313,7 +316,7 @@ def process_walking_stage(max_time,
 
             try:
                 trans_info = footpath_dict.get(p)
-                
+                                
             except:
                 continue
     
@@ -324,14 +327,17 @@ def process_walking_stage(max_time,
             
             for p_dash, to_pdash_time in trans_info:
                 
+                
                 if p_dash not in pi_label[k]:
                     continue 
-
+                
                 # this line is "don't rewrite founded bus trip to footleg"
                 if pi_label[k][p_dash] != - 1 and pi_label[k][p_dash][0] != 'walking':
+
                     
                     continue
                 new_p_dash_time = label[k][p] + to_pdash_time
+                
                 
                 if max_time < new_p_dash_time or to_pdash_time > WALKING_LIMIT:
                     
@@ -347,10 +353,9 @@ def process_walking_stage(max_time,
                 
                 pi_label[k][p_dash] = ('walking', p, p_dash, to_pdash_time, new_p_dash_time)
 
+                
                 if save_marked_stop and marked_stop_dict[p_dash] == 0:
                     marked_stop.append(p_dash)
                     marked_stop_dict[p_dash] = 1
-        
-
          
      

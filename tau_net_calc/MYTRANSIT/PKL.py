@@ -55,6 +55,7 @@ class PKL ():
         self.parent.progressBar.setValue(2)
         if self.verify_break():
                 return 0
+        
         self.build_stopstimes_dict()
         self.parent.progressBar.setValue(3)
         if self.verify_break():
@@ -68,8 +69,9 @@ class PKL ():
         self.parent.progressBar.setValue(5)
         if self.verify_break():
                 return 0
-                
+        
         self.build__route_by_stop()
+        
         self.parent.progressBar.setValue(6)
         if self.verify_break():
                 return 0
@@ -94,7 +96,7 @@ class PKL ():
         self.parent.progressBar.setValue(11)
         if self.verify_break():
                 return 0
-
+        
         
     def load_gtfs(self):
         self.parent.setMessage(f'Creating PKL. Loading GTFS ...')
@@ -394,13 +396,11 @@ class PKL ():
         for building in osm_ids:
             route_by_stop_dict[building] = []
         """
-        osm_ids = []
+                
         for feature in self.layer_buildings.getFeatures():
             osm_id = feature['osm_id']
-            osm_ids.append(osm_id)
+            route_by_stop_dict[int(osm_id)] = []
         
-        for building in osm_ids:
-            route_by_stop_dict[building] = []
 
         with open(f'{self.__path_pkl}/routes_by_stop.pkl', 'wb') as pickle_file:
             pickle.dump(route_by_stop_dict, pickle_file)

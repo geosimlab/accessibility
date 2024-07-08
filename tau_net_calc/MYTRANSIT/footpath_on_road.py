@@ -269,11 +269,7 @@ class footpath_on_road:
             else:
                 continue
 
-            #num_nodes = self.graph.number_of_nodes()
-            #num_edges = self.graph.number_of_edges()
-            #print(f"Количество вершин: {num_nodes}")
-            #print(f"Количество рёбер: {num_edges}")
-
+            
             dist_finish = self.dict_feature_min_dist_to_finishstop.get(self.source)
             cutoff_value = 500 - dist - dist_finish
             

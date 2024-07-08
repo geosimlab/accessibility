@@ -25,33 +25,6 @@ def rev_raptor(SOURCE,
                MaxExtraTime, 
                departure_interval
                ) -> list:
-    '''
-    Standard Raptor implementation
-
-    Args:
-        SOURCE (int): stop id of source stop.
-        DESTINATION (int): stop id of destination stop.
-        D_TIME (pandas.datetime): departure time.
-        MAX_TRANSFER (int): maximum transfer limit.
-        
-        CHANGE_TIME_SEC (int): change-time in seconds.
-        routes_by_stop_dict (dict): preprocessed dict. Format {stop_id: [id of routes passing through stop]}.
-        stops_dict (dict): preprocessed dict. Format {route_id: [ids of stops in the route]}.
-        stoptimes_dict (dict): preprocessed dict. Format {route_id: [[trip_1], [trip_2]]}.
-        footpath_dict (dict): preprocessed dict. Format {from_stop_id: [(to_stop_id, footpath_time)]}.
-        idx_by_route_stop_dict (dict): preprocessed dict. Format {(route id, stop id): stop index in route}.
-
-    Returns:
-        out (list): list of pareto-optimal arrival timestamps.
-
-    Examples:
-        >>> output = raptor(36, 52, pd.to_datetime('2022-06-30 05:41:00'), 4, 1, 0, 1, routes_by_stop_dict, stops_dict, stoptimes_dict, footpath_dict, idx_by_route_stop_dict)
-        >>> print(f"Optimal arrival time are: {output}")
-
-    See Also:
-        HypRAPTOR, Tip-based Public Transit Routing (TBTR)
-    '''
-       
     
     my_name=rev_raptor.__name__
     out = []

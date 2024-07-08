@@ -15,35 +15,16 @@ def seconds_to_time(total_seconds):
 def initialize_raptor(routes_by_stop_dict, 
                       SOURCE, 
                       MAX_TRANSFER) -> tuple:
-    '''
-    Initialize values for RAPTOR.
-
-    Args:
-        routes_by_stop_dict (dict): preprocessed dict. Format {stop_id: [id of routes passing through stop]}.
-        SOURCE (int): stop id of source stop.
-        MAX_TRANSFER (int): maximum transfer limit.
-
-    Returns:
-        marked_stop (deque): deque to store marked stop.
-        marked_stop_dict (dict): Binary variable indicating if a stop is marked. Keys: stop Id, value: 0 or 1.
-        label (dict): nested dict to maintain label. Format {round : {stop_id: pandas.datetime}}.
-        pi_label (dict): Nested dict used for backtracking labels. Format {round : {stop_id: pointer_label}}
-        if stop is reached by walking, pointer_label= ('walking', from stop id, to stop id, time, arrival time)}} else pointer_label= (trip boarding time, boarding_point, stop id, arr_by_trip, trip id)
-        star_label (dict): dict to maintain best arrival label {stop id: pandas.datetime}.
-        inf_time (pandas.datetime): Variable indicating infinite time (pandas.datetime).
-
-    Examples:
-        >>> output = initialize_raptor(routes_by_stop_dict, 20775, 4)
-    '''
-    #inf_time = pd.to_datetime("today").round(freq='H') + pd.to_timedelta("365 day")
+    
+        
     inf_time = 200000
     roundsCount = MAX_TRANSFER + 1
-    pi_label = {x: {stop: -1 for stop in routes_by_stop_dict.keys()} for x in range(0, roundsCount + 1)}
-    label = {x: {stop: inf_time for stop in routes_by_stop_dict.keys()} for x in range(0, roundsCount + 1)}
-    star_label = {stop: inf_time for stop in routes_by_stop_dict.keys()}
+    pi_label = {x: {int(stop): -1 for stop in routes_by_stop_dict.keys()} for x in range(0, roundsCount + 1)}
+    label = {x: {int(stop): inf_time for stop in routes_by_stop_dict.keys()} for x in range(0, roundsCount + 1)}
+    star_label = {int(stop): inf_time for stop in routes_by_stop_dict.keys()}
 
     marked_stop = deque()
-    marked_stop_dict = {stop: 0 for stop in routes_by_stop_dict.keys()}
+    marked_stop_dict = {int(stop): 0 for stop in routes_by_stop_dict.keys()}
     marked_stop.append(SOURCE)
     marked_stop_dict[SOURCE] = 1
     return marked_stop, marked_stop_dict, label, pi_label, star_label
@@ -400,36 +381,16 @@ def get_optimal_journey(pareto_set, raptor_mode):
 def initialize_rev_raptor(routes_by_stop_dict, 
                           SOURCE, 
                           MAX_TRANSFER) -> tuple:
-    '''
-    Initialize values for RAPTOR.
-
-    Args:
-        routes_by_stop_dict (dict): preprocessed dict. Format {stop_id: [id of routes passing through stop]}.
-        SOURCE (int): stop id of source stop.
-        MAX_TRANSFER (int): maximum transfer limit.
-
-    Returns:
-        marked_stop (deque): deque to store marked stop.
-        marked_stop_dict (dict): Binary variable indicating if a stop is marked. Keys: stop Id, value: 0 or 1.
-        label (dict): nested dict to maintain label. Format {round : {stop_id: pandas.datetime}}.
-        pi_label (dict): Nested dict used for backtracking labels. Format {round : {stop_id: pointer_label}}
-        if stop is reached by walking, pointer_label= ('walking', from stop id, to stop id, time, arrival time)}} else pointer_label= (trip boarding time, boarding_point, stop id, arr_by_trip, trip id)
-        star_label (dict): dict to maintain best arrival label {stop id: pandas.datetime}.
-        inf_time (pandas.datetime): Variable indicating infinite time (pandas.datetime).
-
-    Examples:
-        >>> output = initialize_raptor(routes_by_stop_dict, 20775, 4)
-    '''
-    #inf_time = pd.to_datetime("today").round(freq='H') - pd.to_timedelta("730 day")
-    #    inf_time = pd.to_datetime('2022-01-15 19:00:00')
+        
+    
     inf_time = -1
-    roundsCount = MAX_TRANSFER+1
-    pi_label = {x: {stop: -1 for stop in routes_by_stop_dict.keys()} for x in range(0, roundsCount + 1)}
-    label = {x: {stop: inf_time for stop in routes_by_stop_dict.keys()} for x in range(0, roundsCount + 1)}
-    star_label = {stop: inf_time for stop in routes_by_stop_dict.keys()}
+    roundsCount = MAX_TRANSFER + 1
+    pi_label = {x: {int(stop): -1 for stop in routes_by_stop_dict.keys()} for x in range(0, roundsCount + 1)}
+    label = {x: {int(stop): inf_time for stop in routes_by_stop_dict.keys()} for x in range(0, roundsCount + 1)}
+    star_label = {int(stop): inf_time for stop in routes_by_stop_dict.keys()}
 
     marked_stop = deque()
-    marked_stop_dict = {stop: 0 for stop in routes_by_stop_dict.keys()}
+    marked_stop_dict = {int(stop): 0 for stop in routes_by_stop_dict.keys()}
     marked_stop.append(SOURCE)
     marked_stop_dict[SOURCE] = 1
     return marked_stop, marked_stop_dict, label, pi_label, star_label, inf_time

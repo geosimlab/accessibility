@@ -187,18 +187,17 @@ def runRaptorWithProtocol(self,
   if verify_break(self):
       return 0
 
-  """
-  print (f'mode = {raptor_mode}')
-  print("stops_dict:\n" + "\n".join([f"{key}: {value}" for key, value in list(stops_dict.items())]))
-  """
-  #print("stoptimes_dict:\n" + "\n".join([f"{key}: {value}" for key, value in list(stoptimes_dict.items())]))
-  """
-  print("routes_by_stop_dict:\n" + "\n".join([f"{key}: {value}" for key, value in list(routes_by_stop_dict.items())]))
-  print("idx_by_route_stop_dict:\n" + "\n".join([f"{key}: {value}" for key, value in list(idx_by_route_stop_dict.items())]))
-
-  print("footpath_dict:\n" + "\n".join([f"{key}: {value}" for key, value in list(footpath_dict.items())]))
   
-  """ 
+  #print (f'mode = {raptor_mode}')
+  #print("stops_dict:\n" + "\n".join([f"{key}: {value}" for key, value in list(stops_dict.items())]))
+  
+  #print("stoptimes_dict:\n" + "\n".join([f"{key}: {value}" for key, value in list(stoptimes_dict.items())]))
+  #print("routes_by_stop_dict:\n" + "\n".join([f"{key}: {value}" for key, value in list(routes_by_stop_dict.items())]))
+  #print("idx_by_route_stop_dict:\n" + "\n".join([f"{key}: {value}" for key, value in list(idx_by_route_stop_dict.items())]))
+
+  #print("footpath_dict:\n" + "\n".join([f"{key}: {value}" for key, value in list(footpath_dict.items())]))
+  
+  
       
   self.textLog.append(f'<a>Loading dictionary done</a>')
   self.textLog.append(f'<a>Starting calculating</a>')
@@ -398,7 +397,7 @@ def write_info (self,Layer, LayerDest, curr_getDateTime, folder_name, selected_o
   self.setMessage(f'Compressing layer ...')
   QApplication.processEvents()
   
-  #save_layer_to_zip(Layer, zip_filename1, filename1, selected_only1)
+  save_layer_to_zip(Layer, zip_filename1, filename1, selected_only1)
   
   """
   if Layer != LayerDest: 
@@ -430,7 +429,7 @@ def make_protocol_summary (SOURCE,
    #with open(f1, 'a') as rep:
     for dest, info in dictInput.items():
        
-      #if int(dest) > 50000 and int(dest) < 10000000000:
+      
 
        time_to_dest = int (round(info[2]))
     
@@ -468,6 +467,7 @@ def  make_protocol_detailed(raptor_mode,
   stop_symbol = "s"
   f = protocol_full_path   
   stop_max_number = 50000
+  stop_newnumber_startnumber = 10000000000
     
   with open(f, 'a') as filetowrite:
    gcounter = 1 # because header is row number 1
@@ -620,7 +620,7 @@ def  make_protocol_detailed(raptor_mode,
               else:
                  walk1_time = walk1_time + walking_time_sec
                  
-              # print (f'leg[4] {leg[4]} leg[3] {leg[3]} ')   
+              
               walk1_arriving_time = leg[4] + leg[3]
              elif ride_counter == 1:
               if walk2_time == "":
@@ -810,26 +810,26 @@ def  make_protocol_detailed(raptor_mode,
          
         
          #destination_type = "S"
-         if Destination > stop_max_number and Destination < 10000000000:
+         if Destination > stop_max_number and Destination < stop_newnumber_startnumber:
            destination_type = building_symbol
          else:
            destination_type = stop_symbol  
 
 
-         if SOURCE > stop_max_number and SOURCE < 10000000000:
+         if SOURCE > stop_max_number and SOURCE < stop_newnumber_startnumber:
            symbol1 = building_symbol
          else:
            symbol1 = stop_symbol
 
          
          if raptor_mode == 1:
-            if SOURCE > stop_max_number and SOURCE < 10000000000:
+            if SOURCE > stop_max_number and SOURCE < stop_newnumber_startnumber:
               symbol1 = building_symbol
             else:
               symbol1 = stop_symbol   
               
          if raptor_mode == 2:
-            if SOURCE_REV > stop_max_number and SOURCE_REV < 10000000000:
+            if SOURCE_REV > stop_max_number and SOURCE_REV < stop_newnumber_startnumber:
               symbol1 = building_symbol
             else:
               symbol1 = stop_symbol   

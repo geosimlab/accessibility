@@ -462,11 +462,11 @@ class ShortestPathUtils:
         filelog_name = f'{self.folder_name}//log_{self.curr_DateTime}.txt'
         with open(filelog_name, "w") as file:
             file.write(text)
-        """
+        
         zip_filename1 = f'{self.folder_name}//layer_road{self.curr_DateTime}.zip'
         filename1 = f'{self.folder_name}//layer_road_{self.curr_DateTime}.geojson'
         self.save_layer_to_zip(self.road_layer_mod, zip_filename1, filename1)
-
+        """    
         zip_filename1 = f'{self.folder_name}//layer_origins{self.curr_DateTime}.zip'
         filename1 = f'{self.folder_name}//layer_origins{self.curr_DateTime}.geojson'
         self.save_layer_to_zip(self.layer_origins, zip_filename1, filename1)
