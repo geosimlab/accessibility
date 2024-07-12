@@ -108,6 +108,8 @@ def verify_break (self,
   if self.break_on:
             
             self.textLog.append (f'<a><b><font color="red">Algorithm raptor is break</font> </b></a>')
+            time_after_computation = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            self.textLog.append(f'<a>Time break {time_after_computation}</a>') 
             if folder_name !="":
               write_info (self, 
                           Layer, 
@@ -174,7 +176,7 @@ def runRaptorWithProtocol(self,
   
   
   if verify_break(self):
-      return 0
+      return 0, 0
   QApplication.processEvents()
   (
   stops_dict,
@@ -185,7 +187,7 @@ def runRaptorWithProtocol(self,
   ) = myload_all_dict (self, PathToNetwork, raptor_mode)
         
   if verify_break(self):
-      return 0
+      return 0, 0
 
   
   #print (f'mode = {raptor_mode}')
@@ -285,7 +287,10 @@ def runRaptorWithProtocol(self,
   f = f'{folder_name}//access_{curr_getDateTime}.csv'
   with open(f, 'w') as filetowrite:
       filetowrite.write(protocol_header)   
-    
+
+  
+
+  #for i in range(0,100):  
   for i in range(0,count):
           
           if verify_break(self, 

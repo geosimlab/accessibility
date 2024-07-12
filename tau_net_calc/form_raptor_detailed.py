@@ -1,5 +1,8 @@
 import os
 import sys
+import cProfile
+import pstats
+import io
 import qgis.core
 from qgis.PyQt import QtCore
 from qgis.core import QgsProject, QgsWkbTypes
@@ -482,6 +485,7 @@ class RaptorDetailed(QDialog, FORM_CLASS):
           run = False
                    
       if run:
+        
          _, self.folder_name = runRaptorWithProtocol(self, 
                                                   sources, 
                                                   mode, 
@@ -490,7 +494,14 @@ class RaptorDetailed(QDialog, FORM_CLASS):
                                                   self.cbSelectedOnly1.isChecked(), 
                                                   self.cbSelectedOnly2.isChecked()
                                                   )
-         
+         """
+         _, self.folder_name = self.profile_runRaptorWithProtocol( 
+                                                  sources, 
+                                                  mode, 
+                                                  protocol_type, 
+                                                  timetable_mode,                                                   
+                                                  )
+         """ 
          return 1
 
       if not(run):
@@ -501,6 +512,25 @@ class RaptorDetailed(QDialog, FORM_CLASS):
          self.setMessage("")
          return 0
 
+    def profile_runRaptorWithProtocol(self, 
+                                  sources, 
+                                  mode, 
+                                  protocol_type, 
+                                  timetable_mode):
+        pr = cProfile.Profile()
+        pr.enable()
+
+        result = runRaptorWithProtocol(self, sources, mode, protocol_type, timetable_mode, 
+                                   self.cbSelectedOnly1.isChecked(), self.cbSelectedOnly2.isChecked())
+
+        pr.disable()
+
+        s = io.StringIO()
+        sortby = 'cumulative'
+        ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
+        ps.dump_stats(r"C:/Users/geosimlab/Documents/Igor/Protocols/plugin_profile.txt")
+
+        return result
          
       
 

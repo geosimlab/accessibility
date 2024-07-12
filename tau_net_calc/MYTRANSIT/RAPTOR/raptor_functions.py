@@ -13,20 +13,28 @@ def seconds_to_time(total_seconds):
     return time_str
 
 def initialize_raptor(routes_by_stop_dict, 
-                      SOURCE, 
+                      SOURCE,                      
                       MAX_TRANSFER) -> tuple:
     
         
     inf_time = 200000
     roundsCount = MAX_TRANSFER + 1
+    """
     pi_label = {x: {int(stop): -1 for stop in routes_by_stop_dict.keys()} for x in range(0, roundsCount + 1)}
     label = {x: {int(stop): inf_time for stop in routes_by_stop_dict.keys()} for x in range(0, roundsCount + 1)}
     star_label = {int(stop): inf_time for stop in routes_by_stop_dict.keys()}
+    """
+
+    routes = list(routes_by_stop_dict.keys())
+    pi_label = {x: {int(stop): -1 for stop in routes} for x in range(0, roundsCount + 1)}
+    label = {x: {int(stop): inf_time for stop in routes} for x in range(0, roundsCount + 1)}
+    star_label = {int(stop): inf_time for stop in routes}
 
     marked_stop = deque()
     marked_stop_dict = {int(stop): 0 for stop in routes_by_stop_dict.keys()}
     marked_stop.append(SOURCE)
     marked_stop_dict[SOURCE] = 1
+    
     return marked_stop, marked_stop_dict, label, pi_label, star_label
 
 
@@ -55,7 +63,9 @@ def get_latest_trip_new(stoptimes_dict,
     Examples:
         >>> output = get_latest_trip_new(stoptimes_dict, 1000, pd.to_datetime('2019-06-10 17:40:00'), 0, pd.to_timedelta(0, unit='seconds'))
     '''
-    
+    t2 = arrival_time_at_pi + change_time
+    t3 = arrival_time_at_pi + max_waiting_time
+
     for trip_idx, trip in (stoptimes_dict[route].items()): 
             
             # ! this error occurs due to the removal of stop_times > 23:59 !
@@ -78,7 +88,7 @@ def get_latest_trip_new(stoptimes_dict,
                 continue
            
 
-            if (t1 >= arrival_time_at_pi + change_time) and (t1 <= arrival_time_at_pi + max_waiting_time) :  
+            if (t1 >= t2) and (t1 <= t3) :  
                 
                 return f'{route}_{trip_idx}', stoptimes_dict[route][trip_idx]
     return -1, -1  # No trip is found after arrival_time_at_pi
@@ -97,53 +107,25 @@ def post_processing (DESTINATION,
                      D_Time, 
                      mode_raptor, 
                      departure_interval) -> tuple:
-    '''
-    Post processing for std_RAPTOR. Currently supported functionality:
-        1. Rounds in which DESTINATION is reached
-        2. Trips for covering pareto optimal set
-        3. Pareto optimal timestamps.
-
-    Args:
-        DESTINATION (int): stop id of destination stop.
-        pi_label (dict): Nested dict used for backtracking. Primary keys: Round, Secondary keys: stop id. Format- {round : {stop_id: pointer_label}}
-        
-        label (dict): nested dict to maintain label. Format {round : {stop_id: pandas.datetime}}.
-
-    Returns:
-        rounds_inwhich_desti_reached (list): list of rounds in which DESTINATION is reached. Format - [int]
-        trip_set (list): list of trips ids required to cover optimal journeys. Format - [char]
-        rap_out (list): list of pareto-optimal arrival timestamps. Format = [(pandas.datetime)]
-
-    Examples:
-        >>> output = post_processing(1482, pi_label, 1, label)
-    '''
+   
     # раунды, в которых  достигнута цель
     # rounds in which the destination is achieved 
 
-    i = 0    
     rounds_inwhich_desti_reached = [x for x in pi_label.keys() if DESTINATION in pi_label[x] and pi_label[x][DESTINATION] != -1]
 
-       
-
     pareto_set = []
-    valid_result=True
-    if rounds_inwhich_desti_reached == []:
-        valid_result = False 
+    
+    if not rounds_inwhich_desti_reached:
+        return None
+      
 
-    #if len(rounds_inwhich_desti_reached) <= MIN_TRANSFER + 1:
-    #   valid_result  =False
-       
-
-    if not valid_result:
-        return None, None, None,None
-    else:
-        rounds_inwhich_desti_reached.reverse()
+    
+    rounds_inwhich_desti_reached.reverse()
         
         
-        last_mode = ""
-        trip_set = []
-        
-        for k in rounds_inwhich_desti_reached:
+    last_mode = ""
+            
+    for k in rounds_inwhich_desti_reached:
             transfer_needed = k - 1
 
             # null transfers:
@@ -189,8 +171,7 @@ def post_processing (DESTINATION,
                          stop = pi_label[k][stop][1]                                        
                 else: 
                     last_mode = ""
-                                  
-                    trip_set.append(pi_label[k][stop][-1])
+                    
                     stop = pi_label[k][stop][1]
                     k = k - 1
 
@@ -232,10 +213,10 @@ def post_processing (DESTINATION,
                     pareto_set.append((transfer_needed, journey))
         
         
-        if len(pareto_set) == 0:
-          return None, None, None,None
+    if len(pareto_set) == 0:
+          return None
         
-        return pareto_set
+    return pareto_set
 
   
 def get_duration_for_timetable_mode (journey, mode_raptor):
@@ -291,6 +272,7 @@ def post_processingAll(call_name,
                        SOURCE, 
                        D_TIME, 
                        label, 
+                       list_stops,
                        pi_label, 
                        MIN_TRANSFER, 
                        MaxWalkDist, 
@@ -299,16 +281,9 @@ def post_processingAll(call_name,
                        departure_interval, 
                        mode) -> tuple:
    newDict = dict()   
-   stops = label[0].keys()
       
-   begin_time = D_TIME
-   
-   count_not_accessible = 0
-
-   #len_pareto_set = 0
-   #count_stops = 0 
-   for p_i in stops:
-            QApplication.processEvents()
+   for p_i in list_stops:
+               
             if SOURCE == p_i:
                continue        
             pareto_set = post_processing (p_i, 
@@ -320,9 +295,12 @@ def post_processingAll(call_name,
                                           D_TIME, mode, 
                                           departure_interval)           
             
+            if pareto_set == None:
+                continue
+            
             total_time_to_dest = -1           
                         
-            if pareto_set != (None, None, None, None) and len(pareto_set) > 0:
+            if pareto_set != None and len(pareto_set) > 0:
              #Just one journey with minimal time will be in pareto set
              if call_name == "raptor":
               optimal_pair = get_optimal_journey(pareto_set, 1)
@@ -336,15 +314,10 @@ def post_processingAll(call_name,
                 total_time_to_dest, _, _ = get_duration_for_timetable_mode (journey, 1)
              else:
                 total_time_to_dest, _, _ = get_duration_for_timetable_mode (journey, 2)
-                
-            else:
-             count_not_accessible = count_not_accessible + 1
             
-            newDict[p_i] = [SOURCE, begin_time, total_time_to_dest, pareto_set ]   
-        
-   #print (f' avg len_pareto {len_pareto_set/count_stops}')
-   reachedLabels = newDict
-   return  reachedLabels
+            newDict[p_i] = [SOURCE, D_TIME, total_time_to_dest, pareto_set ]   
+   
+   return  newDict
       
 def get_optimal_journey(pareto_set, raptor_mode):
    
@@ -385,9 +358,15 @@ def initialize_rev_raptor(routes_by_stop_dict,
     
     inf_time = -1
     roundsCount = MAX_TRANSFER + 1
+    routes = list(routes_by_stop_dict.keys())
+    pi_label = {x: {int(stop): -1 for stop in routes} for x in range(0, roundsCount + 1)}
+    label = {x: {int(stop): inf_time for stop in routes} for x in range(0, roundsCount + 1)}
+    star_label = {int(stop): inf_time for stop in routes}
+    """
     pi_label = {x: {int(stop): -1 for stop in routes_by_stop_dict.keys()} for x in range(0, roundsCount + 1)}
     label = {x: {int(stop): inf_time for stop in routes_by_stop_dict.keys()} for x in range(0, roundsCount + 1)}
     star_label = {int(stop): inf_time for stop in routes_by_stop_dict.keys()}
+    """
 
     marked_stop = deque()
     marked_stop_dict = {int(stop): 0 for stop in routes_by_stop_dict.keys()}
@@ -402,28 +381,9 @@ def get_earliest_trip_new(stoptimes_dict,
                           change_time, 
                           max_waiting_time) -> tuple:
 
-    '''
-    Get earliest trip after a certain timestamp from the given stop of a route.
-
-    Args:
-        stoptimes_dict (dict): preprocessed dict. Format {route_id: [[trip_1], [trip_2]]}.
-        route (int): id of route.
-        arrival_time_at_pi (pandas.datetime): arrival time at stop pi.
-        pi_index (int): index of the stop from which route was boarded.
-        change_time (pandas.datetime): change time at stop (set to 0).
-        current_trip_t: distinguish 2 cases: current_trip_t=-1, i.e. not defined
-         or current_trip_t!=-1 , that is exists but no accepatable
-    Returns:
-        If a trip exists:
-            trip index, trip
-        else:
-            -1,-1   (e.g. when there is no trip after the given timestamp)
-
-    Examples:
-        >>> output = get_earliest_trip_new(stoptimes_dict, 1000, pd.to_datetime('2019-06-10 17:40:00'), 0, pd.to_timedelta(0, unit='seconds'))
-    '''
-    
         
+    t2 = arrival_time_at_pi - change_time
+    t3 = arrival_time_at_pi - max_waiting_time    
     for trip_idx, trip in (stoptimes_dict[route].items()):
         
         # ! this error occurs due to the removal of stop_times > 23:59 !
@@ -433,7 +393,7 @@ def get_earliest_trip_new(stoptimes_dict,
             continue
             #return -1, -1 
                         
-        if (t1  <= arrival_time_at_pi - change_time)   and (t1 >= arrival_time_at_pi - max_waiting_time) :
+        if (t1  <= t2)   and (t1 >= t3) :
                        
             return f'{route}_{trip_idx}', stoptimes_dict[route][trip_idx]
 

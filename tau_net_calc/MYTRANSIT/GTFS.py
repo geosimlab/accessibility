@@ -43,6 +43,7 @@ class GTFS ():
         self.layer_road = layer_road
         self.RunCalcFootPathRoad = RunCalcFootPathRoad
         self.already_display_break = False
+        self.parent.break_on = False
 
 
     def __zip_directory(self):    

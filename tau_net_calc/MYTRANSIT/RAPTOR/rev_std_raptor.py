@@ -3,6 +3,7 @@ Module contains RAPTOR implementation.
 """
 from PyQt5.QtWidgets import QApplication
 from RAPTOR.raptor_functions import *
+import numpy as np
 
 
 def rev_raptor(SOURCE, 
@@ -26,6 +27,7 @@ def rev_raptor(SOURCE,
                departure_interval
                ) -> list:
     
+    list_stops =  set()
     my_name=rev_raptor.__name__
     out = []
     (marked_stop, 
@@ -43,18 +45,18 @@ def rev_raptor(SOURCE,
     trans_info = -1     
    
    
-    MaxWalkDist1_time = MaxWalkDist1
-    MaxWalkDist2_time = MaxWalkDist2
-    MaxWalkDist3_time = MaxWalkDist3
+    MaxWalkDist1_time = np.int64(MaxWalkDist1)
+    MaxWalkDist2_time = np.int64(MaxWalkDist2)
+    MaxWalkDist3_time = np.int64(MaxWalkDist3)
 
     
-    min_time = D_TIME - Maximal_travel_time
+    min_time = np.int64(D_TIME - Maximal_travel_time)
     TIME_START = D_TIME
 
     if timetable_mode:
         MaxWaitTime = MaxExtraTime
         TIME_START = D_TIME - departure_interval
-        min_time = D_TIME - Maximal_travel_time - MaxExtraTime
+        min_time = np.int64(D_TIME - Maximal_travel_time - MaxExtraTime)
 
     
 
@@ -77,6 +79,7 @@ def rev_raptor(SOURCE,
                 label[0][p_dash] = new_p_dash_time
                 star_label[p_dash] = new_p_dash_time
                 pi_label[0][p_dash] = ('walking', SOURCE, p_dash, to_pdash_time, new_p_dash_time)
+                list_stops.add(p_dash)
                                     
                 if marked_stop_dict[p_dash] == 0:
                     marked_stop.append(p_dash)
@@ -164,6 +167,7 @@ def rev_raptor(SOURCE,
                      
                      label[k][p_i], star_label[p_i] = arr_by_t_at_pi, arr_by_t_at_pi
                      pi_label[k][p_i] = (boarding_time, boarding_point, p_i, arr_by_t_at_pi, tid)
+                     list_stops.add(p_i)
                                           
                      """
                      корректировка времени завершения, если последний шаг - пешая прогулка
@@ -229,16 +233,36 @@ def rev_raptor(SOURCE,
                 save_marked_stop = True
 
                 #destination_accessed, marked_stop_dict,marked_stop,marked_stop_copy,label,star_label,pi_label = 
-                process_walking_stage(min_time, MaxWalkDist2_time, k, footpath_dict,
-                marked_stop_dict, marked_stop, label, star_label, pi_label, save_marked_stop) 
+                process_walking_stage(min_time, 
+                                      MaxWalkDist2_time, 
+                                      k, 
+                                      footpath_dict,
+                                      marked_stop_dict, 
+                                      marked_stop, 
+                                      label, 
+                                      star_label, 
+                                      pi_label, 
+                                      save_marked_stop,
+                                      list_stops, 
+                                      ) 
 
 
         
 
         save_marked_stop = False
 
-        process_walking_stage(min_time, MaxWalkDist1_time, k, footpath_dict, 
-        marked_stop_dict, marked_stop, label, star_label, pi_label, save_marked_stop) 
+        process_walking_stage(min_time, 
+                              MaxWalkDist1_time, 
+                              k, 
+                              footpath_dict, 
+                              marked_stop_dict, 
+                              marked_stop, 
+                              label, 
+                              star_label, 
+                              pi_label, 
+                              save_marked_stop,
+                              list_stops 
+                              ) 
 
            
         #print (f' finish revpaptor pi_label {pi_label}')
@@ -247,7 +271,18 @@ def rev_raptor(SOURCE,
         if marked_stop == deque([]):
             break
     
-    reachedLabels = post_processingAll(my_name, SOURCE, D_TIME, label, pi_label, MIN_TRANSFER,  MaxWalkDist1, timetable_mode, Maximal_travel_time, departure_interval, mode = 2)
+    reachedLabels = post_processingAll(my_name, 
+                                       SOURCE, 
+                                       D_TIME, 
+                                       label, 
+                                       list_stops, 
+                                       pi_label, 
+                                       MIN_TRANSFER,  
+                                       MaxWalkDist1, 
+                                       timetable_mode, 
+                                       Maximal_travel_time, 
+                                       departure_interval, 
+                                       mode = 2)
     out=reachedLabels    
     return out
 # returns (maximum boarding time for the first bus - time to reach this stop)
@@ -275,11 +310,20 @@ def get_time_foot_to_stop(pi_label, boarding_point):
     else:
         return 0
 
-def process_walking_stage(min_time, WALKING_LIMIT, k,
-        footpath_dict, marked_stop_dict, marked_stop, label, star_label, pi_label, save_marked_stop):
+def process_walking_stage(min_time, 
+                          WALKING_LIMIT, 
+                          k,
+                          footpath_dict, 
+                          marked_stop_dict, 
+                          marked_stop, 
+                          label, 
+                          star_label, 
+                          pi_label, 
+                          save_marked_stop,
+                          list_stops):
   
   
-    marked_stop_copy = [*marked_stop]
+    marked_stop_copy = marked_stop.copy()
 
     for p in marked_stop_copy:
 
@@ -287,44 +331,42 @@ def process_walking_stage(min_time, WALKING_LIMIT, k,
             if pi_label[k][p][0] == 'walking':
                 continue
 
-            try:
-                trans_info = footpath_dict[p]
-            except:
-                continue
-            
+            trans_info = footpath_dict.get(p, 0)
+                        
             if  not trans_info:                 
                  continue
 
+            label_k_p = np.int64(label[k][p])
 
             for p_dash, to_pdash_time in trans_info:
                 
+                if to_pdash_time > WALKING_LIMIT:
+                    continue
 
                 if p_dash not in pi_label[k]:
                    continue 
 
+                pi_label_k_p_dash = pi_label[k][p_dash]
+
                 # this line is "don't rewrite founded bus trip to footleg"   
-                if pi_label[k][p_dash] != - 1 and pi_label[k][p_dash][0] != 'walking':
+                if pi_label_k_p_dash != - 1 and pi_label_k_p_dash[0] != 'walking':
                     continue
 
-                new_p_dash_time = label[k][p] - to_pdash_time #changed + to -
+                new_p_dash_time = label_k_p - to_pdash_time #changed + to -
 
-                if min_time > new_p_dash_time or to_pdash_time > WALKING_LIMIT:
+                if min_time > new_p_dash_time: 
                     continue
-                
-                
+                                
                 # veryfy cause if exist solve for this p_dash (not was better?)
-                if pi_label[k][p_dash] != -1 and pi_label[k][p_dash][0] == "walking":
-                    if new_p_dash_time < pi_label[k][p_dash][4]:                                   
+                if pi_label_k_p_dash != -1 and pi_label_k_p_dash[0] == "walking" and new_p_dash_time < pi_label_k_p_dash[4]:                                   
                         continue
 
                          
                 label[k][p_dash], star_label[p_dash] = new_p_dash_time, new_p_dash_time
                 pi_label[k][p_dash] = ('walking', p, p_dash, to_pdash_time, new_p_dash_time)
+                list_stops.add(p_dash)
                    
-                if save_marked_stop and marked_stop_dict[p_dash] == 0:
+                if save_marked_stop:
                     marked_stop.append(p_dash)
                     marked_stop_dict[p_dash] = 1
-                    
-            
-    return 1
              

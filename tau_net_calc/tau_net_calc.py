@@ -11,7 +11,7 @@ import shutil
 from .accessibility_tools import AccessibilityTools
 import sys
 import os
-import cProfile
+#import cProfile
 
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
