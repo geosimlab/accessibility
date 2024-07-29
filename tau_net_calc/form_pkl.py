@@ -1,11 +1,12 @@
 import os
 import sys
-import qgis.core
-from qgis.PyQt import QtCore
-from qgis.core import QgsProject, QgsWkbTypes
 
+from qgis.PyQt import QtCore
+import qgis.core
 import osgeo.gdal
 import osgeo.osr
+
+from qgis.core import QgsProject, QgsWkbTypes
 
 from PyQt5.QtWidgets import (QDialogButtonBox, 
                              QDialog, 
@@ -376,12 +377,26 @@ class form_pkl(QDialog, FORM_CLASS):
           converter = MultiLineStringToLineStringConverter(self, layer_road)
           layer_road = converter.execute()
           if layer_road != 0:
-                  
-            calc_GTFS = GTFS(self, path_to_file, path_to_GTFS, layer_origins, layer_road, RunCalcFootPathRoad)
+
+              
+            calc_GTFS = GTFS(self, 
+                             path_to_file, 
+                             path_to_GTFS, 
+                             layer_origins, 
+                             layer_road, 
+                             RunCalcFootPathRoad
+                             )
             res = calc_GTFS.correcting_files()
       
             if res == 1:
-              calc_PKL = PKL (self, dist = 400, path_to_pkl = pkl_path, path_to_GTFS = gtfs_path, layer_buildings = layer_origins, RunCalcFootPathRoad = RunCalcFootPathRoad)
+                   
+              calc_PKL = PKL (self, 
+                              dist = 400, 
+                              path_to_pkl = pkl_path, 
+                              path_to_GTFS = gtfs_path, 
+                              layer_buildings = layer_origins, 
+                              RunCalcFootPathRoad = RunCalcFootPathRoad
+                              )
               calc_PKL.create_files()
           
           converter.remove_temp_layer()
@@ -437,11 +452,8 @@ class form_pkl(QDialog, FORM_CLASS):
             if self.cbRunCalcFootPathRoad.isChecked():
               if key == "RunCalcFootPathRoad_pkl":
                 config_info.append(f"<a>Run calculation footpath on road: {value}</a>")    
-
-            
-            
+          
       return config_info
-    
     
     def eventFilter(self, obj, event):
         if event.type() == QEvent.Wheel:

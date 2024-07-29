@@ -2,7 +2,7 @@
 Module contains function related to RAPTOR, rRAPTOR, One-To-Many rRAPTOR, HypRAPTOR
 """
 from collections import deque as deque
-from PyQt5.QtWidgets import QApplication
+
 
 def seconds_to_time(total_seconds):
     total_seconds = round(total_seconds)
@@ -22,20 +22,20 @@ def initialize_raptor(routes_by_stop_dict,
     """
     pi_label = {x: {int(stop): -1 for stop in routes_by_stop_dict.keys()} for x in range(0, roundsCount + 1)}
     label = {x: {int(stop): inf_time for stop in routes_by_stop_dict.keys()} for x in range(0, roundsCount + 1)}
-    star_label = {int(stop): inf_time for stop in routes_by_stop_dict.keys()}
+    
     """
 
     routes = list(routes_by_stop_dict.keys())
     pi_label = {x: {int(stop): -1 for stop in routes} for x in range(0, roundsCount + 1)}
     label = {x: {int(stop): inf_time for stop in routes} for x in range(0, roundsCount + 1)}
-    star_label = {int(stop): inf_time for stop in routes}
+    
 
     marked_stop = deque()
     marked_stop_dict = {int(stop): 0 for stop in routes_by_stop_dict.keys()}
     marked_stop.append(SOURCE)
     marked_stop_dict[SOURCE] = 1
     
-    return marked_stop, marked_stop_dict, label, pi_label, star_label
+    return marked_stop, marked_stop_dict, label, pi_label
 
 
 def get_latest_trip_new(stoptimes_dict, 
@@ -194,7 +194,11 @@ def post_processing (DESTINATION,
                         new_value = journey[1][0] + departure_interval
                         #new_value = journey[1][0]
                         
-                    journey[0] = (journey[0][0], journey[0][1], journey[0][2], journey[0][3], new_value)
+                    journey[0] = (journey[0][0], 
+                                  journey[0][1], 
+                                  journey[0][2], 
+                                  journey[0][3], 
+                                  new_value)
 
             
                 duration, start_time, end_time = get_duration_for_timetable_mode (journey, mode_raptor)
@@ -361,18 +365,18 @@ def initialize_rev_raptor(routes_by_stop_dict,
     routes = list(routes_by_stop_dict.keys())
     pi_label = {x: {int(stop): -1 for stop in routes} for x in range(0, roundsCount + 1)}
     label = {x: {int(stop): inf_time for stop in routes} for x in range(0, roundsCount + 1)}
-    star_label = {int(stop): inf_time for stop in routes}
+    
     """
     pi_label = {x: {int(stop): -1 for stop in routes_by_stop_dict.keys()} for x in range(0, roundsCount + 1)}
     label = {x: {int(stop): inf_time for stop in routes_by_stop_dict.keys()} for x in range(0, roundsCount + 1)}
-    star_label = {int(stop): inf_time for stop in routes_by_stop_dict.keys()}
+    
     """
 
     marked_stop = deque()
-    marked_stop_dict = {int(stop): 0 for stop in routes_by_stop_dict.keys()}
+    marked_stop_dict = {int(stop): 0 for stop in routes}
     marked_stop.append(SOURCE)
     marked_stop_dict[SOURCE] = 1
-    return marked_stop, marked_stop_dict, label, pi_label, star_label, inf_time
+    return marked_stop, marked_stop_dict, label, pi_label, inf_time
 
 def get_earliest_trip_new(stoptimes_dict, 
                           route, 

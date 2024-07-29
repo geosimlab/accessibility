@@ -5,8 +5,6 @@ Module contains RAPTOR implementation.
 from RAPTOR.raptor_functions import *
 from PyQt5.QtWidgets import QApplication
 import numpy as np
-import copy
-
 
 def raptor (SOURCE, 
            D_TIME, 
@@ -17,6 +15,7 @@ def raptor (SOURCE,
            stops_dict, 
            stoptimes_dict, 
            footpath_dict, 
+           footpath_dict_b_b,
            idx_by_route_stop_dict, 
            Maximal_travel_time, 
            MaxWalkDist1, 
@@ -34,14 +33,14 @@ def raptor (SOURCE,
     my_name = raptor.__name__
     out = []
     
-    marked_stop, marked_stop_dict, label, pi_label, star_label  = initialize_raptor(routes_by_stop_dict, SOURCE, MAX_TRANSFER)
+    marked_stop, marked_stop_dict, label, pi_label  = initialize_raptor(routes_by_stop_dict, 
+                                                                        SOURCE, 
+                                                                        MAX_TRANSFER
+                                                                        )
 
-    #print (f'pi_label [0] {pi_label[0]}')
-    
-    
     change_time_save = change_time
     
-    (label[0][SOURCE], star_label[SOURCE]) = (D_TIME, D_TIME)
+    label[0][SOURCE]  = D_TIME
     Q = {}  # Format of Q is {route:stop index}
     roundsCount = MAX_TRANSFER + 1
     trans_info = -1     
@@ -63,8 +62,13 @@ def raptor (SOURCE,
         try:
            if trans_info == -1:
             
-            trans_info = footpath_dict[SOURCE]
-                        
+            trans_info1 = footpath_dict_b_b.get(SOURCE, [])
+            trans_info2 = footpath_dict.get(SOURCE, [])
+
+            for i,dist in trans_info2:
+               trans_info1.append ((i,dist))
+
+            trans_info = trans_info2   
               
            for i in trans_info:
                 
@@ -79,8 +83,12 @@ def raptor (SOURCE,
                 
                 new_p_dash_time = TIME_START + to_pdash_time
                 label[0][p_dash] = new_p_dash_time
-                star_label[p_dash] = new_p_dash_time
-                pi_label[0][p_dash] = ('walking', SOURCE, p_dash, to_pdash_time, new_p_dash_time)
+                pi_label[0][p_dash] = ('walking', 
+                                       SOURCE, 
+                                       p_dash, 
+                                       to_pdash_time, 
+                                       new_p_dash_time
+                                       )
                 list_stops.add(p_dash)
                 
                                 
@@ -160,7 +168,7 @@ def raptor (SOURCE,
                        
                        continue 
                                         
-                
+                    
                     if max_time < arr_by_t_at_pi: 
                            
                         to_process = False
@@ -175,8 +183,12 @@ def raptor (SOURCE,
                        
                        
                        
-                       label[k][p_i], star_label[p_i] = arr_by_t_at_pi, arr_by_t_at_pi
-                       pi_label[k][p_i] = (boarding_time, boarding_point, p_i, arr_by_t_at_pi, tid)
+                       label[k][p_i] = arr_by_t_at_pi
+                       pi_label[k][p_i] = (boarding_time, 
+                                           boarding_point, 
+                                           p_i, 
+                                           arr_by_t_at_pi, 
+                                           tid)
                        list_stops.add(p_i)
 
                        
@@ -205,7 +217,10 @@ def raptor (SOURCE,
                 current_stopindex_by_route = current_stopindex_by_route + 1
 
         if k == 1 and timetable_mode:
-            t_max = get_t_max(pi_label, routes_by_stop_dict.keys(), departure_interval)
+            t_max = get_t_max(pi_label, 
+                              routes_by_stop_dict.keys(), 
+                              departure_interval
+                              )
             max_time = t_max + Maximal_travel_time
 
 
@@ -231,7 +246,6 @@ def raptor (SOURCE,
                                       marked_stop_dict,
                                       marked_stop,
                                       label,
-                                      star_label,
                                       pi_label, 
                                       save_marked_stop,
                                       list_stops  
@@ -247,7 +261,6 @@ def raptor (SOURCE,
                               marked_stop_dict, 
                               marked_stop, 
                               label, 
-                              star_label, 
                               pi_label, 
                               save_marked_stop,
                               list_stops
@@ -279,7 +292,9 @@ def raptor (SOURCE,
 
 # returns (maximum boarding time for the first bus - time to reach this stop)
 # use for timetable mode
-def get_t_max(pi_label, keys, departure_interval):
+def get_t_max(pi_label, keys, 
+              departure_interval
+              ):
     
     time_max = 0
 
@@ -290,7 +305,9 @@ def get_t_max(pi_label, keys, departure_interval):
             boarding_point = pi_label[1][point][1]
             boarding_time = pi_label[1][point][0]
 
-            time_foot_to_stop_point = get_time_foot_to_stop(pi_label,boarding_point)
+            time_foot_to_stop_point = get_time_foot_to_stop(pi_label, 
+                                                            boarding_point
+                                                            )
             time = boarding_time - time_foot_to_stop_point - departure_interval 
             if time_max < time:
                 time_max = time
@@ -311,7 +328,6 @@ def process_walking_stage(max_time,
                           marked_stop_dict, 
                           marked_stop, 
                           label,
-                          star_label, 
                           pi_label, 
                           save_marked_stop,
                           list_stops
@@ -350,7 +366,7 @@ def process_walking_stage(max_time,
                     continue
 
                 new_p_dash_time = label_k_p + to_pdash_time
-                
+
                 if max_time < new_p_dash_time:
                     continue
                 
@@ -358,7 +374,7 @@ def process_walking_stage(max_time,
                 if pi_label_k_p_dash != -1 and pi_label_k_p_dash[0] == "walking" and new_p_dash_time > pi_label_k_p_dash[4]:
                     continue
                 
-                label[k][p_dash], star_label[p_dash] = new_p_dash_time, new_p_dash_time
+                label[k][p_dash] = new_p_dash_time
                 pi_label[k][p_dash] = ('walking', p, p_dash, to_pdash_time, new_p_dash_time)
                 list_stops.add(p_dash)
                 

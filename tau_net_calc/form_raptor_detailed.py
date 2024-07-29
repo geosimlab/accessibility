@@ -5,7 +5,10 @@ import pstats
 import io
 import qgis.core
 from qgis.PyQt import QtCore
-from qgis.core import QgsProject, QgsWkbTypes
+from qgis.core import (QgsProject, 
+                       QgsWkbTypes, 
+                       QgsVectorLayer
+                      )
 
 import osgeo.gdal
 import osgeo.osr
@@ -23,10 +26,11 @@ from PyQt5.QtCore import (Qt,
                           )
 from PyQt5.QtGui import QRegExpValidator, QDesktopServices
 from PyQt5 import uic
-from PyQt5 import QtWidgets
 
 from query_file import runRaptorWithProtocol
 import configparser
+
+
 
 
 
@@ -128,16 +132,20 @@ class RaptorDetailed(QDialog, FORM_CLASS):
             self.toolButton_PKL.clicked.connect(lambda: self.showFoldersDialog(self.txtPathToPKL))
             self.toolButton_protocol.clicked.connect(lambda: self.showFoldersDialog(self.txtPathToProtocols))
 
-            self.showAllLayersInCombo(self.cmbLayers)
+            self.showAllLayersInCombo_Point(self.cmbLayers)
             self.cmbLayers.installEventFilter(self)
-            self.showAllLayersInCombo(self.cmbLayersDest)
+            self.showAllLayersInCombo_Point(self.cmbLayersDest)
             self.cmbLayersDest.installEventFilter(self)
+            self.showAllLayersInCombo_Polygon(self.cmbVizLayers)
+            self.cmbVizLayers.installEventFilter(self)
+
 
             self.dtStartTime.installEventFilter(self)
             
             
-            self.toolButton_layer_dest_refresh.clicked.connect(lambda: self.showAllLayersInCombo(self.cmbLayersDest))
-            self.toolButton_layer_refresh.clicked.connect(lambda: self.showAllLayersInCombo(self.cmbLayers))
+            self.toolButton_layer_dest_refresh.clicked.connect(lambda: self.showAllLayersInCombo_Point(self.cmbLayersDest))
+            self.toolButton_layer_refresh.clicked.connect(lambda: self.showAllLayersInCombo_Point(self.cmbLayers))
+            self.toolButton_viz_layers_refresh.clicked.connect(lambda: self.showAllLayersInCombo_Polygon(self.cmbVizLayers))
            
             
             self.btnBreakOn.clicked.connect(self.set_break_on)
@@ -191,6 +199,16 @@ class RaptorDetailed(QDialog, FORM_CLASS):
       self.close_button.setEnabled(True)
       #self.run_button.setEnabled(True)
 
+    def checkLayer_type (self, layer_name):
+       layer =  QgsProject.instance().mapLayersByName(layer_name)[0]
+       #self.setMessage (f"Layer {self.cmbLayersDest.currentText()} layer.wkbType() {layer.wkbType()}")   
+       if layer.wkbType() != 1: #QgsWkbTypes.PointGeometry:
+          return 0
+       else:
+          return 1
+       
+    
+
     def on_run_button_clicked(self):
         self.run_button.setEnabled(False)
         
@@ -207,6 +225,18 @@ class RaptorDetailed(QDialog, FORM_CLASS):
         if self.cbUseFields.isChecked() and self.cmbFields.currentText() == "":
           self.run_button.setEnabled(True)
           self.setMessage ("Need choise field to aggregate")   
+          return 0
+        
+        """
+        if not (self.checkLayer_type (self.cmbLayers.currentText())):
+          self.run_button.setEnabled(True)
+          self.setMessage (f"Layer {self.cmbLayers.currentText()} not consist points geometry")   
+          return 0
+        """  
+        
+        if not (self.checkLayer_type (self.cmbLayersDest.currentText())):
+          self.run_button.setEnabled(True)
+          self.setMessage (f"Layer {self.cmbLayersDest.currentText()} not consist points geometry")   
           return 0
         
         self.saveParameters()
@@ -245,18 +275,24 @@ class RaptorDetailed(QDialog, FORM_CLASS):
         
         pass
    
-    def showAllLayersInCombo(self, cmb):
-        names = [layer.name() for layer in QgsProject.instance().mapLayers().values()]    
-        #cmb = self.cmbLayers
-        cmb.clear()  
-        for name in names:
-          cmb.addItem(name, [])       
-        
-        index = cmb.findText('haifa_buildings', QtCore.Qt.MatchFixedString)
-        if index >= 0:
-          cmb.setCurrentIndex(index)
+    def showAllLayersInCombo_Point(self, cmb):
+        layers = QgsProject.instance().mapLayers().values()
+        point_layers = [layer for layer in layers 
+                    if isinstance(layer, QgsVectorLayer) and 
+                    layer.geometryType() == QgsWkbTypes.PointGeometry]
+        cmb.clear()
+        for layer in point_layers:
+          cmb.addItem(layer.name(), [])
                
-
+    def showAllLayersInCombo_Polygon(self, cmb):
+      layers = QgsProject.instance().mapLayers().values()
+      polygon_layers = [layer for layer in layers 
+                      if isinstance(layer, QgsVectorLayer) and 
+                      layer.geometryType() == QgsWkbTypes.PolygonGeometry and
+                      layer.featureCount() > 1]
+      cmb.clear()
+      for layer in polygon_layers:
+        cmb.addItem(layer.name(), [])
 
     def showFoldersDialog(self, obj):        
       folder_path = QFileDialog.getExistingDirectory(self, "Select Folder", obj.text())
@@ -280,6 +316,7 @@ class RaptorDetailed(QDialog, FORM_CLASS):
       if hasattr(self, 'cbSelectedOnly1'):
         self.config['Settings']['SelectedOnly1'] = str(self.cbSelectedOnly1.isChecked())
       self.config['Settings']['LayerDest'] = self.cmbLayersDest.currentText()
+      self.config['Settings']['LayerViz'] = self.cmbVizLayers.currentText()
       if hasattr(self, 'cbSelectedOnly2'):
         self.config['Settings']['SelectedOnly2'] = str(self.cbSelectedOnly2.isChecked())
       self.config['Settings']['Min_transfer'] = self.txtMinTransfers.text()
@@ -322,6 +359,11 @@ class RaptorDetailed(QDialog, FORM_CLASS):
       
       if isinstance(self.config['Settings']['LayerDest'], str) and self.config['Settings']['LayerDest'].strip():  
         self.cmbLayersDest.setCurrentText(self.config['Settings']['LayerDest'])
+
+      layer = self.config.get('Settings', 'LayerViz', fallback=None)
+      if isinstance(layer, str) and layer.strip():
+          self.cmbVizLayers.setCurrentText(layer)
+      
 
       try:
         SelectedOnly2 = self.config['Settings']['SelectedOnly2'].lower() == "true"  
@@ -565,6 +607,9 @@ class RaptorDetailed(QDialog, FORM_CLASS):
 
             if key == "selectedonly2":
               config_info.append(f"<a>Selected feature only from layer of destinations (points/polygons): {value}</a>")  
+
+            if key == "layerviz":
+              config_info.append(f"<a>Visualization layer: {value}</a>")  
 
             
             if key == "min_transfer":

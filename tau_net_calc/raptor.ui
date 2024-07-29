@@ -53,8 +53,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>581</width>
-             <height>607</height>
+             <width>568</width>
+             <height>648</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -66,15 +66,26 @@
               <property name="verticalSpacing">
                <number>3</number>
               </property>
+              <item row="1" column="0">
+               <widget class="QLineEdit" name="txtPathToPKL"/>
+              </item>
+              <item row="8" column="1">
+               <widget class="QToolButton" name="toolButton_layer_refresh">
+                <property name="text">
+                 <string>...</string>
+                </property>
+                <property name="icon">
+                 <iconset>
+                  <normaloff>refresh.png</normaloff>refresh.png</iconset>
+                </property>
+               </widget>
+              </item>
               <item row="1" column="1">
                <widget class="QToolButton" name="toolButton_PKL">
                 <property name="text">
                  <string>...</string>
                 </property>
                </widget>
-              </item>
-              <item row="3" column="0">
-               <widget class="QLineEdit" name="txtPathToProtocols"/>
               </item>
               <item row="10" column="0">
                <layout class="QHBoxLayout" name="horizontalLayout_17">
@@ -87,17 +98,27 @@
                 </item>
                </layout>
               </item>
-              <item row="13" column="0">
+              <item row="3" column="1">
+               <widget class="QToolButton" name="toolButton_protocol">
+                <property name="text">
+                 <string>...</string>
+                </property>
+               </widget>
+              </item>
+              <item row="14" column="0">
                <widget class="QCheckBox" name="cbUseFields">
                 <property name="text">
                  <string>Run aggregate</string>
                 </property>
                </widget>
               </item>
-              <item row="14" column="0">
-               <widget class="QLabel" name="lblFields">
+              <item row="6" column="0">
+               <layout class="QHBoxLayout" name="horizontalLayout_6"/>
+              </item>
+              <item row="7" column="0">
+               <widget class="QLabel" name="label_17">
                 <property name="text">
-                 <string>Field to aggregate</string>
+                 <string>Layer of origins (points/polygons)</string>
                 </property>
                </widget>
               </item>
@@ -118,28 +139,8 @@
                 </item>
                </layout>
               </item>
-              <item row="2" column="0">
-               <widget class="QLabel" name="label_13">
-                <property name="text">
-                 <string>Output folder</string>
-                </property>
-               </widget>
-              </item>
-              <item row="3" column="1">
-               <widget class="QToolButton" name="toolButton_protocol">
-                <property name="text">
-                 <string>...</string>
-                </property>
-               </widget>
-              </item>
-              <item row="16" column="0">
-               <widget class="QComboBox" name="cmbFields"/>
-              </item>
-              <item row="1" column="0">
-               <widget class="QLineEdit" name="txtPathToPKL"/>
-              </item>
-              <item row="6" column="0">
-               <layout class="QHBoxLayout" name="horizontalLayout_6"/>
+              <item row="3" column="0">
+               <widget class="QLineEdit" name="txtPathToProtocols"/>
               </item>
               <item row="0" column="0">
                <widget class="QLabel" name="label_19">
@@ -147,6 +148,28 @@
                  <string>Dataset folder</string>
                 </property>
                </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QLabel" name="label_13">
+                <property name="text">
+                 <string>Output folder</string>
+                </property>
+               </widget>
+              </item>
+              <item row="11" column="1">
+               <widget class="QToolButton" name="toolButton_layer_dest_refresh">
+                <property name="text">
+                 <string>...</string>
+                </property>
+                <property name="icon">
+                 <iconset>
+                  <normalon>refresh.png</normalon>
+                 </iconset>
+                </property>
+               </widget>
+              </item>
+              <item row="17" column="0">
+               <widget class="QComboBox" name="cmbFields"/>
               </item>
               <item row="8" column="0">
                <layout class="QHBoxLayout" name="horizontalLayout_19">
@@ -172,26 +195,25 @@
                 </item>
                </layout>
               </item>
-              <item row="7" column="0">
-               <widget class="QLabel" name="label_17">
+              <item row="15" column="0">
+               <widget class="QLabel" name="lblFields">
                 <property name="text">
-                 <string>Layer of origins (points/polygons)</string>
+                 <string>Field to aggregate</string>
                 </property>
                </widget>
               </item>
-              <item row="8" column="1">
-               <widget class="QToolButton" name="toolButton_layer_refresh">
+              <item row="12" column="0">
+               <widget class="QLabel" name="label">
                 <property name="text">
-                 <string>...</string>
-                </property>
-                <property name="icon">
-                 <iconset>
-                  <normaloff>refresh.png</normaloff>refresh.png</iconset>
+                 <string>Visualization layer</string>
                 </property>
                </widget>
               </item>
-              <item row="11" column="1">
-               <widget class="QToolButton" name="toolButton_layer_dest_refresh">
+              <item row="13" column="0">
+               <widget class="QComboBox" name="cmbVizLayers"/>
+              </item>
+              <item row="13" column="1">
+               <widget class="QToolButton" name="toolButton_viz_layers_refresh">
                 <property name="text">
                  <string>...</string>
                 </property>

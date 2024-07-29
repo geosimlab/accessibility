@@ -1,12 +1,17 @@
 import os
 import sys
-import qgis.core
 from qgis.PyQt import QtCore
-from qgis.core import QgsProject, QgsWkbTypes, QgsPointXY
+from qgis.core import (QgsProject, 
+                       QgsWkbTypes, 
+                       QgsPointXY, 
+                       QgsVectorLayer
+                      )
 
 import osgeo.gdal
 import osgeo.osr
 from pathlib import Path
+
+
 
 from PyQt5.QtWidgets import (
                             QDialogButtonBox, 
@@ -80,9 +85,9 @@ class CarAccessibility(QDialog, FORM_CLASS):
             
             self.toolButton_protocol.clicked.connect(lambda: self.showFoldersDialog(self.txtPathToProtocols))
 
-            self.showAllLayersInCombo(self.cmbLayers)
-            self.showAllLayersInCombo(self.cmbLayersDest)
-            self.showAllLayersInCombo(self.cmbLayersRoad)
+            self.showAllLayersInCombo_Point(self.cmbLayers)
+            self.showAllLayersInCombo_Point(self.cmbLayersDest)
+            self.showAllLayersInCombo_Line(self.cmbLayersRoad)
 
             self.cmbLayers.installEventFilter(self)
             self.cmbLayersDest.installEventFilter(self)
@@ -93,9 +98,9 @@ class CarAccessibility(QDialog, FORM_CLASS):
             self.cmbFieldsDirection.installEventFilter(self)
                     
             
-            self.toolButton_layer_dest_refresh.clicked.connect(lambda: self.showAllLayersInCombo(self.cmbLayersDest))
-            self.toolButton_layer_refresh.clicked.connect(lambda: self.showAllLayersInCombo(self.cmbLayers))
-            self.toolButton_layer_road_refresh.clicked.connect(lambda: self.showAllLayersInCombo(self.cmbLayersRoad))
+            self.toolButton_layer_dest_refresh.clicked.connect(lambda: self.showAllLayersInCombo_Point(self.cmbLayersDest))
+            self.toolButton_layer_refresh.clicked.connect(lambda: self.showAllLayersInCombo_Point(self.cmbLayers))
+            self.toolButton_layer_road_refresh.clicked.connect(lambda: self.showAllLayersInCombo_Line(self.cmbLayersRoad))
             
            
             
@@ -240,7 +245,25 @@ class CarAccessibility(QDialog, FORM_CLASS):
     def on_help_button_clicked(self):
         
         pass
-   
+
+    def showAllLayersInCombo_Point(self, cmb):
+        layers = QgsProject.instance().mapLayers().values()
+        point_layers = [layer for layer in layers 
+                    if isinstance(layer, QgsVectorLayer) and 
+                    layer.geometryType() == QgsWkbTypes.PointGeometry]
+        cmb.clear()
+        for layer in point_layers:
+          cmb.addItem(layer.name(), [])
+
+    def showAllLayersInCombo_Line(self, cmb):
+      layers = QgsProject.instance().mapLayers().values()
+      line_layers = [layer for layer in layers 
+                   if isinstance(layer, QgsVectorLayer) and 
+                   layer.geometryType() == QgsWkbTypes.LineGeometry]
+      cmb.clear()
+      for layer in line_layers:
+        cmb.addItem(layer.name(), [])      
+
     def showAllLayersInCombo(self, cmb):
         names = [layer.name() for layer in QgsProject.instance().mapLayers().values()]    
         #cmb = self.cmbLayers
@@ -436,8 +459,6 @@ class CarAccessibility(QDialog, FORM_CLASS):
       layer = self.config['Settings']['Layer_car']
       
       layer = QgsProject.instance().mapLayersByName(layer)[0]   
-      
-      #layer = layer.centroid
       
       ids = []
       count = 0

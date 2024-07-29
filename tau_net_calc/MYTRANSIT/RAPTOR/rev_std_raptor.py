@@ -15,6 +15,7 @@ def rev_raptor(SOURCE,
                stops_dict, 
                stoptimes_dict, 
                footpath_dict,
+               footpath_dict_b_b,
                idx_by_route_stop_dict,
                Maximal_travel_time,
                MaxWalkDist1, 
@@ -34,12 +35,11 @@ def rev_raptor(SOURCE,
      marked_stop_dict, 
      label, 
      pi_label, 
-     star_label, 
      inf_time)  = initialize_rev_raptor(routes_by_stop_dict, SOURCE, MAX_TRANSFER)
 
     change_time_save = change_time
     
-    (label[0][SOURCE], star_label[SOURCE]) = (D_TIME, D_TIME)
+    label[0][SOURCE] = D_TIME
     Q = {}  # Format of Q is {route:stop index}
     roundsCount = MAX_TRANSFER + 1
     trans_info = -1     
@@ -63,7 +63,13 @@ def rev_raptor(SOURCE,
     if True:
         try:
             if trans_info == -1:
-             trans_info = footpath_dict[SOURCE]
+                trans_info1 = footpath_dict_b_b.get(SOURCE, [])
+                trans_info2 = footpath_dict.get(SOURCE, [])
+
+                for i,dist in trans_info2:
+                    trans_info1.append ((i,dist))
+
+                trans_info = trans_info1 
 
              
             for i in trans_info:
@@ -77,7 +83,6 @@ def rev_raptor(SOURCE,
                    continue
                 new_p_dash_time = TIME_START - to_pdash_time
                 label[0][p_dash] = new_p_dash_time
-                star_label[p_dash] = new_p_dash_time
                 pi_label[0][p_dash] = ('walking', SOURCE, p_dash, to_pdash_time, new_p_dash_time)
                 list_stops.add(p_dash)
                                     
@@ -165,7 +170,7 @@ def rev_raptor(SOURCE,
 
                     if to_process and boarding_point != p_i: #and boarding_time >= arr_by_t_at_pi :
                      
-                     label[k][p_i], star_label[p_i] = arr_by_t_at_pi, arr_by_t_at_pi
+                     label[k][p_i] = arr_by_t_at_pi
                      pi_label[k][p_i] = (boarding_time, boarding_point, p_i, arr_by_t_at_pi, tid)
                      list_stops.add(p_i)
                                           
@@ -232,7 +237,7 @@ def rev_raptor(SOURCE,
         
                 save_marked_stop = True
 
-                #destination_accessed, marked_stop_dict,marked_stop,marked_stop_copy,label,star_label,pi_label = 
+                #destination_accessed, marked_stop_dict,marked_stop,marked_stop_copy,label,pi_label = 
                 process_walking_stage(min_time, 
                                       MaxWalkDist2_time, 
                                       k, 
@@ -240,7 +245,6 @@ def rev_raptor(SOURCE,
                                       marked_stop_dict, 
                                       marked_stop, 
                                       label, 
-                                      star_label, 
                                       pi_label, 
                                       save_marked_stop,
                                       list_stops, 
@@ -258,7 +262,6 @@ def rev_raptor(SOURCE,
                               marked_stop_dict, 
                               marked_stop, 
                               label, 
-                              star_label, 
                               pi_label, 
                               save_marked_stop,
                               list_stops 
@@ -317,7 +320,6 @@ def process_walking_stage(min_time,
                           marked_stop_dict, 
                           marked_stop, 
                           label, 
-                          star_label, 
                           pi_label, 
                           save_marked_stop,
                           list_stops):
@@ -362,7 +364,7 @@ def process_walking_stage(min_time,
                         continue
 
                          
-                label[k][p_dash], star_label[p_dash] = new_p_dash_time, new_p_dash_time
+                label[k][p_dash] = new_p_dash_time
                 pi_label[k][p_dash] = ('walking', p, p_dash, to_pdash_time, new_p_dash_time)
                 list_stops.add(p_dash)
                    

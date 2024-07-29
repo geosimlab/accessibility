@@ -44,7 +44,7 @@ class PKL ():
 
     def create_files(self):
         
-        self.parent.progressBar.setMaximum(11)
+        self.parent.progressBar.setMaximum(12)
         self.parent.progressBar.setValue(0)
         self.load_gtfs()
         self.parent.progressBar.setValue(1)
@@ -70,30 +70,36 @@ class PKL ():
         if self.verify_break():
                 return 0
         
-        self.build__route_by_stop()
         
+        self.build_footpath_dict_b_b()
         self.parent.progressBar.setValue(6)
         if self.verify_break():
                 return 0
-        self.build_routes_by_stop_dict()
+        
+        self.build__route_by_stop()
+        
         self.parent.progressBar.setValue(7)
+        if self.verify_break():
+                return 0
+        self.build_routes_by_stop_dict()
+        self.parent.progressBar.setValue(8)
         if self.verify_break():
                 return 0
 
         self.build_reversed_stops_dict()
-        self.parent.progressBar.setValue(8)
-        if self.verify_break():
-                return 0
-        self.build_reversed_stoptimes_dict()
         self.parent.progressBar.setValue(9)
         if self.verify_break():
                 return 0
-        self.build_reverse_stoptimes_file_txt()
+        self.build_reversed_stoptimes_dict()
         self.parent.progressBar.setValue(10)
         if self.verify_break():
                 return 0
-        self.build_rev_stop_idx_in_route()
+        self.build_reverse_stoptimes_file_txt()
         self.parent.progressBar.setValue(11)
+        if self.verify_break():
+                return 0
+        self.build_rev_stop_idx_in_route()
+        self.parent.progressBar.setValue(12)
         if self.verify_break():
                 return 0
         
@@ -138,7 +144,7 @@ class PKL ():
         return stops_dict
 
     
-    def build_stopstimes_dict(self) -> dict:
+    def build_stopstimes_dict(self):
         self.parent.setMessage(f'Creating PKL. Making stoptimes_dict ...')
         QApplication.processEvents()
         if self.verify_break():
@@ -173,8 +179,44 @@ class PKL ():
 
         return 1
     
+    def build_footpath_dict_b_b(self):
 
-    def build_footpath_dict(self, obj_txt, file_name) -> dict:
+        if self.RunCalcFootPathRoad:
+            filename = 'footpath_road_b_b.txt'
+        else: 
+            filename = 'footpath_AIR_b_b.txt'
+            
+        self.parent.setMessage(f'Creating PKL. Making transfers_dict b_b...')
+        QApplication.processEvents()
+        obj_txt = pd.read_csv(f'{self.__path_gtfs}/{filename}', sep=',')
+        file_name = 'transfers_dict_b_b.pkl'
+        
+        if self.verify_break():
+                return 0
+
+        footpath_dict = {}
+        g = obj_txt.groupby("from_stop_id")
+        i = 0
+        len_g = len(g)
+        for from_stop, details in g:
+            i += 1
+            if i%1000 == 0:
+                self.parent.setMessage(f'Creating PKL. Making transfers_dict b_b(source {i} from {len_g})...')
+                QApplication.processEvents()
+                if self.verify_break():
+                    return 0
+            footpath_dict[from_stop] = []
+            for _, row in details.iterrows():
+                footpath_dict[from_stop].append(
+                    
+                    (row.to_stop_id, (row.min_transfer_time)))
+           
+        with open(f'{self.__path_pkl}/{file_name}', 'wb') as pickle_file:    
+            pickle.dump(footpath_dict, pickle_file)
+        
+        return 1
+
+    def build_footpath_dict(self, obj_txt, file_name):
         
         self.parent.setMessage(f'Creating PKL. Making transfers_dict ...')
         QApplication.processEvents()
@@ -416,17 +458,7 @@ class PKL ():
             self.parent.progressBar.setValue(0)  
             return True
       return False 
-
-    """
-    def get_buildings (self):
-        centroid_dict = {}
-        if self.__path_to_shp_buildings !='':
-            gdf = gpd.read_file(self.__path_to_shp_buildings)
-            gdf['centroid'] = gdf['geometry'].centroid
-            centroid_dict = {int (row['osm_id']): (row['centroid'].x, row['centroid'].y) for index, row in gdf.iterrows()}
-        
-        return centroid_dict
-    """          
+            
 
 if __name__ == "__main__":    
     

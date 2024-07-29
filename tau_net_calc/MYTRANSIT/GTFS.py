@@ -3,30 +3,25 @@ Creatint cut from GTFS using file routes.txt
 Also creating file transfers.txt
 Also creating archive including all files
 """
-#from rtree import index
 from scipy.spatial import cKDTree
 import pandas as pd
-import pyproj
 import csv
 import pyproj
+
 import geopandas as gpd
 import codecs
 import os
 from shapely.geometry import Point
-from qgis.core import QgsCoordinateReferenceSystem, QgsPointXY,  QgsGeometry
-
+from qgis.core import (QgsCoordinateReferenceSystem, 
+                       QgsPointXY,  
+                       QgsGeometry)
 from zipfile import ZipFile
 from datetime import datetime
 from collections import defaultdict
 from PyQt5.QtWidgets import QApplication
 
 
-import geopandas as gpd
 
-import pyproj
-
-from scipy.spatial import cKDTree
-import pandas as pd
 from footpath_on_road import footpath_on_road
 
 
@@ -371,9 +366,8 @@ class GTFS ():
         self.parent.textLog.append(f'<a>Algorithm started at {begin_computation_time}</a>')
         self.parent.textLog.append(f'<a>Starting calculating</a>')
 
-        self.parent.progressBar.setMaximum(9)
+        self.parent.progressBar.setMaximum(10)
         self.parent.progressBar.setValue(0)
-
         
         self.load_GTFS()
         self.parent.progressBar.setValue(1)
@@ -467,17 +461,34 @@ class GTFS ():
         self.create_footpath_AIR()
 
         
+        self.parent.setMessage(f'Peparing GTFS. Creating footpath air building to building...')
+        self.parent.progressBar.setValue(9)
+        if self.verify_break():
+                return 0
+        QApplication.processEvents()
+        self.create_footpath_AIR_b_b()
+        
+
+        if self.RunCalcFootPathRoad:
+            self.parent.setMessage(f'Peparing GTFS. Creating footpath road b_b...')
+            QApplication.processEvents()
+            self.parent.progressBar.setValue(10)
+            if self.verify_break():
+                return 0
+            footpath_road = footpath_on_road (self.parent, self.layer_road, self.layer_origins, self.__path_to_file)
+            footpath_road.run_b_b()
+        
         if self.RunCalcFootPathRoad:
             self.parent.setMessage(f'Peparing GTFS. Creating footpath road ...')
             QApplication.processEvents()
-            self.parent.progressBar.setValue(9)
+            self.parent.progressBar.setValue(10)
             if self.verify_break():
                 return 0
             footpath_road = footpath_on_road (self.parent, self.layer_road, self.layer_origins, self.__path_to_file)
             footpath_road.run()
         
          
-        self.parent.progressBar.setValue(9)
+        self.parent.progressBar.setValue(11)
         return 1
                 
     def found_repeated_in_trips_stops(self):
@@ -654,15 +665,14 @@ class GTFS ():
         
         points_copy = self.create_stops_gpd()
         points_layer = self.layer_origins
-        #crs_source = QgsCoordinateReferenceSystem("EPSG:4326")
+        
         crs_target = QgsCoordinateReferenceSystem("EPSG:2039")
-        #transform = QgsCoordinateTransform(crs_source, crs_target, QgsProject.instance())
         points_layer.setCrs(crs_target)
 
         centroids = []
         for feature in points_layer.getFeatures():
             geom = feature.geometry()
-            #geom.transform(transform)
+            
             centroid = geom.centroid().asPoint()
             centroids.append((feature['osm_id'], QgsPointXY(centroid)))
 
@@ -680,12 +690,12 @@ class GTFS ():
 
         current_combination = 0
         # Найди пары здание - остановка 
-
+        
         for i, geom in enumerate(points_copy.geometry):
             nearest_centroids = centroids_tree.query_ball_point((geom.x, geom.y), 400)
             for j in nearest_centroids:
                 current_combination = current_combination + 1
-                if current_combination%100 == 0:
+                if current_combination%1000 == 0:
                     self.parent.setMessage(f'Peparing GTFS. Processing combination build<->stop {current_combination}')
                     QApplication.processEvents()
                     if self.verify_break():
@@ -696,8 +706,6 @@ class GTFS ():
                 distance = geom.distance(Point(centroid_geom.asPoint().x(), centroid_geom.asPoint().y()))
                 if distance <= 400:
                     close_pairs.append((centroids[j][0], stop_id1, round(distance)))
-
-
        
         # Найди пары остановок
         for i, geom in enumerate(points_copy.geometry):
@@ -706,7 +714,7 @@ class GTFS ():
                 if i == j:
                     continue
                 current_combination +=  1
-                if current_combination%100 == 0:
+                if current_combination%1000 == 0:
                     self.parent.setMessage(f'Peparing GTFS. Processing combination stop<->stop {current_combination}')
                     QApplication.processEvents()
                     if self.verify_break():
@@ -716,8 +724,7 @@ class GTFS ():
                 distance = geom.distance(points_copy.iloc[j]['geometry'])
                 if distance <= 400 and points_copy.iloc[j]['stop_id'] != stop_id1:
                     close_pairs.append((points_copy.iloc[j]['stop_id'], stop_id1, round(distance))) 
-
-
+           
         filename = self.__path_to_file + 'footpath_AIR.txt'
         with open(filename, 'w') as file:
             file.write(f'from_stop_id,to_stop_id,min_transfer_time\n')
@@ -727,6 +734,57 @@ class GTFS ():
                 distance = pair[2]
                 file.write(f'{id_from_points_layer},{stop_id1},{distance}\n')
                 file.write(f'{stop_id1},{id_from_points_layer},{distance}\n')
+
+    def create_footpath_AIR_b_b (self):    
+               
+        points_layer = self.layer_origins
+        crs_target = QgsCoordinateReferenceSystem("EPSG:2039")
+        points_layer.setCrs(crs_target)
+
+        centroids = []
+        for feature in points_layer.getFeatures():
+            geom = feature.geometry()
+            
+            centroid = geom.centroid().asPoint()
+            centroids.append((feature['osm_id'], QgsPointXY(centroid)))
+
+        points_layer.updateExtents()
+
+        centroids_coords = [(centroid[1].x(), centroid[1].y()) for centroid in centroids]
+        centroids_tree = cKDTree(centroids_coords)
+    
+        close_pairs = []
+        current_combination = 0
+        # Найди пары здание - здание
+        for i, (id1, geom1) in enumerate(centroids):
+            nearest_centroids = centroids_tree.query_ball_point((geom1.x(), geom1.y()), 400)
+            var = QgsGeometry.fromPointXY(geom1)
+
+            for j in nearest_centroids:
+                current_combination += 1
+                if current_combination % 100000 == 0:
+                    self.parent.setMessage(f'Peparing GTFS. Processing combination build<->build {current_combination}')
+                    QApplication.processEvents()
+                    if self.verify_break():
+                        return 0
+
+                id2 = centroids[j][0]
+                geom2 = centroids[j][1]
+                if id1 == id2:
+                         continue
+                distance = var.distance(QgsGeometry.fromPointXY(geom2))
+                if distance <= 400:
+                    close_pairs.append((id1, id2, round(distance)))
+        
+        filename = self.__path_to_file + 'footpath_AIR_b_b.txt'
+        with open(filename, 'w') as file:
+            file.write(f'from_osm_id,to_osm_id,min_transfer_time\n')
+            for pair in close_pairs:
+                b1 = pair[0]
+                b2 = pair[1]
+                distance = pair[2]
+                file.write(f'{b1},{b2},{distance}\n')
+                    
     
     def verify_break (self):
       if self.parent.break_on:

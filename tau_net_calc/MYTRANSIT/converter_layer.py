@@ -3,7 +3,7 @@ from qgis.core import (
     QgsVectorLayer,
     QgsFeature,
     QgsGeometry,
-)
+    )
 from PyQt5.QtWidgets import QApplication
 
 

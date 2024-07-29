@@ -13,7 +13,11 @@ from scipy.spatial import KDTree
 
 
 class footpath_on_road:
-    def __init__(self, parent, road_layer, layer_origins, path_to_protocol):
+    def __init__(self, 
+                 parent, 
+                 road_layer, 
+                 layer_origins, 
+                 path_to_protocol):
         
         self.path_to_protocol = path_to_protocol
         self.road_layer = road_layer
@@ -23,8 +27,12 @@ class footpath_on_road:
         self.already_display_break = False
 
         self.dict_feature_to_node = {}
+        self.dict_building_to_node = {}
         self.dict_feature_min_dist_to_finishstop = {}
         self.node_pairs = []
+        self.node_pairs_dict = {}
+        self.node_pairs_dict_b_b = {}
+        self.create_head_files()
 
 
     def create_stops_gpd(self):
@@ -52,59 +60,26 @@ class footpath_on_road:
         return points_copy
     
     def create_dict_node_to_feature (self) :
-        """
-        comment = 'vertex : nearest stops'
-
-        features = list(self.stops.itertuples(index=False))
-        features_coords = [(feature.geometry) for feature in features]
-        count = len(self.graph.nodes)
-
-        kdtree = KDTree(features_coords)
         
-        nearby_features = {node: [] for node in self.graph.nodes}
-
-        for i, node in enumerate(self.graph.nodes, start=1):
-            i += 1
-            if i % 1000 == 0:
-                
-                self.parent.setMessage(f'Peparing GTFS. Creating dict ({comment}). Calc node №{i} from {count}')
-                QApplication.processEvents()
-
-            node_point = Point(node)
-            #indices = kdtree.query_ball_point((node_point.x, node_point.y), 500)
-            #nearby_features[node] = [features[idx].stop_id for idx in indices]
-            distance, index = kdtree.query((node_point.x, node_point.y))
-            nearby_features[node] = features[index].stop_id
-
-        return nearby_features
-        """
         comment = 'vertex : nearest stops'
-        features = list(self.stops.itertuples(index=False))
-        len_features = len(features)
-        # Создаем список координат узлов графа
-        graph_nodes_coords = [(node[0], node[1]) for node in self.graph.nodes]
-        kdtree = KDTree(graph_nodes_coords)
+        features = list(self.stops.itertuples(index=False))  # координаты всех остановок
+        kdtree = KDTree([(feature.geometry.x(), feature.geometry.y()) for feature in features])
     
-        nearby_features = {node: [] for node in self.graph.nodes}
+        nearby_features = {node: None for node in self.graph.nodes}
 
-        for i, feature in enumerate(features, start=1):
-            if i % 1000 == 0:
-                self.parent.setMessage(f'Preparing GTFS. Calc footpath on road. Creating dict ({comment}). Calc feature №{i} from {len_features}')
+        for i, node in enumerate(self.graph_nodes_coords, start=1):
+            if i % 10000 == 0:
+                self.parent.setMessage(f'Preparing GTFS. Calc footpath on road. Creating dict ({comment}). Calc node №{i} from {self.len_graph_nodes_coords}')
                 QApplication.processEvents()
 
-            
-            feature_point = feature.geometry
-                        
-            # Находим ближайший узел для данной остановки
-            _, index = kdtree.query((feature_point.x(), feature_point.y()))
-            nearest_node = graph_nodes_coords[index]
-            nearby_features[nearest_node] = feature.stop_id
+            # Находим ближайшую остановку для данного узла
+            _, index = kdtree.query(node)
+            nearest_stop = features[index].stop_id
+            nearby_features[node] = nearest_stop
 
         return nearby_features
         
     def create_dict_feature_to_node (self, mode) :
-
-        
 
         if mode == 1: # buildings to stops
             features = self.layer_origins.getFeatures()
@@ -145,8 +120,6 @@ class footpath_on_road:
         
     
     def create_dict_feature_min_dist_to_finishstop (self, mode) :
-
-        
 
         if mode == 1: # buildings to stops
             features = self.layer_origins.getFeatures()
@@ -198,14 +171,70 @@ class footpath_on_road:
         #average_dist = total_dist / count
         #print (f'average_dist {average_dist}')        
             
-       
+    def find_shortest_paths_b_b(self):
+
+        if self.verify_break():
+                    return 0
+        
+        
+        
+        features = self.layer_origins.getFeatures()
+        features_list = list(features)
+        count = len(features_list)
+        
+        self.parent.progressBar.setMaximum(count)
+        self.parent.progressBar.setValue(1)
+        
+        i =  0
+        count_print = 0
+                        
+        for feature  in features_list:
+            QApplication.processEvents()
+            
+            i += 1
+            if i%100 == 0:
+                self.parent.setMessage(f'Preparing GTFS. Calc footpath on road b_b. Calc point №{i} from {count}')
+                self.parent.progressBar.setValue(i + 3)
+                QApplication.processEvents()
+                if self.verify_break():
+                    return 0
+
+            
+            self.source = feature['osm_id']
+
+
+            idStart, dist_start = self.dict_building_to_node.get(self.source)[0] # (id_node, dist) for self.source
+            
+            cutoff_value = 400
+            
+            lengths, _ = nx.single_source_dijkstra(self.graph, 
+                                                   idStart, 
+                                                   cutoff = cutoff_value, 
+                                                   weight = 'length'
+                                                   )
+            end_nodes_nearest = list(lengths.keys())
+
+            for node in end_nodes_nearest: # cicle of all founded node of graph
+                nearest_buiding = self.dict_node_buildings.get(node) # find many nearest buildings to coords node
+                distance = lengths[node]
+                
+                for b, dist_finish in nearest_buiding: #cicle of all founded buildings nearest to node
+                    if b == self.source:
+                         continue
+                    distance_all = dist_start + distance + dist_finish
+                    if (distance_all <= 400):
+                        key = (self.source, b)
+                        existing_distance = self.node_pairs_dict_b_b.get(key)
+                        if existing_distance is None or existing_distance > distance_all:
+                            self.node_pairs_dict_b_b[key] = int(distance_all)
+
+
     def find_shortest_paths(self, mode):
 
         if self.verify_break():
                     return 0
         
         
-
         if mode == 1: # buildings to stops
             features = self.layer_origins.getFeatures()
             features_list = list(features)
@@ -223,15 +252,14 @@ class footpath_on_road:
         self.parent.progressBar.setValue(1)
         
         i =  0
-        
-                
+                        
         for feature  in features_list:
             QApplication.processEvents()
             
             i += 1
             if i%100 == 0:
                 self.parent.setMessage(f'Preparing GTFS. Calc footpath on road. Calc point №{i} from {count}')
-                self.parent.progressBar.setValue(i+3)
+                self.parent.progressBar.setValue(i + 3)
                 QApplication.processEvents()
                 if self.verify_break():
                     return 0
@@ -245,50 +273,55 @@ class footpath_on_road:
                 self.source = feature['osm_id']
             else:
                 self.source = feature.stop_id
-            
-            to_stop_tuples = self.dict_b_s.get(self.source, [])  # Получаем список кортежей для текущего building_osm_id
-            
-            if not to_stop_tuples:
-                continue
 
-            to_stop_ids = {stop_id for stop_id, _ in to_stop_tuples}
-            filtered_stops = self.stops[self.stops['stop_id'].isin(to_stop_ids)]
+            #if self.source != '23402':    
+            #     continue
+            
+            # dict_b_s based on footpath_on_AIR!!!!!!!!!!!!!
+            #to_stop_tuples = self.dict_b_s.get(self.source, [])  # Получаем список кортежей для текущего building_osm_id
+            
+            #if not to_stop_tuples:
+            #    continue
+
+            #to_stop_ids = {stop_id for stop_id, _ in to_stop_tuples}
+            #filtered_stops = self.stops[self.stops['stop_id'].isin(to_stop_ids)]
+            #filtered_stop_ids = set(filtered_stops['stop_id'])
 
             
-            if not filtered_stops.empty:
-                if mode == 1:
-                    geometry = feature.geometry()
-                    points = [geometry.asPoint()]
-                    self.pStart = points[0]
-                    idStart, dist = self.dict_feature_to_node.get(self.source)[0]
-                    
-                else:
-                    self.pStart = feature.geometry
-                    idStart, dist = self.dict_feature_to_node.get(self.source)[0]
+            #if not filtered_stops.empty:
+
+            idStart, dist = self.dict_feature_to_node.get(self.source)[0]
                 
-            else:
-                continue
+            #else:
+            #    continue
 
             
             dist_finish = self.dict_feature_min_dist_to_finishstop.get(self.source)
             cutoff_value = 500 - dist - dist_finish
             
-            lengths, _ = nx.single_source_dijkstra(self.graph, idStart, cutoff = cutoff_value, weight = 'length')
+            lengths, _ = nx.single_source_dijkstra(self.graph, 
+                                                   idStart, 
+                                                   cutoff = cutoff_value, 
+                                                   weight = 'length'
+                                                   )
             end_nodes_nearest = list(lengths.keys())
-
-            for node in end_nodes_nearest:
-                nearest_stops = self.dict_vertex_stops.get(node)
+          
+            for node in end_nodes_nearest: # cicle of all founded node of graph
+                nearest_stops = self.dict_vertex_stops.get(node) # find one nearest stops to coords node
+                # edit!
+                if nearest_stops == self.source:
+                     continue
+                                
                 distance = round(lengths[node])
                 
-                for stop in filtered_stops.itertuples(index=False):
-                    
-                    if stop.stop_id in nearest_stops:
-                        if distance <= 400:        
-                            self.node_pairs.append((self.source, stop.stop_id, distance))
-                        break
-      
-        
-    
+                if (distance <= 400): # and (nearest_stops in filtered_stop_ids):
+                    key = (self.source, nearest_stops)
+                    existing_distance = self.node_pairs_dict.get(key)
+                
+                    if existing_distance is None or existing_distance > distance:
+                        self.node_pairs_dict[key] = distance
+                  
+                
     def build_graph(self, roads):
         self.graph = nx.Graph()
 
@@ -309,21 +342,20 @@ class footpath_on_road:
 
             self.graph.add_node(start_point)
             self.graph.add_node(end_point)
-            self.graph.add_edge(start_point, end_point, length=len)
-                
+            self.graph.add_edge(start_point, end_point, length=len
+                                )
+        
         self.build_index_graph ()
     
     def build_index_graph(self):
         self.nodes = list(self.graph.nodes)
         node_positions = [(x, y) for x, y in self.nodes]
         self.kd_tree = KDTree(node_positions)
-
-    
-    
-        
-        
+         # Создаем список координат узлов графа
+        self.graph_nodes_coords = [(node[0], node[1]) for node in self.graph.nodes]
+        self.len_graph_nodes_coords = len(self.graph_nodes_coords)
             
-    # use it!! 
+
     def find_nearest_node(self, geometry):
        
         nearest_point_coords = (geometry.x(), geometry.y())
@@ -347,43 +379,161 @@ class footpath_on_road:
         table_header = "from_stop_id,to_stop_id,min_transfer_time\n"
         self.folder_name = f'{self.path_to_protocol}'
         self.f = f'{self.folder_name}footpath_road.txt'
+        self.f_b_b = f'{self.folder_name}footpath_road_b_b.txt'
                 
         with open(self.f, 'w') as self.filetowrite:
+            self.filetowrite.write(table_header)
+
+        with open(self.f_b_b, 'w') as self.filetowrite:
             self.filetowrite.write(table_header)  
 
+    # Creating dict {[buildings] : {building}} on base pre-preparing file with distance
+    """
+    def create_dict_b_b (self):
+    
+        self.dict_b_b = {}
+        count_dict = 0
+        with open(self.path_to_protocol+'footpath_AIR_b_b.txt', 'r') as file:
+            reader = csv.reader(file)
+            next(reader)
+
+            for row in reader:
+                from_osm_id, to_osm_id, dist = row
+                
+                count_dict = count_dict + 1
+                if count_dict > 50000000:
+                     break
+                if count_dict%1000000 == 0:
+                    QApplication.processEvents()
+                    if self.verify_break():
+                        return 0
+                    self.parent.setMessage(f'Preparing GTFS. Calc footpath on road. Making dictionary based on footpath_air_b_b pair №{count_dict}')
+                if from_osm_id not in self.dict_b_b:
+                        self.dict_b_b[from_osm_id] = []
+                self.dict_b_b[from_osm_id].append((to_osm_id, dist))
+    """
     # Creating dict {[buildings] : {stops}} on base pre-preparing file with distance
+    """
     def create_dict_b_s (self):
     
         self.dict_b_s = {}
         count_dict = 0
         with open(self.path_to_protocol+'footpath_AIR.txt', 'r') as file:
             reader = csv.reader(file)
+            
             next(reader)
+
             for row in reader:
                 from_stop_id, to_stop_id, dist = row
                 
                 count_dict = count_dict + 1
-                if count_dict%100 == 0:
+                if count_dict%1000000 == 0:
                     QApplication.processEvents()
+                    if self.verify_break():
+                        return 0
+                    self.parent.setMessage(f'Preparing GTFS. Calc footpath on road. Making dictionary based on footpath_air pair №{count_dict}')
                 if from_stop_id not in self.dict_b_s:
                         self.dict_b_s[from_stop_id] = []
                 self.dict_b_s[from_stop_id].append((to_stop_id, dist))
-        
+    """
+    def create_dict_building_to_node (self) :
+             
+        features = self.layer_origins.getFeatures()
+        features_list = list(features)
+        count = len(features_list)
+        comment = 'building : {nearest vertex, dist}'
+       
+        i = 0
 
+        for feature  in features_list:
+            i += 1
+            if i%10000 == 0:
+                self.parent.setMessage(f'Calc footpath on road. Creating dict ({comment}). Calc point №{i} from {count}')
+                QApplication.processEvents()
+                if self.verify_break():
+                    return 0
+            
+            geometry = feature.geometry()
+            points = [geometry.asPoint()]
+            pFeature = points[0]
+            source = feature['osm_id']
+                                
+            idVertex, dist = self.find_nearest_node(pFeature)
+            self.dict_building_to_node[source] = [(idVertex, dist)]
+
+    def create_dict_node_to_buildings(self):
+        comment = 'vertex : {nearby buildings, dist}'
+        features = list(self.layer_origins.getFeatures())  # объекты из self.layer_origins
+        self.kd_tree_buildings = KDTree([(feature.geometry().asPoint().x(), feature.geometry().asPoint().y()) for feature in features])
+                
+        nearby_features = {node: [] for node in self.graph.nodes}
+
+        for i, node in enumerate(self.graph_nodes_coords, start = 1):
+            if i % 10000 == 0:
+                self.parent.setMessage(f'Calc footpath on road. Creating dict ({comment}). Calc node №{i} from {self.len_graph_nodes_coords}')
+                QApplication.processEvents()
+            
+            distances, indices = self.kd_tree_buildings.query(node, k = 1000, distance_upper_bound = 400)
+            filtered_indices_distances = [(int(index), distance) for index, distance in zip(indices, distances) if distance <= 400]
+            nearest_features = [(features[index]['osm_id'], distance) for index, distance in filtered_indices_distances]
+            nearby_features[node] = nearest_features
+
+        return nearby_features
+    
+    def run_b_b(self):
+        
+        self.parent.textLog.append(f'<a>Starting calculating footpath building to building on road</a>')
+        
+        #self.parent.setMessage('Preparing GTFS. Calc footpath on road. Making dictionary based on footpath_air  ...')
+        #self.create_dict_b_b()
+
+        QApplication.processEvents()
+        self.parent.setMessage(f'Preparing GTFS. Calc footpath on road building to building. Making graph ...')
+        self.build_graph(self.road_layer)
+        QApplication.processEvents()
+        if self.verify_break():
+                    return 0 
+        
+        self.create_dict_building_to_node()
+        if self.verify_break():
+                    return 0 
+        
+        self.dict_node_buildings = self.create_dict_node_to_buildings()
+        if self.verify_break():
+                    return 0
+        
+        self.find_shortest_paths_b_b()
+        computation_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        self.parent.textLog.append(f'<a>Founded shortest path building to building on time{computation_time}</a>')
+        
+        self.node_pairs_b_b =  [(source, stop, dist) for (source, stop), dist in self.node_pairs_dict_b_b.items()]
+        
+        count = 0
+        with open(self.f_b_b, 'a') as file:
+            if self.node_pairs_b_b:
+                for id_source, id_destination, dist in self.node_pairs_b_b:
+                    file.write(f'{id_source},{id_destination},{dist}\n')
+                    count +=1
+                    if count%100000 == 0: 
+                        QApplication.processEvents()
+                    #file.write(f'{id_destination},{id_source},{dist}\n')
+            
+            
+        self.parent.setMessage(f'Preparing GTFS. Calc footpath building to building on road. Calculating done')
+        QApplication.processEvents()
+             
     def run(self):
         
         self.parent.textLog.append(f'<a>Starting calculating footpath on road</a>')
         
-        self.create_head_files()
-
         self.parent.setMessage('Preparing GTFS. Calc footpath on road. Loadings stops.txt  ...')
         QApplication.processEvents()
         self.stops = self.create_stops_gpd()
         self.stops['stop_id'] = self.stops['stop_id'].astype(str)
 
         
-        self.parent.setMessage('Preparing GTFS. Calc footpath on road. Making dictionary (building: {stops})  ...')
-        self.create_dict_b_s()
+        #self.parent.setMessage('Preparing GTFS. Calc footpath on road. Making dictionary based on footpath_air  ...')
+        #self.create_dict_b_s()
 
         QApplication.processEvents()
         self.parent.setMessage(f'Preparing GTFS. Calc footpath on road. Making graph ...')
@@ -413,6 +563,8 @@ class footpath_on_road:
         computation_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         self.parent.textLog.append(f'<a>Find shortest path 2 on time{computation_time}</a>')
         
+        self.node_pairs =  [(source, stop, dist) for (source, stop), dist in self.node_pairs_dict.items()]
+        
         with open(self.f, 'a') as file:
             if self.node_pairs:
                 for id_source, id_destination, dist in self.node_pairs:
@@ -423,9 +575,6 @@ class footpath_on_road:
         self.parent.setMessage(f'Preparing GTFS. Calc footpath on road. Calculating footpath on road done')
         QApplication.processEvents()
         
-
-        
-
     def verify_break (self):
       if self.parent.break_on:
             self.parent.setMessage ("Process calculation footpath on road is break")
@@ -434,6 +583,4 @@ class footpath_on_road:
                 self.already_display_break = True
             self.parent.progressBar.setValue(0)  
             return True
-      return False   
-
-    
+      return False

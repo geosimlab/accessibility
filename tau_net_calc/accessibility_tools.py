@@ -11,7 +11,9 @@ from .form_raptor_summary import RaptorSummary
 from .form_car import CarAccessibility
 from .form_pkl import form_pkl
 from .form_relative import form_relative
+from visualization import visualization
 import os
+
 
 class AccessibilityTools(QWidget):
     def __init__(self):
@@ -82,6 +84,13 @@ class AccessibilityTools(QWidget):
         self.item18 = QTreeWidgetItem(group7, ['Backward accessibility'])
         self.item18.setFont(0,font)
         group7.setExpanded(True)
+
+        """
+        group8 = QTreeWidgetItem(self.tree_widget,['Tools'])
+        self.item19 = QTreeWidgetItem(group8, ['Visualizaton'])
+        self.item19.setFont(0,font)
+        group8.setExpanded(True)
+        """
 
         icon1 = os.path.join(os.path.dirname(__file__), 'folder.png')
         
@@ -232,6 +241,15 @@ class AccessibilityTools(QWidget):
                                          relative_mode = True)
           raptor_summary.textInfo.setPlainText("Sample description backward raptor")
           raptor_summary.show()  
+        """
+        if item == self.item19:
+          visual = visualization(path_protokol = "C:/temp/2024 AREA 20240714_080832",
+                                 path_gtfs = "C:/Users/geosimlab/Documents/Igor/israel-public-transportation_gtfs/2024/GTFS", 
+                                 layer_buildings_name = "buildings",
+                                 time_travel = 60,
+                                 time_interval = 5)
+        """                         
+          
 
                 
 
