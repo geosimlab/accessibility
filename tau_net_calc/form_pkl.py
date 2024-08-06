@@ -6,7 +6,10 @@ import qgis.core
 import osgeo.gdal
 import osgeo.osr
 
-from qgis.core import QgsProject, QgsWkbTypes
+from qgis.core import (QgsProject, 
+                       QgsWkbTypes, 
+                       QgsVectorLayer
+                       )
 
 from PyQt5.QtWidgets import (QDialogButtonBox, 
                              QDialog, 
@@ -63,14 +66,14 @@ class form_pkl(QDialog, FORM_CLASS):
             self.toolButton_protocol.clicked.connect(lambda: self.showFoldersDialog(self.txtPathToProtocols))
             
 
-            self.showAllLayersInCombo(self.cmbLayers)
+            self.showAllLayersInCombo_Point(self.cmbLayers)
             self.cmbLayers.installEventFilter(self)
             
-            self.showAllLayersInCombo(self.cmbLayersRoad)
+            self.showAllLayersInCombo_Line(self.cmbLayersRoad)
             self.cmbLayersRoad.installEventFilter(self)
             
-            self.toolButton_layer_refresh.clicked.connect(lambda: self.showAllLayersInCombo(self.cmbLayers))
-            self.toolButton_layer_road_refresh.clicked.connect(lambda: self.showAllLayersInCombo(self.cmbLayersRoad))
+            self.toolButton_layer_refresh.clicked.connect(lambda: self.showAllLayersInCombo_Point(self.cmbLayers))
+            self.toolButton_layer_road_refresh.clicked.connect(lambda: self.showAllLayersInCombo_Line(self.cmbLayersRoad))
             
            
             self.btnBreakOn.clicked.connect(self.set_break_on)
@@ -86,6 +89,26 @@ class form_pkl(QDialog, FORM_CLASS):
             
             self.ParametrsShow()
     
+
+    def showAllLayersInCombo_Line(self, cmb):
+      layers = QgsProject.instance().mapLayers().values()
+      line_layers = [layer for layer in layers
+                   if isinstance(layer, QgsVectorLayer) and
+                   layer.geometryType() == QgsWkbTypes.LineGeometry and
+                   not layer.name().startswith("Temp")]
+      cmb.clear()
+      for layer in line_layers:
+        cmb.addItem(layer.name(), []) 
+
+    def showAllLayersInCombo_Point(self, cmb):
+        layers = QgsProject.instance().mapLayers().values()
+        point_layers = [layer for layer in layers 
+                    if isinstance(layer, QgsVectorLayer) and 
+                    layer.geometryType() == QgsWkbTypes.PointGeometry]
+        cmb.clear()
+        for layer in point_layers:
+          cmb.addItem(layer.name(), [])
+
     def EnableComboBox(self, state):
       
       if state == QtCore.Qt.Checked:
@@ -376,6 +399,8 @@ class form_pkl(QDialog, FORM_CLASS):
           self.setMessage('Preparing GTFS. Calc footpath on road. Converting layer road multiline to line ...')
           converter = MultiLineStringToLineStringConverter(self, layer_road)
           layer_road = converter.execute()
+          
+          
           if layer_road != 0:
 
               
@@ -389,7 +414,7 @@ class form_pkl(QDialog, FORM_CLASS):
             res = calc_GTFS.correcting_files()
       
             if res == 1:
-                   
+                  
               calc_PKL = PKL (self, 
                               dist = 400, 
                               path_to_pkl = pkl_path, 

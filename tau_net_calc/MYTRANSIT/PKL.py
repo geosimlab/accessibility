@@ -44,8 +44,9 @@ class PKL ():
 
     def create_files(self):
         
-        self.parent.progressBar.setMaximum(12)
+        self.parent.progressBar.setMaximum(13)
         self.parent.progressBar.setValue(0)
+
         self.load_gtfs()
         self.parent.progressBar.setValue(1)
         if self.verify_break():
@@ -60,6 +61,7 @@ class PKL ():
         self.parent.progressBar.setValue(3)
         if self.verify_break():
                 return 0
+        
         self.build_stop_idx_in_route()
         self.parent.progressBar.setValue(4)
         if self.verify_break():
@@ -77,10 +79,10 @@ class PKL ():
                 return 0
         
         self.build__route_by_stop()
-        
         self.parent.progressBar.setValue(7)
         if self.verify_break():
                 return 0
+        
         self.build_routes_by_stop_dict()
         self.parent.progressBar.setValue(8)
         if self.verify_break():
@@ -103,6 +105,10 @@ class PKL ():
         if self.verify_break():
                 return 0
         
+        self.build_route_desc__route_id_dict()
+        self.parent.progressBar.setValue(13)
+        if self.verify_break():
+                return 0
         
     def load_gtfs(self):
         self.parent.setMessage(f'Creating PKL. Loading GTFS ...')
@@ -121,8 +127,39 @@ class PKL ():
         QApplication.processEvents()
         if self.verify_break():
                 return 0
-               
         
+        self.__routes_file = pd.read_csv(f'{self.__path_gtfs}/routes.txt', sep=',')
+        QApplication.processEvents()
+        if self.verify_break():
+                return 0
+               
+   
+    def build_route_desc__route_id_dict(self):
+        
+        self.parent.setMessage('Creating PKL. Making route_desc: {route_id} dict ...')
+        QApplication.processEvents()
+        if self.verify_break():
+                return 0
+
+        route_dict = {}
+
+        for _, row in self.__routes_file.iterrows():
+            route_desc = row['route_desc']
+            key = route_desc.split('-')[0]
+            route_id = row['route_id']
+
+            if key not in route_dict:
+                route_dict[key] = [] 
+            route_dict[key].append(route_id) 
+        
+
+        f = f'{self.__path_pkl}/route_desc__route_id.pkl'
+        
+        with open(f, "wb") as pickle_file:
+            pickle.dump(route_dict, pickle_file)
+        
+        
+        return 1
 
     def build_stops_dict(self):
         

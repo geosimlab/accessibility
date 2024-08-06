@@ -375,6 +375,7 @@ class GTFS ():
                 return 0
         QApplication.processEvents()
         
+        
         self.create_my_routes()
         self.parent.progressBar.setValue(2)
         if self.verify_break():
@@ -459,6 +460,7 @@ class GTFS ():
                 return 0
         QApplication.processEvents()
         self.create_footpath_AIR()
+        
 
         
         self.parent.setMessage(f'Peparing GTFS. Creating footpath air building to building...')
@@ -467,6 +469,7 @@ class GTFS ():
                 return 0
         QApplication.processEvents()
         self.create_footpath_AIR_b_b()
+        
         
 
         if self.RunCalcFootPathRoad:
@@ -478,6 +481,7 @@ class GTFS ():
             footpath_road = footpath_on_road (self.parent, self.layer_road, self.layer_origins, self.__path_to_file)
             footpath_road.run_b_b()
         
+        
         if self.RunCalcFootPathRoad:
             self.parent.setMessage(f'Peparing GTFS. Creating footpath road ...')
             QApplication.processEvents()
@@ -487,7 +491,7 @@ class GTFS ():
             footpath_road = footpath_on_road (self.parent, self.layer_road, self.layer_origins, self.__path_to_file)
             footpath_road.run()
         
-         
+        
         self.parent.progressBar.setValue(11)
         return 1
                 

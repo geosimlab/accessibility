@@ -257,9 +257,10 @@ class CarAccessibility(QDialog, FORM_CLASS):
 
     def showAllLayersInCombo_Line(self, cmb):
       layers = QgsProject.instance().mapLayers().values()
-      line_layers = [layer for layer in layers 
-                   if isinstance(layer, QgsVectorLayer) and 
-                   layer.geometryType() == QgsWkbTypes.LineGeometry]
+      line_layers = [layer for layer in layers
+                   if isinstance(layer, QgsVectorLayer) and
+                   layer.geometryType() == QgsWkbTypes.LineGeometry and
+                   not layer.name().startswith("Temp")]
       cmb.clear()
       for layer in line_layers:
         cmb.addItem(layer.name(), [])      

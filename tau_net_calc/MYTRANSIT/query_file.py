@@ -2,15 +2,16 @@
 import os
 import zipfile
 from datetime import datetime, date
+import csv
 
-from PyQt5.QtWidgets import QApplication
+from PyQt5.QtWidgets import QApplication, QMessageBox
 from qgis.core import QgsProject, QgsVectorFileWriter
 import pickle
 
 from RAPTOR.std_raptor import raptor
 from RAPTOR.rev_std_raptor import rev_raptor
-from footpath_on_road_b_to_b import footpath_on_road_b_b
-from converter_layer import MultiLineStringToLineStringConverter
+#from footpath_on_road_b_to_b import footpath_on_road_b_b
+#from converter_layer import MultiLineStringToLineStringConverter
 from visualization import visualization
 
 # # Get the current directory
@@ -29,80 +30,116 @@ def seconds_to_time(total_seconds):
     time_str = "{:02d}:{:02d}:{:02d}".format(hours, minutes, seconds)
     return time_str
 
-def myload_all_dict(self, PathToNetwork, mode):
+
+def get_route_desc__route_id(path):
+  route_desc__route_id = {}
+  if os.path.exists(path + '/route_desc__route_id.pkl'):
+    with open(path + '/route_desc__route_id.pkl', 'rb') as file:
+      route_desc__route_id = pickle.load(file)
+  return route_desc__route_id
+
+
+def myload_all_dict(self, PathToNetwork, mode, exclude_routes, numbers_routes, route_dict):
     
     path = PathToNetwork
     
     self.setMessage ("Load footpath ...")        
     QApplication.processEvents()
-    with open(path+'/transfers_dict.pkl', 'rb') as file:
+    with open(path + '/transfers_dict.pkl', 'rb') as file:
         footpath_dict = pickle.load(file)
     
     self.progressBar.setValue(1)
 
     footpath_dict_b_b = {}
-    """
-    self.setMessage ("Load footpath building to building ...")        
-    QApplication.processEvents()
-    with open(path+'/transfers_dict_b_b.pkl', 'rb') as file:
-        footpath_dict_b_b = pickle.load(file)
-        
-    # Получение слоя buildings_jaffa_and_buff
-    layer = QgsProject.instance().mapLayersByName('jaffa_buildings_west')[0]
-
-    # Получение значений osm_id из слоя
-    osm_ids = set()
-    for feature in layer.getFeatures():
-      osm_ids.add(int(feature['osm_id']))
-
-    # Фильтрация словаря footpath_dict_b_b по значениям osm_id
-    self.setMessage ("Filtering footpath_dict_b_b...")        
-    QApplication.processEvents()
-    filtered_footpath_dict_b_b = {k: v for k, v in footpath_dict_b_b.items() if k in osm_ids}
     
-    footpath_dict_b_b = filtered_footpath_dict_b_b
+    if os.path.exists(path + '/transfers_dict_b_b.pkl'):
+        self.setMessage ("Load footpath building to building ...")        
+        QApplication.processEvents()
+        with open(path + '/transfers_dict_b_b.pkl', 'rb') as file:
+          footpath_dict_b_b = pickle.load(file)
+        
+        
+        layer = QgsProject.instance().mapLayersByName('jaffa_buildings_west')[0]
+        osm_ids = set()
+        for feature in layer.getFeatures():
+          osm_ids.add(int(feature['osm_id']))
+        self.setMessage ("Filtering footpath_dict_b_b...")        
+        QApplication.processEvents()
+        filtered_footpath_dict_b_b = {k: v for k, v in footpath_dict_b_b.items() if k in osm_ids}
+    
+        footpath_dict_b_b = filtered_footpath_dict_b_b
+        
     self.progressBar.setValue(2)
-    """       
+           
     self.setMessage ("Load routes_by_stop ...")
     QApplication.processEvents()
-    with open(path+'/routes_by_stop.pkl', 'rb') as file:
+    with open(path + '/routes_by_stop.pkl', 'rb') as file:
         routes_by_stop_dict = pickle.load(file)
-    
+
+    if exclude_routes:
+        
+        
+        filtered_routes_by_stop_dict = {}
+        count = 0
+        # Перебираем элементы исходного словаря
+        for key, routes in routes_by_stop_dict.items():
+            filtered_routes = []  # Список для хранения отфильтрованных маршрутов
+            for route in routes:
+                # Флаг для проверки, нужно ли исключить маршрут
+                exclude = False
+                for nr in numbers_routes:
+                    if route in route_dict.get(nr, '0'):
+                        count =+ 1
+                        if count < 50:
+                          print (f'route {route}')
+                          print (f'nr {nr}')
+                          print (f'route_dict.get {route_dict.get(nr, '0')}')
+
+                        exclude = True
+                        break  # Если маршрут найден в значении, не нужно проверять остальные
+                if not exclude:
+                    filtered_routes.append(route)  # Добавляем маршрут в отфильтрованный список
+            filtered_routes_by_stop_dict[key] = filtered_routes  # Добавляем отфильтрованные маршруты в новый словарь
+  
+        routes_by_stop_dict = filtered_routes_by_stop_dict
+        
     self.progressBar.setValue(3)
     
     if mode == 1:
       self.setMessage ("Load stops ...")
       QApplication.processEvents()
-      with open(path+'/stops_dict_pkl.pkl', 'rb') as file:
+      with open(path + '/stops_dict_pkl.pkl', 'rb') as file:
         stops_dict = pickle.load(file)
       
       self.progressBar.setValue(4)
 
       self.setMessage ("Load stoptimes ...")
       QApplication.processEvents()
-      with open(path+'/stoptimes_dict_pkl.pkl', 'rb') as file:
+      with open(path + '/stoptimes_dict_pkl.pkl', 'rb') as file:
         stoptimes_dict = pickle.load(file)
       
       self.progressBar.setValue(5)
 
       self.setMessage ("Load idx_by_route_stop ...")
       QApplication.processEvents()
-      with open(path+'/idx_by_route_stop.pkl', 'rb') as file:
+      with open(path + '/idx_by_route_stop.pkl', 'rb') as file:
         idx_by_route_stop_dict = pickle.load(file)
+
+        
       
       self.progressBar.setValue(6)
           
     else:
      self.setMessage ("Load stops_reversed ...")
      QApplication.processEvents()
-     with open(path+'/stops_dict_reversed_pkl.pkl', 'rb') as file:  #reversed
+     with open(path + '/stops_dict_reversed_pkl.pkl', 'rb') as file:  #reversed
         stops_dict = pickle.load(file)
      
      self.progressBar.setValue(4)   
 
      self.setMessage ("Load stoptimes_reversed ...")
      QApplication.processEvents()      
-     with open(path+'/stoptimes_dict_reversed_pkl.pkl', 'rb') as file: #reversed
+     with open(path + '/stoptimes_dict_reversed_pkl.pkl', 'rb') as file: #reversed
         stoptimes_dict = pickle.load(file)
      
      self.progressBar.setValue(5)
@@ -110,7 +147,7 @@ def myload_all_dict(self, PathToNetwork, mode):
      
      self.setMessage ("Load rev_idx_by_route_stop ...")
      QApplication.processEvents()   
-     with open(path+'/rev_idx_by_route_stop.pkl', 'rb') as file:
+     with open(path + '/rev_idx_by_route_stop.pkl', 'rb') as file:
         idx_by_route_stop_dict = pickle.load(file) 
      
      self.progressBar.setValue(6)
@@ -134,8 +171,8 @@ def getDateTime():
   return f'{year}{month}{day}_{hour}{minute}{second}'
 
 def verify_break (self, 
-                  Layer= "", 
-                  LayerDest= "", 
+                  Layer = "", 
+                  LayerDest = "", 
                   curr_getDateTime = "", 
                   folder_name = ""):
   
@@ -144,7 +181,7 @@ def verify_break (self,
             self.textLog.append (f'<a><b><font color="red">Algorithm raptor is break</font> </b></a>')
             time_after_computation = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             self.textLog.append(f'<a>Time break {time_after_computation}</a>') 
-            if folder_name !="":
+            if folder_name != "":
               write_info (self, 
                           Layer, 
                           LayerDest, 
@@ -156,6 +193,13 @@ def verify_break (self,
             self.setMessage ("Algorithm raptor is break")
             return True
   return False
+
+def file_exists_exclude_routes(directory):
+    base_filename = "exclude_routes"
+    file_path_without_ext = os.path.join(directory, base_filename)
+    if os.path.isfile(file_path_without_ext):
+        return file_path_without_ext
+    return None
 
 def runRaptorWithProtocol(self, 
                           sources, 
@@ -214,6 +258,44 @@ def runRaptorWithProtocol(self,
   if verify_break(self):
       return 0, 0
   QApplication.processEvents()
+
+  numbers_routes = []
+  route_dict = {}
+
+  if file_exists_exclude_routes (PathToNetwork):
+    msgBox = QMessageBox()
+    msgBox.setIcon(QMessageBox.Question)
+    msgBox.setWindowTitle("Confirm")
+    msgBox.setText(
+                  f'There is a file called "exclude_routes" in the {PathToNetwork} directory.\n'
+                  'Exclude these routes from calculation?'
+                  )
+    msgBox.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        
+    result = msgBox.exec_()
+    if result == QMessageBox.Yes:
+      exlude_routes = True
+      file_path = os.path.join(PathToNetwork, "exclude_routes")
+      with open(file_path, 'r') as file:
+          numbers = file.readlines()  
+
+      # Разбиваем строку по первому знаку "-" и сохраняем только первую часть
+      numbers_routes = [line.split('-')[0].strip() for line in numbers]
+      route_dict = get_route_desc__route_id (PathToNetwork)
+      
+      for nr in numbers_routes:
+            res = route_dict.get(nr, 0)
+            if res == 0:
+                self.textLog.append (f'<a><b><font color="blue">The route {nr} was not found in routes.txt and will not be excluded from calculations</font> </b></a>') 
+
+      numbers_routes = [nr for nr in numbers_routes if route_dict.get(nr, 0) != 0]          
+      list_exclude_routes = ', '.join(numbers_routes)
+      self.textLog.append (f'<a><b><font color="red"> These routes are excluded from calculations: {list_exclude_routes}.</font> </b></a>')
+
+      
+    else:
+      exlude_routes = False
+
   (
   stops_dict,
   stoptimes_dict, 
@@ -221,7 +303,7 @@ def runRaptorWithProtocol(self,
   footpath_dict_b_b, 
   routes_by_stop_dict, 
   idx_by_route_stop_dict
-  ) = myload_all_dict (self, PathToNetwork, raptor_mode)
+  ) = myload_all_dict (self, PathToNetwork, raptor_mode, exlude_routes, numbers_routes, route_dict)
         
   if verify_break(self):
       return 0, 0
@@ -261,7 +343,8 @@ def runRaptorWithProtocol(self,
     first_field_name = fields[0].name()
     
     for feature in features_dest:
-        if isinstance(feature[Field], int) or (isinstance(feature[Field], str) and feature[Field].isdigit()):
+        #if isinstance(feature[Field], int) or (isinstance(feature[Field], str) and feature[Field].isdigit()):
+        if str(feature[Field]).isdigit():  
           attribute_dict[int(feature[first_field_name])] = int(feature[Field])
         else:
           self.textLog.append (f'<a><b><font color="red"> WARNING: type of field "{Field}" to aggregate  is no digital, aggregate no run</font> </b></a>')
@@ -314,7 +397,7 @@ def runRaptorWithProtocol(self,
      ss = ss.replace("TEMP_ORIGIN_ID", "Destination_ID")
      ss += ",Arrives before"
    ss += ",Duration"  
-   protocol_header = ss+"\n"  
+   protocol_header = ss + "\n"  
 
   curr_getDateTime = getDateTime()
   folder_name = f'{PathToProtocols}//{curr_getDateTime}'
@@ -541,7 +624,7 @@ def  make_protocol_detailed(raptor_mode,
                             ):
   
   
-  sep=","
+  sep = ","
   building_symbol = "b"
   stop_symbol = "s"
   f = protocol_full_path   
@@ -617,7 +700,7 @@ def  make_protocol_detailed(raptor_mode,
     for _, journey in pareto_set: #each journey is array, legs are its elements
          
          
-         gcounter = gcounter+1
+         gcounter = gcounter + 1
          
          
          # run inversion jorney also raptor_mode = 1

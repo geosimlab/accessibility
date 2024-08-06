@@ -30,11 +30,6 @@ from PyQt5 import uic
 from query_file import runRaptorWithProtocol
 import configparser
 
-
-
-
-
-# This loads your .ui file so that PyQt can populate your plugin with the elements from Qt Designer
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'raptor.ui'))
 
@@ -45,8 +40,6 @@ class RaptorDetailed(QDialog, FORM_CLASS):
             self.setModal(False)
             self.setWindowFlags(Qt.Window);
             self.user_home = os.path.expanduser("~")
-
-                           
             
             self.setWindowTitle(title)
 
@@ -58,7 +51,6 @@ class RaptorDetailed(QDialog, FORM_CLASS):
             self.txtMaxWalkDist2.setFixedWidth(fix_size)
             self.txtMaxWalkDist3.setFixedWidth(fix_size)
 
-            
             self.dtStartTime.setFixedWidth(fix_size)
             
             #self.dtStartTime.setButtonSymbols(QtWidgets.QDateTimeEdit.NoButtons)
@@ -84,8 +76,6 @@ class RaptorDetailed(QDialog, FORM_CLASS):
             self.cmbFields.setFixedWidth(fix_size)     
             """
             
-            
-
             self.tabWidget.setCurrentIndex(0) 
             self.config = configparser.ConfigParser()
 
@@ -118,13 +108,9 @@ class RaptorDetailed(QDialog, FORM_CLASS):
             if timetable_mode:
                self.lblMaxWaitTime.setVisible(False)
                self.txtMaxWaitTime.setVisible(False)
-               
-            
+                           
             if timetable_mode and mode == 2:
               self.lblDepartureInterval.setText("Departure interval latest, min")
-
-
-               
 
             self.textLog.setOpenLinks(False)
             self.textLog.anchorClicked.connect(self.openFolder)
@@ -138,18 +124,13 @@ class RaptorDetailed(QDialog, FORM_CLASS):
             self.cmbLayersDest.installEventFilter(self)
             self.showAllLayersInCombo_Polygon(self.cmbVizLayers)
             self.cmbVizLayers.installEventFilter(self)
-
-
             self.dtStartTime.installEventFilter(self)
-            
             
             self.toolButton_layer_dest_refresh.clicked.connect(lambda: self.showAllLayersInCombo_Point(self.cmbLayersDest))
             self.toolButton_layer_refresh.clicked.connect(lambda: self.showAllLayersInCombo_Point(self.cmbLayers))
             self.toolButton_viz_layers_refresh.clicked.connect(lambda: self.showAllLayersInCombo_Polygon(self.cmbVizLayers))
-           
             
             self.btnBreakOn.clicked.connect(self.set_break_on)
-            
             
             self.run_button = self.buttonBox.addButton("Run", QDialogButtonBox.ActionRole)
             self.close_button = self.buttonBox.addButton("Close", QDialogButtonBox.RejectRole)
@@ -182,9 +163,7 @@ class RaptorDetailed(QDialog, FORM_CLASS):
             self.txtMaxTimeTravel.setValidator(int_validator3)
             self.txtMaxExtraTime.setValidator(int_validator3)
             self.txtDepartureInterval.setValidator(int_validator3)
-            
-            
-
+           
             self.ParametrsShow()
 
     #def openExternalLink(self, url):
@@ -332,15 +311,9 @@ class RaptorDetailed(QDialog, FORM_CLASS):
       self.config['Settings']['MaxWaitTimeTransfer'] = self.txtMaxWaitTimeTransfer.text()
       self.config['Settings']['MaxTimeTravel'] = self.txtMaxTimeTravel.text()
       
-      
-      
-     
-
       with open(f, 'w') as configfile:
           self.config.write(configfile)
       
-         
-
     def ParametrsShow(self):
             
       self.readParameters()
@@ -355,8 +328,7 @@ class RaptorDetailed(QDialog, FORM_CLASS):
       except:
         SelectedOnly1 = False
       self.cbSelectedOnly1.setChecked(SelectedOnly1)
-      
-      
+            
       if isinstance(self.config['Settings']['LayerDest'], str) and self.config['Settings']['LayerDest'].strip():  
         self.cmbLayersDest.setCurrentText(self.config['Settings']['LayerDest'])
 
@@ -574,8 +546,6 @@ class RaptorDetailed(QDialog, FORM_CLASS):
 
         return result
          
-      
-
     def get_qgis_info(self):
       qgis_info = {}
       qgis_info['QGIS version'] = qgis.core.Qgis.QGIS_VERSION
@@ -627,8 +597,6 @@ class RaptorDetailed(QDialog, FORM_CLASS):
                 else:  
                   config_info.append(f"<a>Departure interval latest: {value} min</a>")  
 
-                
-
             if key == "maxwalkdist1":
               config_info.append(f"<a>Max walk distance to the initial PT stop: {value} m</a>")      
             if key == "maxwalkdist2":
@@ -647,20 +615,14 @@ class RaptorDetailed(QDialog, FORM_CLASS):
             if key == "maxtimetravel":
               config_info.append(f"<a>Maximal time travel: {value} min</a>") 
             
-
-
-
       return config_info
 
-    
-    
     def eventFilter(self, obj, event):
         if event.type() == QEvent.Wheel:
             # Если комбо-бокс в фокусе, игнорируем событие прокрутки колесом мыши
             if obj.hasFocus():
                 event.ignore()
                 return True
-    
          
         return super().eventFilter(obj, event)  
     
