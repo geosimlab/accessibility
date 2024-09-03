@@ -1,29 +1,20 @@
-.. Introduction to QGIS plagin Accessibility calculations in public transportation network and car road master file.
+.. TAUNetCalc documentation master file, created by
+   sphinx-quickstart on Sun Feb 12 17:11:03 2012.
+   You can adapt this file completely to your liking, but it should at least
+   contain the root `toctree` directive.
 
-Introduction to QGIS plugin
-===========================
+Welcome to TAUNetCalc's documentation!
+============================================
 
-"Accessibility calculations in public transportation networks and road networks"
-================================================================================
-
-License & Copying
------------------
-
-Workshop Modules
-----------------
+Contents:
 
 .. toctree::
-  :maxdepth: 1
-  :numbered:
+   :maxdepth: 2
 
-  welcome
-  introduction
-  installation
-  building_pkl
-  raptor_area
-  raptor_map
-  timetable_mode
-  car_accessibility
-      
-  glossary
-  license
+Indices and tables
+==================
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`
+

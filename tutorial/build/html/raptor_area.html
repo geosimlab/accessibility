@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>5. Public transport: Forward/backward accessibility AREA, fixed time &mdash; Introduction to QGIS plugin &#34;Accessibility calculations&#34;</title>
+  <title>5. Public Transport: Accessibility AREA, fixed start or arrival time &mdash; Introduction to QGIS plugin &#34;Accessibility calculations&#34;</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
 
@@ -17,8 +17,8 @@
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="6. Public transport: Forward/backward accessibility MAP, fixed time" href="raptor_map.html" />
-    <link rel="prev" title="4. Build GTFS dictionary (pkl)" href="loading_data.html" /> 
+    <link rel="next" title="6. Public transport: Accessibility MAP, fixed start/arrival time" href="raptor_map.html" />
+    <link rel="prev" title="4. Building the Accessibility dictionary (pkl)" href="building_pkl.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -44,22 +44,26 @@
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="welcome.html">1. Welcome</a></li>
+<li class="toctree-l1"><a class="reference internal" href="welcome.html">1. Workshop Conventions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="introduction.html">2. Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">3. Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="loading_data.html">4. Build GTFS dictionary (<span class="xref std std-term">pkl</span>)</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">5. Public transport: Forward/backward accessibility AREA, fixed time</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#id1">5.1. Предварительная подготовка</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#id2">5.2. Вычисление</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#raptor-area-structure-rep">5.3. Структура отчета</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#raptor-area-flowchart">5.4. Диаграмма потоков данных</a></li>
+<li class="toctree-l1"><a class="reference internal" href="building_pkl.html">4. Building the Accessibility dictionary (<span class="xref std std-term">pkl</span>)</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">5. Public Transport: Accessibility AREA, fixed start or arrival time</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#the-necessary-datasets">5.1. The necessary datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#the-computation-steps">5.2. The computation steps</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#the-structure-of-the-report">5.3. The structure of the report</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#the-example-accessibility-of-the-gesher-theater-in-yafo-tel-aviv-in-2018-and-2024">5.4. The example: Accessibility of the GESHER theater in Yafo, Tel Aviv, in 2018 and 2024</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="raptor_map.html">6. Public transport: Forward/backward accessibility MAP, fixed time</a></li>
-<li class="toctree-l1"><a class="reference internal" href="timetable_mode.html">7. Public transport: Forward/backward accessibility AREA/MAP, Timetable mode</a></li>
-<li class="toctree-l1"><a class="reference internal" href="car_accessibility.html">8. Сar: Forward/backward accessibility AREA/MAP</a></li>
-<li class="toctree-l1"><a class="reference internal" href="glossary.html">9. Appendix A: Glossary</a></li>
-<li class="toctree-l1"><a class="reference internal" href="license.html">10. Appendix B: License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="raptor_map.html">6. Public transport: Accessibility MAP, fixed start/arrival time</a></li>
+<li class="toctree-l1"><a class="reference internal" href="timetable_mode.html">7. PT accessibility for the travelers whose decision to start depends on the PT timetable</a></li>
+<li class="toctree-l1"><a class="reference internal" href="car_accessibility.html">8. Сar accessibility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="relative_ready-made.html">9. Compare accessibility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">10. Visualization of accessibility computations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sample.html">11. Example of accessibility computations for the Gesher theater, Yafo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="markav.html">12. Appendix A: How to find the catalog number (מקט) of the bus line at the http://markav.net</a></li>
+<li class="toctree-l1"><a class="reference internal" href="glossary.html">13. Appendix B: Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">14. Appendix C: License</a></li>
 </ul>
 
         </div>
@@ -76,7 +80,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active"><span class="section-number">5. </span>Public transport: Forward/backward accessibility AREA, fixed time</li>
+      <li class="breadcrumb-item active"><span class="section-number">5. </span>Public Transport: Accessibility AREA, fixed start or arrival time</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -85,124 +89,170 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="public-transport-forward-backward-accessibility-area-fixed-time">
-<span id="raptor-area"></span><h1><span class="section-number">5. </span>Public transport: Forward/backward accessibility AREA, fixed time<a class="headerlink" href="#public-transport-forward-backward-accessibility-area-fixed-time" title="Link to this heading">¶</a></h1>
-<p>Данный режим использует для вычислений accessibility алгоритмы RAPTOR Forward and RAPTOR Backward</p>
-<section id="id1">
-<h2><span class="section-number">5.1. </span>Предварительная подготовка<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h2>
-<p>Необходимо предварительно подготовить следующие данные:</p>
+  <section id="public-transport-accessibility-area-fixed-start-or-arrival-time">
+<span id="raptor-area"></span><h1><span class="section-number">5. </span>Public Transport: Accessibility AREA, fixed start or arrival time<a class="headerlink" href="#public-transport-accessibility-area-fixed-start-or-arrival-time" title="Link to this heading">¶</a></h1>
+<section id="the-necessary-datasets">
+<h2><span class="section-number">5.1. </span>The necessary datasets<a class="headerlink" href="#the-necessary-datasets" title="Link to this heading">¶</a></h2>
 <ul class="simple">
-<li><p>GTFS словарь (Смотрите раздел <a class="reference internal" href="loading_data.html"><span class="doc">Build GTFS dictionary (pkl)</span></a>)</p></li>
-<li><p>слой зданий</p></li>
+<li><p>GTFS dictionary, see <a class="reference internal" href="building_pkl.html#loading-data"><span class="std std-ref">Building the Accessibility dictionary (pkl)</span></a></p></li>
+<li><p>The layer of buildings that must be opened in the current QGIS project.</p></li>
 </ul>
-<p>Слой зданий должен быть загружен в текущий проект QGIS.</p>
 </section>
-<section id="id2">
-<h2><span class="section-number">5.2. </span>Вычисление<a class="headerlink" href="#id2" title="Link to this heading">¶</a></h2>
-<ol class="arabic simple">
-<li><p>Открыть плагин и выбрать пункт меню</p></li>
-</ol>
-<p>Для режима <strong>Forward accessibility</strong></p>
-<p><em>Public transport accessibility AREA -&gt; Forward accessibility AREA, fixed departure time</em>.</p>
-<p>Для режима <strong>Backward accessibility</strong></p>
-<p><em>Public transport accessibility AREA -&gt; Backward accessibility AREA, fixed arrival time</em>.</p>
-<blockquote>
-<div><img alt="_images/mainwindow.png" class="inline border" src="_images/mainwindow.png" />
-</div></blockquote>
+<section id="the-computation-steps">
+<h2><span class="section-number">5.2. </span>The computation steps<a class="headerlink" href="#the-computation-steps" title="Link to this heading">¶</a></h2>
 <ol class="arabic">
-<li><p>Откроется диалоговое окно настроек параметров.</p>
+<li><p>Run the plugin and choose</p>
+<div class="line-block">
+<div class="line"><em>Public transport accessibility AREA -&gt; Forward accessibility AREA, fixed departure time</em>.</div>
+<div class="line">or</div>
+<div class="line"><em>Public transport accessibility AREA -&gt; Backward accessibility AREA, fixed arrival time</em>.</div>
+</div>
+<img alt="_images/mainwindow.png" class="inline border" src="_images/mainwindow.png" />
+</li>
+<li><p>Enter parameters in the dialog window:</p>
 <img alt="_images/pt-fr-a.png" class="inline border" src="_images/pt-fr-a.png" />
-</li>
-<li><p>В окне настроек необходимо указать следующие параметры:</p>
 <ul class="simple">
-<li><p><span class="guilabel">Dataset folder</span>: Выбор папки, в которой расположены файлы GTFS dictionary. В папке должны находиться файлы <code class="docutils literal notranslate"><span class="pre">stops.pkl</span></code>, <code class="docutils literal notranslate"><span class="pre">stoptimes.pkl</span></code>, <code class="docutils literal notranslate"><span class="pre">transfers_dict.pkl</span></code>, <code class="docutils literal notranslate"><span class="pre">idx_by_route_stop.pkl</span></code>, <code class="docutils literal notranslate"><span class="pre">routes_by_stop.pkl</span></code> и др.</p></li>
-<li><p><span class="guilabel">Output folder</span>: Выбор папки для вывода протокола работы алгоритма. Необходимо, чтобы были права на запись на данную папку.</p></li>
-<li><p><span class="guilabel">Layer of origins</span>: Выбор слоя стартовых точек из текущего проекта.</p></li>
+<li><p><span class="guilabel">Dictionary folder</span>: The folder of the dictionary, must contain <code class="docutils literal notranslate"><span class="pre">stops.pkl</span></code>, <code class="docutils literal notranslate"><span class="pre">stoptimes.pkl</span></code>, <code class="docutils literal notranslate"><span class="pre">transfers_dict.pkl</span></code>, <code class="docutils literal notranslate"><span class="pre">idx_by_route_stop.pkl</span></code>, and <code class="docutils literal notranslate"><span class="pre">routes_by_stop.pkl</span></code></p></li>
+<li><p><span class="guilabel">Output folder</span>: The folder to store the results of the computation.</p></li>
+<li><p><span class="guilabel">Layer of origins/Layer of destinations</span>: The layer of the origins for the Forward or the layer of destinations for the Backward accessibility.</p></li>
+<li><p><span class="guilabel">Visualization layer</span>: The visualization layer - the layer of buildings, or another layer of features that have identifiers of the buildings ADD LINK.</p></li>
+<li><p><span class="guilabel">Min transfer</span>: Minimal number of the PT trip transfers (usually, 0).</p></li>
+<li><p><span class="guilabel">Max transfer</span>: Maximal number of the PT trips transfers, currently 2 or less.</p></li>
+<li><p><span class="guilabel">Max walk distance to the initial PT stop, m</span>: Maximal acceptable for travelers walking distance between the Origin of a trip and and the first bus stop, meters (default - 400 m).</p></li>
+<li><p><span class="guilabel">Max walk distance at transfer, m</span>: Maximal acceptable for travelers walking distance between two stops at the transfer, meters (default - 150 m).</p></li>
+<li><p><span class="guilabel">Max walk distance from a last PT stop, m</span>: Maximal acceptable for travelers walking distance between the last stop of a trip and the destination, meters (default - 400 m).</p></li>
+<li><p><span class="guilabel">Start at/Arrive before (hh:mm:ss)</span>: Forward accessibility - the trip start time; Backward accessibility - the latest arrival to destination</p></li>
+<li><p><span class="guilabel">Walking speed (km/h)</span>: Walking speed.</p></li>
+<li><p><span class="guilabel">Maximal waiting time at initial stop, min</span>: Maximal waiting time at the initial stop of the trip, minutes.</p></li>
+<li><p><span class="guilabel">Maximal waiting time at transfer stop, min</span>: Maximal waiting time at the transfer, minutes.</p></li>
+<li><p><span class="guilabel">Maximal time travel, min</span>: Maximum total trip time.</p></li>
 </ul>
-<p>Также необходимо указать прочие параметры в диалоговм окне.</p>
 </li>
-<li><p>Нажмите кнопку <strong>Run</strong> для запуска алгоритма.</p></li>
-<li><p>В процессе работы алгоритма отображается информация о ходе вычислений на вкладке <strong>Log</strong>, в строке состояния и progressbar.</p></li>
-<li><p>Процесс вычислений можно прервать, нажав на кнопку <strong>Break</strong>.</p></li>
+<li><p>Click <strong>Run</strong> to start. The <strong>progressbar</strong> shows the progress of the computations. You can break the computations by pressing <strong>Break</strong>.</p></li>
 </ol>
+<div class="line-block">
+<div class="line">The <strong>Log</strong> tab contains metadata about the results.</div>
+<div class="line">In case the computations are based on the selection of buildings, these buildings will be stored as a separate layer in the <span class="guilabel">Output folder</span>.</div>
+</div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Если выбрано более 10 зданий в слое <span class="guilabel">buildings</span> вычисления могут занять много времени. Отображается диалоговое окно c предупреждением.</p>
+<p>If more than 10 buildings are selected for AREA calculations, you will be warned that the output table may be very large.</p>
 </div>
+<p id="raptor-area-structure-rep">It the Forward <strong>AREA</strong> regime, the report contains all the details of every possible trip from the O-buildings to each of the buildings that can be reached form the origin in maximun total travel time.
+It the Backward <strong>AREA</strong> regime, the report contains all the details of every possible trip to the D-buildings from each of the buildings from which the destination can be reached in maximun total travel time.
+The description regards every trip leg and every transfer. Currently, the maximum number of the PT trip transfers is 2.</p>
 </section>
-<section id="raptor-area-structure-rep">
-<span id="id3"></span><h2><span class="section-number">5.3. </span>Структура отчета<a class="headerlink" href="#raptor-area-structure-rep" title="Link to this heading">¶</a></h2>
+<section id="the-structure-of-the-report">
+<h2><span class="section-number">5.3. </span>The structure of the report<a class="headerlink" href="#the-structure-of-the-report" title="Link to this heading">¶</a></h2>
 <table class="docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>Attribute</p></th>
-<th class="head"><p>Value</p></th>
+<th class="head"><p>Meaning</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>Origin_ID</p></td>
-<td></td>
+<tr class="row-even"><td><p>Origin_ID/Destination_ID</p></td>
+<td><p>ID of the building of origin or destination</p></td>
 </tr>
-<tr class="row-odd"><td><p>Start_time</p></td>
-<td></td>
+<tr class="row-odd"><td><p>Start_time/End time</p></td>
+<td><p>Time the trip must start or end</p></td>
 </tr>
-<tr class="row-even"><td><p>Walk<sub>n</sub>_time</p></td>
-<td></td>
+<tr class="row-even"><td><p>Walk_time<sub>1</sub></p></td>
+<td><p>Walking time to the initial stop</p></td>
 </tr>
-<tr class="row-odd"><td><p>BStop<sub>n</sub>_ID</p></td>
-<td></td>
+<tr class="row-odd"><td><p>BStop_ID<sub>1</sub></p></td>
+<td><p>ID of the inital stop</p></td>
 </tr>
-<tr class="row-even"><td><p>Wait<sub>n</sub>_time</p></td>
-<td></td>
+<tr class="row-even"><td><p>Wait_time<sub>1</sub></p></td>
+<td><p>Time of waiting for a bus at the intial stop</p></td>
 </tr>
-<tr class="row-odd"><td><p>Bus<sub>n</sub>_start_time</p></td>
-<td></td>
+<tr class="row-odd"><td><p>Bus_start_time<sub>1</sub></p></td>
+<td><p>Start time of the first ride of a trip</p></td>
 </tr>
-<tr class="row-even"><td><p>Line<sub>n</sub>_ID</p></td>
-<td></td>
+<tr class="row-even"><td><p>Line_ID<sub>1</sub></p></td>
+<td><p>ID of the line used for the first ride of a trip</p></td>
 </tr>
-<tr class="row-odd"><td><p>Ride<sub>n</sub>_time</p></td>
-<td></td>
+<tr class="row-odd"><td><p>Ride_time<sub>1</sub></p></td>
+<td><p>Duration of the first ride of a trip</p></td>
 </tr>
-<tr class="row-even"><td><p>AStop<sub>n</sub>_ID</p></td>
-<td></td>
+<tr class="row-even"><td><p>AStop_ID<sub>1</sub></p></td>
+<td><p>Alighting stop of the first ride of a trip</p></td>
 </tr>
-<tr class="row-odd"><td><p>Bus<sub>n</sub>_finish_time</p></td>
-<td></td>
+<tr class="row-odd"><td><p>Bus_finish_time<sub>1</sub></p></td>
+<td><p>End time of the first ride of a trip</p></td>
+</tr>
+<tr class="row-even"><td><p>Description of transfer</p></td>
+<td><p>The same details as for the first leg of a trip</p></td>
+</tr>
+<tr class="row-odd"><td><p>Next legs and transfers</p></td>
+<td><p>If necessary. Maxumum number of transfers is 2</p></td>
 </tr>
 <tr class="row-even"><td><p>DestWalk_time</p></td>
-<td></td>
+<td><p>Walking time to a destination</p></td>
 </tr>
 <tr class="row-odd"><td><p>Destination_ID</p></td>
-<td></td>
+<td><p>ID of the buidilng of destination</p></td>
 </tr>
 <tr class="row-even"><td><p>Destination_time</p></td>
-<td></td>
+<td><p>Time of arrival to destination</p></td>
+</tr>
+<tr class="row-odd"><td><p>Duration</p></td>
+<td><p>Total trip duration</p></td>
 </tr>
 </tbody>
 </table>
-<p>для режима <strong>Backward raptor</strong> в отчете дополнительный параметр</p>
+<p>The <strong>Backward</strong> option output includes the additonal attribute</p>
 <table class="docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p>Arrives before</p></td>
-<td></td>
+<td><p>What does it MEAN??? WHY DO WE NEED IT???</p></td>
 </tr>
 </tbody>
 </table>
 </section>
-<section id="raptor-area-flowchart">
-<span id="id4"></span><h2><span class="section-number">5.4. </span>Диаграмма потоков данных<a class="headerlink" href="#raptor-area-flowchart" title="Link to this heading">¶</a></h2>
-<blockquote>
-<div><img alt="_images/flowchart4.jpg" class="inline border" src="_images/flowchart4.jpg" />
-</div></blockquote>
-</section>
+<section id="the-example-accessibility-of-the-gesher-theater-in-yafo-tel-aviv-in-2018-and-2024">
+<span id="sample-area"></span><h2><span class="section-number">5.4. </span>The example: Accessibility of the GESHER theater in Yafo, Tel Aviv, in 2018 and 2024<a class="headerlink" href="#the-example-accessibility-of-the-gesher-theater-in-yafo-tel-aviv-in-2018-and-2024" title="Link to this heading">¶</a></h2>
+<p><strong>EXPLAIN THE GOAL OF THE EXAMPLE - RED LINE, etc.</strong></p>
+<div class="line-block">
+<div class="line">Open Gesher.pgz and test that the <strong>pkl</strong> dictionary is already constructed according to the</div>
+<div class="line"><a class="reference internal" href="building_pkl.html#sample-build"><span class="std std-ref">An example - Constructing dictionary for the town of Eilat</span></a>.</div>
+<div class="line">Choose</div>
+<div class="line"><em>Public transport accessibility AREA -&gt; Forward accessibility AREA, fixed departure time</em>.</div>
+<div class="line">or</div>
+<div class="line"><em>Public transport accessibility AREA -&gt; Backward accessibility AREA, fixed arrival time</em>.</div>
+<div class="line-block">
+<div class="line">Enter parameters of computations in the dialog window:</div>
+</div>
+</div>
+<img alt="_images/area_start.png" class="inline border" src="_images/area_start.png" />
+<div class="line-block">
+<div class="line">- In <strong>GTFS dictionary folder</strong> enter the path to the <strong>pkl</strong> dictionary</div>
+<div class="line">- In <strong>Output folder</strong> enter the folder to store the results.</div>
+<div class="line">- In <strong>Layer of origin buildings</strong> choose the layer that contains the Gesher thaater building, or select this buiilding from the <em>buildings</em> layer</div>
+<div class="line">- In <strong>Layer of destination buildings</strong> choose the layer of all Israel buildings.</div>
+<div class="line">- In <strong>Layer for visualization</strong> сhoose the layer for visualization, must be open in the current project, see VISUALISATION</div>
+<div class="line">Set the rest of the scenario parameters</div>
+</div>
+<div class="line-block">
+<div class="line">Push <span class="guilabel">Run</span> to start computations. The <strong>Log</strong> tab and <strong>progress bar</strong> show the algorithm’s progress. You can break the computation by clicking the <span class="guilabel">Break</span> button (not advised).</div>
+</div>
+<img alt="_images/area_process.png" class="inline border" src="_images/area_process.png" />
+<p>When the computations are finished, the <strong>Log</strong> tab contains the path to the results <strong>Output in folder</strong> and
+the copy of the <strong>Layer of origin/destination buildings</strong>.</p>
+<img alt="_images/area_finish.png" class="inline border" src="_images/area_finish.png" />
+<p>The results visualized with the Voronoi polygons and h11 hexagons are presented below</p>
+<div style="display: flex; justify-content: space-between;">
+    <img src="_images/visual3.png" style="width: 45%; border: 1px solid black;" />
+    <img src="_images/visual2.png" style="width: 45%; border: 1px solid black;" />
+</div></section>
 </section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="loading_data.html" class="btn btn-neutral float-left" title="4. Build GTFS dictionary (pkl)" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="raptor_map.html" class="btn btn-neutral float-right" title="6. Public transport: Forward/backward accessibility MAP, fixed time" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="building_pkl.html" class="btn btn-neutral float-left" title="4. Building the Accessibility dictionary (pkl)" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="raptor_map.html" class="btn btn-neutral float-right" title="6. Public transport: Accessibility MAP, fixed start/arrival time" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
