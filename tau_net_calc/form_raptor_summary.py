@@ -1,4 +1,8 @@
-from PyQt5.QtCore import QRegExp
+import os
+import webbrowser
+from PyQt5.QtCore import (Qt, 
+                          QRegExp, 
+                          QVariant)
 from PyQt5.QtGui import QRegExpValidator
 from PyQt5 import uic
 from qgis.PyQt import QtCore
@@ -8,28 +12,21 @@ from .form_car import CarAccessibility
 
 
 
+
 class RaptorSummary(RaptorDetailed):
-    def __init__(self, 
+    def __init__(self, parent,
                  mode, 
                  protocol_type, 
                  title, 
                  timetable_mode, 
-                 relative_mode = False):
-            super().__init__(mode, protocol_type, title, timetable_mode)
+                 ):
+            super().__init__(parent, mode, protocol_type, title, timetable_mode)
 
-            self.relative_mode = relative_mode
-            self.txtTimeInterval.setVisible(True)
-            self.lblTimeInterval.setVisible(True)
-            self.cmbFields.setVisible(True)
-            self.lblFields.setVisible(True)
-            self.cbUseFields.setVisible(True)
-                          
-            self.fillComboBoxWithLayerFields()
-
-            self.cmbFields.installEventFilter(self)
-
-            self.cbUseFields.stateChanged.connect(self.EnableComboBox)
-            self.cmbLayersDest.currentIndexChanged.connect(self.fillComboBoxWithLayerFields)
+            self.parent = parent
+                       
+            
+            self.fillComboBoxWithLayerFields2()
+            self.cmbLayersDest.currentIndexChanged.connect(self.fillComboBoxWithLayerFields2)
             
             regex = QRegExp(r"\d*")     
             int_validator1 = QRegExpValidator(regex)            
@@ -37,40 +34,60 @@ class RaptorSummary(RaptorDetailed):
                         
             self.ParametrsShow()
    
-    
+    def on_help_button_clicked(self):
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        module_path = os.path.join(current_dir, 'help', 'build', 'html')
+        file = os.path.join(module_path, 'raptor_area.html')
+        if not (self.timetable_mode):
+           file = os.path.join(module_path, 'raptor_map.html')
+        else:
+           file = os.path.join(module_path, 'timetable_mode.html')
+           
+        webbrowser.open(f'file:///{file}')
+
     def EnableComboBox(self, state):
       
       if state == QtCore.Qt.Checked:
-        self.cmbFields.setEnabled(True)
+        self.cmbFields_ch.setEnabled(True)
       else:
-        self.cmbFields.setEnabled(False)        
+        self.cmbFields_ch.setEnabled(False)        
 
-    def fillComboBoxWithLayerFields(self):
-      self.cmbFields.clear()
+    
+    # for widget with checkbox
+    def fillComboBoxWithLayerFields2(self):
+      self.cmbFields_ch.clear()
       selected_layer_name = self.cmbLayersDest.currentText()
       selected_layer = QgsProject.instance().mapLayersByName(selected_layer_name)
+    
       if selected_layer:
         layer = selected_layer[0]
           
       try:
-        fields = [field.name() for field in layer.fields()]
+        fields = [field for field in layer.fields()]
       except:
         return 0
-      
-      
-
+    
       for field in fields:
-        self.cmbFields.addItem(field)
+        field_type = field.type()
+        if field_type in (QVariant.Int, QVariant.Double, QVariant.LongLong):
+            self.cmbFields_ch.addItem(field.name())   
    
     def saveParameters(self):
 
       super().saveParameters()
 
-      f = self.user_home + "/parameters_accessibility.txt" 
+      project_directory = os.path.dirname(QgsProject.instance().fileName())
+      f = os.path.join(project_directory, 'parameters_accessibility.txt')
+      
       self.config.read(f)
-
-      self.config['Settings']['Field'] = self.cmbFields.currentText()
-      self.config['Settings']['UseField'] = str(self.cbUseFields.isChecked())
+            
+      selected_text = ', '.join(
+         self.cmbFields_ch.itemText(i) 
+         for i in range(self.cmbFields_ch.count()) 
+         if self.cmbFields_ch.itemData(i, role=Qt.CheckStateRole) == Qt.Checked
+                              )
+      self.config['Settings']['Field_ch'] = selected_text
+      
       self.config['Settings']['TimeInterval'] = self.txtTimeInterval.text()
 
       with open(f, 'w') as configfile:
@@ -79,64 +96,20 @@ class RaptorSummary(RaptorDetailed):
     def prepareRaptor(self):
        result = super().prepareRaptor()
 
-       if result and self.relative_mode:
-          self.close_button.setText("Close and calc Car accessibility")
-          self.close_button.setStyleSheet("QPushButton { color: red !important;}")
-          self.close_button.clicked.connect(self.run_car_accessibility)
-          
-
-    def run_car_accessibility(self):
-
-      
-      params = (self.folder_name,
-                self.config['Settings']['Field'],
-                self.config['Settings']['UseField'],
-                self.config['Settings']['maxtimetravel'],
-                self.config['Settings']['timeinterval'],
-                self.config['Settings']['layer'],
-                self.config['Settings']['selectedonly1'],
-                self.config['Settings']['layerdest'],
-                self.config['Settings']['selectedonly2']
-                )
-      text = "forward"
-      if self.mode == 2:
-         text = "backward"
-         
-      car_accessibility = CarAccessibility \
-                                    (
-                                    mode = self.mode, 
-                                    protocol_type = 2, 
-                                    title = f"Relative accessibility MAP, PT versus Car, {text} accessibility, stage 2 - Car",
-                                    relative_mode = True,
-                                    params=params
-                                    )
-      car_accessibility.textInfo.setPlainText("Sample description car accessibility")
-      car_accessibility.show()
-
     def ParametrsShow(self):
             
       super().ParametrsShow()
 
-      #if isinstance(self.config['Settings']['Field'], str) and self.config['Settings']['Field'].strip():    
-      self.cmbFields.setCurrentText(self.config['Settings']['Field'])
+      
+      if 'Field_ch' not in self.config['Settings']:
+          self.config['Settings']['Field_ch'] = ''    
 
-      use_field = self.config['Settings']['UseField'].lower() == "true"  
-      self.cbUseFields.setChecked(use_field)
-      self.cmbFields.setEnabled(use_field)
+      for i in range(self.cmbFields_ch.count()):
+        item_text = self.cmbFields_ch.itemText(i)
+        if item_text in self.config['Settings']['Field_ch']:
+          self.cmbFields_ch.setItemData(i, Qt.Checked, role=Qt.CheckStateRole)
+        else:
+          self.cmbFields_ch.setItemData(i, Qt.Unchecked, role=Qt.CheckStateRole)
+      
       self.txtTimeInterval.setText( self.config['Settings']['TimeInterval'])
-
-    def get_config_info(self):
-        
-        config_info = super().get_config_info()
-        for section in self.config.sections():
-            for key, value in self.config.items(section):
-              if key == "field":
-                config_info.append(f"<a>Field to aggregate: {value}</a>")
-
-              if key == "usefield":
-                config_info.append(f"<a>Run aggregate: {value}</a>")      
-
-              if key == "timeinterval":
-                config_info.append(f"<a>Time interval between stored maps: {value} min</a>")       
-        
-        return config_info    
+    

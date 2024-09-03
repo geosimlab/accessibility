@@ -37,5 +37,4 @@ pathtogtfs_pkl = C:/
 pathtoprotocols_pkl = C:/
 layerroad_pkl = 
 layer_pkl = 
-runcalcfootpathroad_pkl = True
 

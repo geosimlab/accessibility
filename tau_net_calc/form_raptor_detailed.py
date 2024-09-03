@@ -3,6 +3,8 @@ import sys
 import cProfile
 import pstats
 import io
+import webbrowser
+import re
 import qgis.core
 from qgis.PyQt import QtCore
 from qgis.core import (QgsProject, 
@@ -22,7 +24,8 @@ from PyQt5.QtWidgets import (QDialogButtonBox,
 from PyQt5.QtCore import (Qt, 
                           QRegExp, 
                           QDateTime, 
-                          QEvent
+                          QEvent,
+                          QVariant
                           )
 from PyQt5.QtGui import QRegExpValidator, QDesktopServices
 from PyQt5 import uic
@@ -30,11 +33,13 @@ from PyQt5 import uic
 from query_file import runRaptorWithProtocol
 import configparser
 
+from common import getDateTime, get_qgis_info
+
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'raptor.ui'))
 
 class RaptorDetailed(QDialog, FORM_CLASS):
-    def __init__(self, mode, protocol_type, title, timetable_mode ):
+    def __init__(self, parent, mode, protocol_type, title, timetable_mode ):
             super().__init__()
             self.setupUi(self)
             self.setModal(False)
@@ -53,9 +58,6 @@ class RaptorDetailed(QDialog, FORM_CLASS):
 
             self.dtStartTime.setFixedWidth(fix_size)
             
-            #self.dtStartTime.setButtonSymbols(QtWidgets.QDateTimeEdit.NoButtons)
-            #self.dtStartTime.setStyleSheet("QDateTimeEdit::clear { visibility: hidden; }")
-
             self.txtDepartureInterval.setFixedWidth(fix_size)
             self.txtMaxExtraTime.setFixedWidth(fix_size)
             self.txtSpeed.setFixedWidth(fix_size)
@@ -65,38 +67,35 @@ class RaptorDetailed(QDialog, FORM_CLASS):
             self.txtMaxTimeTravel.setFixedWidth(fix_size)
             self.txtTimeInterval.setFixedWidth(fix_size)   
 
-            self.splitter.setSizes([150, 250])   
+            self.splitter.setSizes([200, 200])   
 
-            """
-            fix_size = 20 * self.txtMinTransfers.fontMetrics().width('x')
-            self.txtPathToPKL.setFixedWidth(fix_size)
-            self.txtPathToProtocols.setFixedWidth(fix_size)
-            self.cmbLayers.setFixedWidth(fix_size)     
-            self.cmbLayersDest.setFixedWidth(fix_size)     
-            self.cmbFields.setFixedWidth(fix_size)     
-            """
             
             self.tabWidget.setCurrentIndex(0) 
             self.config = configparser.ConfigParser()
-
-            #self.textLog.anchorClicked.connect(self.openExternalLink)
-
+            
             self.break_on = False
             
+            self.parent = parent
             self.mode = mode
             self.protocol_type = protocol_type
             self.title = title
             self.timetable_mode = timetable_mode
             self.change_time = 1
-            #self.stops_id_name = "stop_id"
-            #self.stops_build_name = "osm_id"
+            
             self.progressBar.setValue(0)
+            
+            if self.protocol_type == 2:
+              self.txtTimeInterval.setVisible(False)
+              self.lblTimeInterval.setVisible(False)
+              parent_layout = self.horizontalLayout_16.parent()
+              parent_layout.removeItem(self.horizontalLayout_16)
 
-            self.txtTimeInterval.setVisible(False)
-            self.lblTimeInterval.setVisible(False)
-            self.cmbFields.setVisible(False)
-            self.lblFields.setVisible(False)
-            self.cbUseFields.setVisible(False)
+            if self.protocol_type == 2:
+              self.cmbFields_ch.setVisible(False)
+              self.lblFields.setVisible(False)
+              
+              parent_layout = self.horizontalLayout_6.parent()
+              parent_layout.removeItem(self.horizontalLayout_6)
 
             if not timetable_mode:
                
@@ -105,12 +104,43 @@ class RaptorDetailed(QDialog, FORM_CLASS):
                self.lblDepartureInterval.setVisible(False)
                self.txtDepartureInterval.setVisible(False)
 
+               #parent_layout = self.horizontalLayout_10.parent()
+               #parent_layout.removeItem(self.horizontalLayout_10) 
+               parent_layout = self.horizontalLayout_11.parent()
+               parent_layout.removeItem(self.horizontalLayout_11)
+               
             if timetable_mode:
                self.lblMaxWaitTime.setVisible(False)
                self.txtMaxWaitTime.setVisible(False)
+               parent_layout = self.horizontalLayout_13.parent()
+               parent_layout.removeItem(self.horizontalLayout_13)
                            
-            if timetable_mode and mode == 2:
-              self.lblDepartureInterval.setText("Departure interval latest, min")
+            #if timetable_mode and mode == 2:
+            #  self.lblDepartureInterval.setText("Be at the arrival stop in advance of (min)")
+
+            if self.mode == 2:
+              self.label_21.setText("Arrive before (time)")
+              self.label_17.setText("Destinations")
+              self.label_5.setText("Origins")  
+
+            # THE EXPERIMENT - CANCEL DepartureInterval for TIMETABLE MODE
+            self.lblDepartureInterval.setVisible(False)
+            self.txtDepartureInterval.setVisible(False)
+            parent_layout = self.horizontalLayout_10.parent()
+            parent_layout.removeItem(self.horizontalLayout_10)
+
+            if timetable_mode and self.mode == 1:
+              self.label_21.setText("The earliest start (time)") 
+              self.lblMaxExtraTime.setText("Maximum delay at the start, min") 
+              #self.lblDepartureInterval.setText("Waiting time at the first stop, min ") 
+
+            if timetable_mode and self.mode == 2:
+              self.label_21.setText("The latest arrival to destination (time)") 
+              self.lblMaxExtraTime.setText("Maximum waiting at the destination, min") 
+              #self.lblDepartureInterval.setText("Minimum timedelta arrived at the last stop, min ")   
+              
+
+            
 
             self.textLog.setOpenLinks(False)
             self.textLog.anchorClicked.connect(self.openFolder)
@@ -118,18 +148,37 @@ class RaptorDetailed(QDialog, FORM_CLASS):
             self.toolButton_PKL.clicked.connect(lambda: self.showFoldersDialog(self.txtPathToPKL))
             self.toolButton_protocol.clicked.connect(lambda: self.showFoldersDialog(self.txtPathToProtocols))
 
-            self.showAllLayersInCombo_Point(self.cmbLayers)
+            self.showAllLayersInCombo_Point_and_Polygon(self.cmbLayers)
             self.cmbLayers.installEventFilter(self)
-            self.showAllLayersInCombo_Point(self.cmbLayersDest)
+            self.showAllLayersInCombo_Point_and_Polygon(self.cmbLayersDest)
             self.cmbLayersDest.installEventFilter(self)
             self.showAllLayersInCombo_Polygon(self.cmbVizLayers)
             self.cmbVizLayers.installEventFilter(self)
             self.dtStartTime.installEventFilter(self)
+
+            self.cmbLayers_fields.installEventFilter(self)
+            self.cmbLayersDest_fields.installEventFilter(self)
+            self.cmbVizLayers_fields.installEventFilter(self)
             
-            self.toolButton_layer_dest_refresh.clicked.connect(lambda: self.showAllLayersInCombo_Point(self.cmbLayersDest))
-            self.toolButton_layer_refresh.clicked.connect(lambda: self.showAllLayersInCombo_Point(self.cmbLayers))
-            self.toolButton_viz_layers_refresh.clicked.connect(lambda: self.showAllLayersInCombo_Polygon(self.cmbVizLayers))
+            self.fillComboBoxFields_Id(self.cmbLayers, self.cmbLayers_fields)
+            self.cmbLayers.currentIndexChanged.connect(
+                                    lambda: self.fillComboBoxFields_Id
+                                                (self.cmbLayers, self.cmbLayers_fields))
             
+            self.fillComboBoxFields_Id(self.cmbLayersDest, self.cmbLayersDest_fields)
+            self.cmbLayersDest.currentIndexChanged.connect(
+                                    lambda: self.fillComboBoxFields_Id
+                                                (self.cmbLayersDest, self.cmbLayersDest_fields))
+            
+            self.fillComboBoxFields_Id(self.cmbVizLayers, self.cmbVizLayers_fields)
+            self.cmbVizLayers.currentIndexChanged.connect(
+                                    lambda: self.fillComboBoxFields_Id
+                                                (self.cmbVizLayers, self.cmbVizLayers_fields))
+            
+
+            
+
+
             self.btnBreakOn.clicked.connect(self.set_break_on)
             
             self.run_button = self.buttonBox.addButton("Run", QDialogButtonBox.ActionRole)
@@ -163,12 +212,55 @@ class RaptorDetailed(QDialog, FORM_CLASS):
             self.txtMaxTimeTravel.setValidator(int_validator3)
             self.txtMaxExtraTime.setValidator(int_validator3)
             self.txtDepartureInterval.setValidator(int_validator3)
+
+            self.default_aliase = f'acc_PT_{getDateTime()}'
+            
            
             self.ParametrsShow()
 
     #def openExternalLink(self, url):
     #    QDesktopServices.openUrl(QUrl(url))
 
+    def fillComboBoxFields_Id(self, obj_layers, obj_layer_fields):
+      obj_layer_fields.clear()
+      selected_layer_name = obj_layers.currentText()
+      layer = QgsProject.instance().mapLayersByName(selected_layer_name)[0]
+    
+      fields = layer.fields()
+      osm_id_exists = False
+    
+      # Регулярное выражение для проверки наличия только цифр
+      digit_pattern = re.compile(r'^\d+$')
+    
+      # Проверка полей по типам и значениям
+      for field in fields:
+        field_name = field.name()
+        field_type = field.type()
+        
+        if field_type in (QVariant.Int, QVariant.Double, QVariant.LongLong):
+            # Добавляем числовые поля
+            obj_layer_fields.addItem(field_name)
+            if field_name.lower() == "osm_id":
+                osm_id_exists = True
+        elif field_type == QVariant.String:
+            # Проверяем первое значение поля на наличие только цифр
+            first_value = None
+            for feature in layer.getFeatures():
+                first_value = feature[field_name]
+                break  # Останавливаемся после первого значения
+            
+            if first_value is not None and digit_pattern.match(str(first_value)):
+                obj_layer_fields.addItem(field_name)
+                if field_name.lower() == "osm_id":
+                    osm_id_exists = True
+    
+      if osm_id_exists:
+        # Перебираем все элементы комбобокса и сравниваем их с "osm_id", игнорируя регистр
+        for i in range(obj_layer_fields.count()):
+            if obj_layer_fields.itemText(i).lower() == "osm_id":
+                obj_layer_fields.setCurrentIndex(i)
+                break
+            
     def openFolder(self, url):
         QDesktopServices.openUrl(url)
         
@@ -198,26 +290,9 @@ class RaptorDetailed(QDialog, FORM_CLASS):
            return 0
         if not self.cmbLayers.currentText():
           self.run_button.setEnabled(True)
-          self.setMessage ("Need choise layer")   
+          self.setMessage ("Choise layer")   
           return 0
-        
-        if self.cbUseFields.isChecked() and self.cmbFields.currentText() == "":
-          self.run_button.setEnabled(True)
-          self.setMessage ("Need choise field to aggregate")   
-          return 0
-        
-        """
-        if not (self.checkLayer_type (self.cmbLayers.currentText())):
-          self.run_button.setEnabled(True)
-          self.setMessage (f"Layer {self.cmbLayers.currentText()} not consist points geometry")   
-          return 0
-        """  
-        
-        if not (self.checkLayer_type (self.cmbLayersDest.currentText())):
-          self.run_button.setEnabled(True)
-          self.setMessage (f"Layer {self.cmbLayersDest.currentText()} not consist points geometry")   
-          return 0
-        
+       
         self.saveParameters()
         self.readParameters()
 
@@ -227,17 +302,84 @@ class RaptorDetailed(QDialog, FORM_CLASS):
         self.textLog.clear()
         self.tabWidget.setCurrentIndex(1) 
         self.textLog.append("<a style='font-weight:bold;'>[System]</a>")
-        qgis_info = self.get_qgis_info()
+        qgis_info = get_qgis_info()
         
         info_str = "<br>".join([f"{key}: {value}" for key, value in qgis_info.items()])
         self.textLog.append(f'<a> {info_str}</a>')
         self.textLog.append("<a style='font-weight:bold;'>[Mode]</a>")
         self.textLog.append(f'<a> Mode: {self.title}</a>')
-        config_info = self.get_config_info()
-        #info_str = "<br>".join(config_info)
-        info_str = "<br>".join(config_info[1:])
+                
         self.textLog.append("<a style='font-weight:bold;'>[Settings]</a>")
-        self.textLog.append(f'<a>{info_str}</a>')
+        self.textLog.append(f'<a> Scenario name: {self.aliase}</a>')
+        self.textLog.append(f'<a> GTFS dictionary folder: {self.config['Settings']['pathtopkl']}</a>')
+        self.textLog.append(f'<a> Output folder: {self.config['Settings']['pathtoprotocols']}</a>')
+        if self.mode == 1:
+           name1 = "origins"
+           name2 = "destinations"
+        else:   
+           name2 = "origins"
+           name1 = "destinations"
+        self.textLog.append(f'<a> Layer of {name1}: {self.layer_origins_path}</a>')
+        self.textLog.append(f'<a> Selected {name1}: {self.config['Settings']['SelectedOnly1']}</a>')
+        self.textLog.append(f'<a> Layer of {name2}: {self.layer_destinations_path}</a>')
+        self.textLog.append(f'<a> Selected {name2}: {self.config['Settings']['SelectedOnly2']}</a>')
+
+        self.textLog.append("<a style='font-weight:bold;'>[Parameters of a trip]</a>")
+
+        self.textLog.append(f'<a> Minimum number of transfers: {self.config['Settings']['min_transfer']}</a>')
+        self.textLog.append(f'<a> Maximum number of transfers: {self.config['Settings']['min_transfer']}</a>')
+        self.textLog.append(f'<a> Maximum walk distance from the origin building to the first PT stop: {self.config['Settings']['maxwalkdist1']} m</a>')
+
+        self.textLog.append(f'<a> Maximum walk distance between stops when changing lines: {self.config['Settings']['maxwalkdist2']} m</a>')
+        self.textLog.append(f'<a> Maximum walk distance from a last PT stop to the destination building: {self.config['Settings']['maxwalkdist3']} m</a>')
+        self.textLog.append(f'<a> Walking speed: {self.config['Settings']['speed']} km/h</a>')
+
+        self.textLog.append(f'<a> Maximum waiting time at the first PT stop: {self.config['Settings']['maxwaittime']} min</a>')
+        self.textLog.append(f'<a> Maximum waiting time at the transfer stop: {self.config['Settings']['min_transfer']} min</a>')
+        self.textLog.append(f'<a> Maximum total travel time: {self.config['Settings']['maxtimetravel']} min</a>')
+
+        if not self.timetable_mode:  
+          if self.mode == 1:
+            self.textLog.append(f'<a> Start at (time): {self.config['Settings']['time']}</a>')
+          else:
+            self.textLog.append(f'<a> Arrive before (time): {self.config['Settings']['time']}</a>')   
+
+        if self.protocol_type == 1: # MAP mode
+          self.textLog.append("<a style='font-weight:bold;'>[Aggregation]</a>")  
+          self.textLog.append(f'<a> Store the results at a time resolution of: {self.config['Settings']['timeinterval']} min</a>')
+
+          if self.mode == 1:  
+            count_features = self.count_layer_destinations
+          else:   
+            count_features = self.count_layer_origins
+          self.textLog.append(f'<a> Count: {count_features}</a>')
+
+          if self.config['Settings']['field_ch'] != "":
+             print_fields = self.config['Settings']['field_ch']
+          else:
+             print_fields = "NONE"
+          self.textLog.append(f'<a> Aggregated fields: {print_fields}</a>')
+
+        
+        if self.timetable_mode:
+            self.textLog.append("<a style='font-weight:bold;'>[Time schedule]</a>") 
+
+            if self.mode == 1:
+              self.textLog.append(f'<a> The earliest start (time): {self.config['Settings']['time']}</a>')
+              self.textLog.append(f'<a> Maximum delay at the start: {self.config['Settings']['maxextratime']} min</a>')
+              #self.textLog.append(f'<a> Waiting time at the first stop : {self.config['Settings']['departureinterval']} min</a>')
+              
+            if self.mode == 2:
+              self.textLog.append(f'<a> The latest arrival to destination (time): {self.config['Settings']['time']}</a>')
+              self.textLog.append(f'<a> Maximum waiting at the destination: {self.config['Settings']['maxextratime']} min</a>')
+              #self.textLog.append(f'<a> Minimum timedelta arrived at the last stop: {self.config['Settings']['departureinterval']} min</a>')  
+
+                      
+        self.textLog.append("<a style='font-weight:bold;'>[Visualization]</a>")  
+        self.textLog.append(f'<a> Layer for visualization: {self.layer_visualization_path}</a>')
+
+        self.textLog.append("<a style='font-weight:bold;'>[Processing]</a>")  
+        
 
         self.prepareRaptor()
         self.close_button.setEnabled(True)
@@ -251,14 +393,22 @@ class RaptorDetailed(QDialog, FORM_CLASS):
         
     
     def on_help_button_clicked(self):
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        module_path = os.path.join(current_dir, 'help', 'build', 'html')
+        file = os.path.join(module_path, 'raptor_area.html')
+        if not (self.timetable_mode):
+           file = os.path.join(module_path, 'raptor_area.html')
+        else:
+           file = os.path.join(module_path, 'timetable_mode.html')
+           
+        webbrowser.open(f'file:///{file}')
         
-        pass
    
-    def showAllLayersInCombo_Point(self, cmb):
+    def showAllLayersInCombo_Point_and_Polygon(self, cmb):
         layers = QgsProject.instance().mapLayers().values()
         point_layers = [layer for layer in layers 
                     if isinstance(layer, QgsVectorLayer) and 
-                    layer.geometryType() == QgsWkbTypes.PointGeometry]
+                    (layer.geometryType() == QgsWkbTypes.PointGeometry or layer.geometryType() == QgsWkbTypes.PolygonGeometry) ]
         cmb.clear()
         for layer in point_layers:
           cmb.addItem(layer.name(), [])
@@ -281,27 +431,48 @@ class RaptorDetailed(QDialog, FORM_CLASS):
           obj.setText(obj.text())   
 
     def readParameters(self):
-           self.config.read(self.user_home + "/parameters_accessibility.txt")
+        project_directory = os.path.dirname(QgsProject.instance().fileName())
+        file_path = os.path.join(project_directory, 'parameters_accessibility.txt')
+        self.config.read(file_path)
+
+        if 'Layer_field' not in self.config['Settings']:
+          self.config['Settings']['Layer_field'] = ''
+
+        if 'LayerDest_field' not in self.config['Settings']:
+          self.config['Settings']['LayerDest_field'] = ''
+
+        if 'LayerViz_field' not in self.config['Settings']:
+          self.config['Settings']['LayerViz_field'] = ''    
+        
 
     # update config file   
     def saveParameters(self):
 
-      f = self.user_home + "/parameters_accessibility.txt" 
+      project_directory = os.path.dirname(QgsProject.instance().fileName())
+      f = os.path.join(project_directory, 'parameters_accessibility.txt')
+      
       self.config.read(f)
       
       self.config['Settings']['PathToPKL'] = self.txtPathToPKL.text()
       self.config['Settings']['PathToProtocols'] = self.txtPathToProtocols.text()
       self.config['Settings']['Layer'] = self.cmbLayers.currentText()
+      self.config['Settings']['Layer_field'] = self.cmbLayers_fields.currentText()
       if hasattr(self, 'cbSelectedOnly1'):
         self.config['Settings']['SelectedOnly1'] = str(self.cbSelectedOnly1.isChecked())
       self.config['Settings']['LayerDest'] = self.cmbLayersDest.currentText()
-      self.config['Settings']['LayerViz'] = self.cmbVizLayers.currentText()
+      self.config['Settings']['LayerDest_field'] = self.cmbLayersDest_fields.currentText()
+      
       if hasattr(self, 'cbSelectedOnly2'):
         self.config['Settings']['SelectedOnly2'] = str(self.cbSelectedOnly2.isChecked())
+
+      self.config['Settings']['LayerViz'] = self.cmbVizLayers.currentText()
+      self.config['Settings']['LayerViz_field'] = self.cmbVizLayers_fields.currentText()  
+
       self.config['Settings']['Min_transfer'] = self.txtMinTransfers.text()
       self.config['Settings']['Max_transfer'] = self.txtMaxTransfers.text()
       self.config['Settings']['MaxExtraTime'] = self.txtMaxExtraTime.text()
       self.config['Settings']['DepartureInterval'] = self.txtDepartureInterval.text()
+            
       self.config['Settings']['MaxWalkDist1'] = self.txtMaxWalkDist1.text()
       self.config['Settings']['MaxWalkDist2'] = self.txtMaxWalkDist2.text()
       self.config['Settings']['MaxWalkDist3'] = self.txtMaxWalkDist3.text()
@@ -314,6 +485,19 @@ class RaptorDetailed(QDialog, FORM_CLASS):
       with open(f, 'w') as configfile:
           self.config.write(configfile)
       
+      self.aliase = self.txtAliase.text() if self.txtAliase.text() != "" else self.default_aliase
+
+      layer =  QgsProject.instance().mapLayersByName(self.config['Settings']['Layer'])[0]
+      self.count_layer_origins =  layer.featureCount()
+      
+      self.layer_origins_path = layer.dataProvider().dataSourceUri().split("|")[0]
+      layer =  QgsProject.instance().mapLayersByName(self.config['Settings']['LayerDest'])[0]
+      self.layer_destinations_path = layer.dataProvider().dataSourceUri().split("|")[0]
+      layer =  QgsProject.instance().mapLayersByName(self.config['Settings']['LayerViz'])[0]
+      self.layer_visualization_path = layer.dataProvider().dataSourceUri().split("|")[0]
+      self.count_layer_destinations =  layer.featureCount()
+
+
     def ParametrsShow(self):
             
       self.readParameters()
@@ -365,28 +549,27 @@ class RaptorDetailed(QDialog, FORM_CLASS):
       DepartureInterval = self.config['Settings'].get('departureinterval', '5')
       self.txtDepartureInterval.setText(DepartureInterval)
 
-     
+      self.cmbLayers_fields.setCurrentText(self.config['Settings']['Layer_field'])
+      self.cmbLayersDest_fields.setCurrentText(self.config['Settings']['LayerDest_field'])
+      self.cmbVizLayers_fields.setCurrentText(self.config['Settings']['LayerViz_field'])
       
+      self.txtAliase.setText (self.default_aliase)
 
     def check_folder_and_file(self):
       
       if not os.path.exists(self.txtPathToPKL.text()):
-        self.setMessage(f"Folder '{self.txtPathToPKL.text()}' no exist")
+        self.setMessage(f"Folder '{self.txtPathToPKL.text()}' does not exist")
         return False
       
       file_path = os.path.join(self.txtPathToPKL.text(), 'stops_dict_pkl.pkl')
       if not os.path.isfile(file_path):
-        self.setMessage(f"PKL files no founded in folder '{self.txtPathToPKL.text()}'")
+        self.setMessage (f"Folder '{self.txtPathToPKL.text()}', pkl files not found")
         return False
       
       if not os.path.exists(self.txtPathToProtocols.text()):
-        self.setMessage(f"Folder '{self.txtPathToProtocols.text()}' no exist")
+        self.setMessage(f"Folder '{self.txtPathToProtocols.text()}' does not exist")
         return False
-      
-      #if not (os.access(self.txtPathToProtocols.text(), os.W_OK)):
-      #  self.setMessage(f"Folder '{self.txtPathToProtocols.text()}' permission denied")
-      #  return False
-
+            
       try:
         tmp_prefix = "write_tester";
         filename = f'{self.txtPathToProtocols.text()}//{tmp_prefix}'
@@ -394,7 +577,7 @@ class RaptorDetailed(QDialog, FORM_CLASS):
           f.write("test")
         os.remove(filename)
       except Exception as e:
-        self.setMessage(f"Folder '{self.txtPathToProtocols.text()}' permission denied")
+        self.setMessage (f" An access to the  '{self.txtPathToProtocols.text()}' folder is denied")
         return False
     
       return True
@@ -413,7 +596,7 @@ class RaptorDetailed(QDialog, FORM_CLASS):
       try:
         features = layer.getFeatures()
       except:
-        self.setMessage(f'No features in layer {layer}')
+        self.setMessage (f'The layer {layer} is empty')
         return 0  
 
       if self.cbSelectedOnly1.isChecked():
@@ -429,18 +612,7 @@ class RaptorDetailed(QDialog, FORM_CLASS):
           msgBox.exec_()
           return 0
 
-      fields = layer.fields()
-      feature_id_field = fields[0].name()
-
-      for feature in features:
-        feature_geometry = feature.geometry()
-        feature_geometry_type = feature_geometry.type()
-        break  
-
-      if (feature_geometry_type != QgsWkbTypes.PointGeometry and feature_geometry_type != QgsWkbTypes.PolygonGeometry):
-        self.setMessage("Layer not consist point and polygon")
-        return 0  
-     
+      feature_id_field = self.config['Settings']['Layer_field']
       
       features = layer.getFeatures()
       if self.cbSelectedOnly1.isChecked():
@@ -469,14 +641,15 @@ class RaptorDetailed(QDialog, FORM_CLASS):
       protocol_type = self.protocol_type
       timetable_mode = self.timetable_mode
       D_TIME = self.time_to_seconds(self.config['Settings']['TIME'])
-      sources = [] 
+      sources = []
 
-      stops = self.get_feature_from_layer()
-      if stops:
-        for stop_id in stops:
-          sources.append((stop_id, D_TIME))
+      
+      buidings = self.get_feature_from_layer()
+      if buidings:
+        for building_id in buidings:
+          sources.append((building_id, D_TIME))
       else:
-        self.setMessage("No exist points in layer")
+        self.setMessage (f'No origin buildings in the {self.config['Settings']['Layer_field']} layer')
         self.run_button.setEnabled(True)
         return 0
       
@@ -499,14 +672,16 @@ class RaptorDetailed(QDialog, FORM_CLASS):
           run = False
                    
       if run:
-        
-         _, self.folder_name = runRaptorWithProtocol(self, 
+         
+         runRaptorWithProtocol(self,
+                                                  self.parent, 
                                                   sources, 
                                                   mode, 
                                                   protocol_type, 
                                                   timetable_mode, 
                                                   self.cbSelectedOnly1.isChecked(), 
-                                                  self.cbSelectedOnly2.isChecked()
+                                                  self.cbSelectedOnly2.isChecked(),
+                                                  self.aliase
                                                   )
          """
          _, self.folder_name = self.profile_runRaptorWithProtocol( 
@@ -545,78 +720,7 @@ class RaptorDetailed(QDialog, FORM_CLASS):
         ps.dump_stats(r"C:/Users/geosimlab/Documents/Igor/Protocols/plugin_profile.txt")
 
         return result
-         
-    def get_qgis_info(self):
-      qgis_info = {}
-      qgis_info['QGIS version'] = qgis.core.Qgis.QGIS_VERSION
-      qgis_info['QGIS code revision'] = qgis.core.Qgis.QGIS_RELEASE_NAME
-      qgis_info['Qt version'] = qgis.PyQt.QtCore.QT_VERSION_STR
-      qgis_info['Python version'] = sys.version
-      qgis_info['GDAL version'] = osgeo.gdal.VersionInfo('RELEASE_NAME')
-      return qgis_info
-    
-    def get_config_info(self):
-      config_info = []
-      for section in self.config.sections():
-        config_info.append(f"<a>[{section}]</a>")
-        for key, value in self.config.items(section):
-            if key == "pathtopkl":
-              config_info.append(f"<a>Dataset folder: {value}</a>")
-
-            if key == "pathtoprotocols":
-              config_info.append(f"<a>Output folder: {value}</a>")  
-
-            if key == "layer":
-              config_info.append(f"<a>Layer of origins (points/polygons): {value}</a>")
-
-            if key == "selectedonly1":
-              config_info.append(f"<a>Selected feature only from layer of origins (points/polygons): {value}</a>")  
-
-            if key == "layerdest":
-              config_info.append(f"<a>Layer of destinations (points/polygons): {value}</a>")
-
-            if key == "selectedonly2":
-              config_info.append(f"<a>Selected feature only from layer of destinations (points/polygons): {value}</a>")  
-
-            if key == "layerviz":
-              config_info.append(f"<a>Visualization layer: {value}</a>")  
-
-            
-            if key == "min_transfer":
-              config_info.append(f"<a>Min transfers: {value}</a>")      
-            if key == "max_transfer":
-              config_info.append(f"<a>Max transfers: {value}</a>")      
-
-            if self.timetable_mode:
-              if key == "maxextratime":
-                config_info.append(f"<a>Maximum extra time at a first stop: {value} min</a>") 
-
-              if key == "departureinterval":
-                if self.mode == 1:
-                  config_info.append(f"<a>Departure interval earliest: {value} min</a>") 
-                else:  
-                  config_info.append(f"<a>Departure interval latest: {value} min</a>")  
-
-            if key == "maxwalkdist1":
-              config_info.append(f"<a>Max walk distance to the initial PT stop: {value} m</a>")      
-            if key == "maxwalkdist2":
-              config_info.append(f"<a>Max walk distance at transfer: {value} m</a>")      
-            if key == "maxwalkdist3":
-              config_info.append(f"<a>Max walk distance from a last PT stop: {value} m</a>") 
-
-            if key == "time":
-              config_info.append(f"<a>Start at/Arrive before (time): {value}</a>")      
-            if key == "speed":
-              config_info.append(f"<a>Walking speed: {value} km/h</a>")      
-            if key == "maxwaittime":
-              config_info.append(f"<a>Maximal waiting time at initial stop: {value} min</a>")      
-            if key == "maxwaittimetransfer":
-              config_info.append(f"<a>Maximal waiting time at transfer stop: {value} min</a>")      
-            if key == "maxtimetravel":
-              config_info.append(f"<a>Maximal time travel: {value} min</a>") 
-            
-      return config_info
-
+             
     def eventFilter(self, obj, event):
         if event.type() == QEvent.Wheel:
             # Если комбо-бокс в фокусе, игнорируем событие прокрутки колесом мыши

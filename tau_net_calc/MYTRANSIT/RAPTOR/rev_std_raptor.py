@@ -15,7 +15,7 @@ def rev_raptor(SOURCE,
                stops_dict, 
                stoptimes_dict, 
                footpath_dict,
-               footpath_dict_b_b,
+               
                idx_by_route_stop_dict,
                Maximal_travel_time,
                MaxWalkDist1, 
@@ -63,13 +63,13 @@ def rev_raptor(SOURCE,
     if True:
         try:
             if trans_info == -1:
-                trans_info1 = footpath_dict_b_b.get(SOURCE, [])
-                trans_info2 = footpath_dict.get(SOURCE, [])
+                #trans_info1 = footpath_dict_b_b.get(SOURCE, [])
+                trans_info = footpath_dict.get(SOURCE, [])
 
-                for i,dist in trans_info2:
-                    trans_info1.append ((i,dist))
+                #for i,dist in trans_info2:
+                #    trans_info1.append ((i,dist))
 
-                trans_info = trans_info1 
+                #trans_info = trans_info1 
 
              
             for i in trans_info:
@@ -92,9 +92,6 @@ def rev_raptor(SOURCE,
         except  KeyError as e:
             pass
         
-        #print (f' pi_label {pi_label}')
-        #print (f' marked_stop {marked_stop}')   
-
     # Main Code
     # Main code part 1
     
@@ -104,12 +101,12 @@ def rev_raptor(SOURCE,
         if k == 1:
             MaxWaitCurr = MaxWaitTime
             change_time = 0
+            if timetable_mode:
+                MaxWaitCurr -= departure_interval
         else:
             MaxWaitCurr = MaxWaitTimeTransfer
             change_time = change_time_save 
-        #print (f'round {k}')
-        #print (f'part 1') 
-        
+                
         Q.clear()
         while marked_stop:
             p = marked_stop.pop()
@@ -128,9 +125,7 @@ def rev_raptor(SOURCE,
                 except  KeyError as e:
                     Q[route] = stp_idx
             
-        
 
-        #print (f'part 2')
         # Main code part 2
         
         boarding_time, boarding_point = -1, -1,
@@ -209,8 +204,14 @@ def rev_raptor(SOURCE,
                     #My comment : his condition means that current trip arrives too early
                      # assuming arrival_time = departure_time
                     
+                    arrival_time_at_pi = label[k - 1][p_i]
+                    ### test !!!!
+                    if timetable_mode and k ==  1:
+                        arrival_time_at_pi = arrival_time_at_pi - departure_interval
+                        
+                    ### test !!!! 
                        
-                    tid, current_trip_t = get_earliest_trip_new(stoptimes_dict, route, label[k - 1][p_i], current_stopindex_by_route, change_time, MaxWaitCurr)
+                    tid, current_trip_t = get_earliest_trip_new(stoptimes_dict, route, arrival_time_at_pi, current_stopindex_by_route, change_time, MaxWaitCurr)
                     
                     if current_trip_t == -1:
                         boarding_time, boarding_point = -1, -1
@@ -225,13 +226,8 @@ def rev_raptor(SOURCE,
         if k == 1 and timetable_mode:
             t_min = get_t_min(pi_label, routes_by_stop_dict.keys(), departure_interval)
             min_time = t_min - Maximal_travel_time
-
-        #print (f' part 2 pi_label {pi_label}')
-        #print (f' marked_stop {marked_stop}')
-
+               
         # Main code part 3
-        #print (f'part 3')
-        #marked_stop_copy = [*marked_stop]
                        
         if k < roundsCount and MaxWalkDist2_time != MaxWalkDist3_time:
         
@@ -266,14 +262,15 @@ def rev_raptor(SOURCE,
                               save_marked_stop,
                               list_stops 
                               ) 
-
-           
-        #print (f' finish revpaptor pi_label {pi_label}')
-        #print (f' marked_stop {marked_stop}')
+   
+        
         # Main code End
         if marked_stop == deque([]):
             break
     
+    # ! TEST !!!!!!!!!!!!!!!!
+    #timetable_mode = False
+
     reachedLabels = post_processingAll(my_name, 
                                        SOURCE, 
                                        D_TIME, 

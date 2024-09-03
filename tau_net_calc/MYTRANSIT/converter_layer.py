@@ -33,7 +33,7 @@ class MultiLineStringToLineStringConverter:
         for feature in self.layer.getFeatures():
             i += 1
             if i%1000 == 0:
-                self.parent.setMessage(f'Converting layer road multiline to line (link №{i} from {len})...')
+                self.parent.setMessage(f'Converting multiline features to lines (link №{i} from {len})...')
                 QApplication.processEvents()
                 if self.verify_break():
                     return 0 
@@ -68,7 +68,7 @@ class MultiLineStringToLineStringConverter:
 
     def verify_break (self):
       if self.parent.break_on:
-            self.parent.setMessage ("Process converting layer of road is break")
+            self.parent.setMessage ("Roads conversion is interrupted")
             if not self.already_display_break:
                 self.parent.textLog.append (f'<a><b><font color="red">Process converting layer of road is break</font> </b></a>')
                 self.already_display_break = True

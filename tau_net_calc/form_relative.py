@@ -1,10 +1,10 @@
 import os
-import sys
-import qgis.core
-import osgeo.gdal
-import osgeo.osr
 import glob
 import pandas as pd
+import webbrowser
+import re
+from common import getDateTime, get_qgis_info
+import numpy as np
 
 from PyQt5.QtWidgets import (QDialogButtonBox, 
                              QDialog, 
@@ -12,32 +12,40 @@ from PyQt5.QtWidgets import (QDialogButtonBox,
                              QApplication, 
                              QMessageBox)
 
-from PyQt5.QtCore import Qt, QEvent
+from qgis.core import (QgsProject, 
+                       QgsWkbTypes, 
+                       QgsVectorLayer
+                      )
+
+from PyQt5.QtCore import (Qt, 
+                          QEvent, 
+                          QVariant)
 from PyQt5.QtGui import QDesktopServices
 from PyQt5 import uic
 
 from datetime import datetime
 
-
 import configparser
+
+from visualization import visualization
 
 # This loads your .ui file so that PyQt can populate your plugin with the elements from Qt Designer
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'relative.ui'))
 
 class form_relative(QDialog, FORM_CLASS):
-    def __init__(self, title, params = None):
+    def __init__(self, title):
             super().__init__()
             self.setupUi(self)
             self.setModal(False)
             self.setWindowFlags(Qt.Window);
             self.user_home = os.path.expanduser("~")
                           
-            self.curr_DateTime = self.getDateTime()
+            self.curr_DateTime = getDateTime()
 
             self.setWindowTitle(title)
 
-            self.splitter.setSizes([10, 250])   
+            self.splitter.setSizes([200, 200])   
             
 
             self.tabWidget.setCurrentIndex(0) 
@@ -68,22 +76,66 @@ class form_relative(QDialog, FORM_CLASS):
             self.close_button.clicked.connect(self.on_close_button_clicked)
             self.help_button.clicked.connect(self.on_help_button_clicked)
 
+            self.showAllLayersInCombo_Polygon(self.cbVisLayers)
+            self.fillComboBoxFields_Id()
+            self.cbVisLayers.currentIndexChanged.connect(self.fillComboBoxFields_Id)
+
+            self.cbVisLayers.installEventFilter(self)
+            self.cbVisLayers_fields.installEventFilter(self)
+
+            self.default_aliase = f'{getDateTime()}' 
+
             self.ParametrsShow()
 
-            if params:
-               (self.folder_name_PT, self.folder_name_Car) = params
-
-               self.txtPathToPT.setEnabled(False)
-               self.txtPathToCar.setEnabled(False)
-               self.label.setEnabled(False)
-               self.label_13.setEnabled(False)
-               self.toolButton_PT.setEnabled(False)
-               self.toolButton_Car.setEnabled(False)
-
-               self.txtPathToPT.setText(self.folder_name_PT)
-               self.txtPathToCar.setText(self.folder_name_Car)
-
             
+    def fillComboBoxFields_Id(self):
+      self.cbVisLayers_fields.clear()
+      selected_layer_name = self.cbVisLayers.currentText()
+      layer = QgsProject.instance().mapLayersByName(selected_layer_name)[0]
+    
+      fields = layer.fields()
+      osm_id_exists = False
+    
+      # Регулярное выражение для проверки наличия только цифр
+      digit_pattern = re.compile(r'^\d+$')
+    
+      # Проверка полей по типам и значениям
+      for field in fields:
+        field_name = field.name()
+        field_type = field.type()
+        
+        if field_type in (QVariant.Int, QVariant.Double, QVariant.LongLong):
+            # Добавляем числовые поля
+            self.cbVisLayers_fields.addItem(field_name)
+            if field_name == "osm_id":
+                osm_id_exists = True
+        elif field_type == QVariant.String:
+            # Проверяем первое значение поля на наличие только цифр
+            first_value = None
+            for feature in layer.getFeatures():
+                first_value = feature[field_name]
+                break  # Останавливаемся после первого значения
+            
+            if first_value is not None and digit_pattern.match(str(first_value)):
+                self.cbVisLayers_fields.addItem(field_name)
+                if field_name == "osm_id":
+                    osm_id_exists = True
+    
+      if osm_id_exists:
+        index = self.cbVisLayers_fields.findText("osm_id")
+        if index != -1:
+            self.cbVisLayers_fields.setCurrentIndex(index)
+      
+
+    def showAllLayersInCombo_Polygon(self, cmb):
+      layers = QgsProject.instance().mapLayers().values()
+      polygon_layers = [layer for layer in layers 
+                      if isinstance(layer, QgsVectorLayer) and 
+                      layer.geometryType() == QgsWkbTypes.PolygonGeometry and
+                      layer.featureCount() > 1]
+      cmb.clear()
+      for layer in polygon_layers:
+        cmb.addItem(layer.name(), [])        
         
 
     def openFolder(self, url):
@@ -113,33 +165,50 @@ class form_relative(QDialog, FORM_CLASS):
            self.run_button.setEnabled(True)
            return 0
         
-        mode_PT, MAP_PT, max_time_travel_PT, time_interval_PT, run_aggregate_PT, field_to_aggregate_PT = self.check_log(self.txtPathToPT.text())
-        mode_Car, MAP_Car, max_time_travel_Car, time_interval_Car, run_aggregate_Car, field_to_aggregate_Car = self.check_log(self.txtPathToCar.text())
-        if  mode_PT != mode_Car:
+        if not(self.cb_ratio.isChecked()) \
+            and not(self.cb_difference.isChecked())  \
+            and not(self.cb_relative_difference.isChecked()):
+           
+           self.setMessage('At least one calculation mode must be enabled.')
+           self.run_button.setEnabled(True)
+           return 0
+        
+
+        mode_first, self.MAP_first, max_time_travel_PT, time_interval_PT, run_aggregate_PT, field_to_aggregate_PT = self.check_log(self.txtPathToPT.text())
+        mode_second, self.MAP_second, max_time_travel_Car, time_interval_Car, run_aggregate_Car, field_to_aggregate_Car = self.check_log(self.txtPathToCar.text())
+
+        if  mode_second != mode_second:
             self.setMessage(
-                            "PT mode: {}. Car mode: {}. Must be the same.".format(
-                            "forward" if mode_PT else "backward",
-                            "forward" if mode_Car else "backward"
+                            "Firts csv mode: {}. Second csv mode: {}. Must be the same.".format(
+                            "forward" if mode_first else "backward",
+                            "forward" if mode_second else "backward"
                             )
                             )
             self.run_button.setEnabled(True)
             return 0
         
-        if not(MAP_PT):
-           self.setMessage('PT protokol is not MAP')
+        if self.MAP_first != self.MAP_second:
+           self.setMessage(
+                            "Firts csv type: {}. Second csv type: {}. Must be the same.".format(
+                            "MAP" if self.MAP_first else "MAP",
+                            "AREA" if self.MAP_second else "AREA"
+                            )
+                            )
            self.run_button.setEnabled(True)
            return 0
         
+        """
         if not(MAP_Car):
            self.setMessage('Car protokol is not MAP')
            self.run_button.setEnabled(True)
            return 0
         
+        
         if max_time_travel_PT != max_time_travel_Car:
            self.setMessage(f'PT mode max time travel: {max_time_travel_PT} min. Car mode max time travel: {max_time_travel_Car} min. Must be the same.')
            self.run_button.setEnabled(True)
            return 0
-        
+                
         if time_interval_PT != time_interval_Car:
            self.setMessage(f'PT mode time interval: {time_interval_PT} min. Car mode time interval: {time_interval_Car} min. Must be the same.')
            self.run_button.setEnabled(True)
@@ -154,7 +223,7 @@ class form_relative(QDialog, FORM_CLASS):
            self.setMessage(f'PT mode field to aggregate: {field_to_aggregate_PT}. Car mode field to : {field_to_aggregate_Car}. Must be the same.')
            self.run_button.setEnabled(True)
            return 0
-        
+        """
         self.saveParameters()
         self.readParameters()
         
@@ -163,30 +232,101 @@ class form_relative(QDialog, FORM_CLASS):
         self.textLog.clear()
         self.tabWidget.setCurrentIndex(1) 
         self.textLog.append("<a style='font-weight:bold;'>[System]</a>")
-        qgis_info = self.get_qgis_info()
+        qgis_info = get_qgis_info()
         
         info_str = "<br>".join([f"{key}: {value}" for key, value in qgis_info.items()])
         self.textLog.append(f'<a> {info_str}</a>')
         self.textLog.append("<a style='font-weight:bold;'>[Mode]</a>")
         self.textLog.append(f'<a> Mode: {self.title}</a>')
-        config_info = self.get_config_info()
-    
-        info_str = "<br>".join(config_info[1:])
-        self.textLog.append("<a style='font-weight:bold;'>[Settings]</a>")
-        self.textLog.append(f'<a>{info_str}</a>')
-
-        self.prepare()
-        self.close_button.setEnabled(True)
-       
         
+        layer =  QgsProject.instance().mapLayersByName(self.config['Settings']['VisLayer_relative'])[0]
+        self.layer_vis_path = layer.dataProvider().dataSourceUri().split("|")[0]
+        self.aliase = self.txtAliase.text() if self.txtAliase.text() != "" else self.default_aliase
+
+        self.textLog.append("<a style='font-weight:bold;'>[Settings]</a>")
+        self.textLog.append(f'<a> Scenario name: {self.aliase}</a>')
+        self.textLog.append(f"<a>Results_1 folder: {self.config['Settings']['PathToPT_relative']}</a>")            
+        self.textLog.append(f"<a>Results_2 folder: {self.config['Settings']['PathToCAR_relative']}</a>")
+        self.textLog.append(f"<a>Output folder: {self.config['Settings']['PathToOutput_relative']}</a>")          
+        self.textLog.append(f"<a>Layer for visualization : {self.layer_vis_path}</a>")  
+        self.textLog.append(f"<a>Calc ratio: {self.config['Settings']['calc_ratio_relative']}</a>")              
+        self.textLog.append(f"<a>Calc difference: {self.config['Settings']['calc_difference_relative']}</a>")                
+        self.textLog.append(f"<a>Calc difference relative: {self.config['Settings']['calc_relative_difference_relative']}</a>")                    
+        
+
+        LayerVis = self.config['Settings']['VisLayer_relative']
+        fieldname_layer = self.config['Settings']['VisLayers_fields_relative']
+        
+        if self.MAP_first:
+           mode_visualization = 1
+        else:
+           mode_visualization = 2   
+
+        self.make_log_compare()
+        vis = visualization (self, 
+                              LayerVis, 
+                              mode = mode_visualization, 
+                              fieldname_layer = fieldname_layer,
+                              mode_compare = True
+                              )
+        aliase = self.txtAliase.text() if self.txtAliase.text() != "" else self.default_aliase
+
+        begin_computation_time = datetime.now()
+        begin_computation_str = begin_computation_time.strftime('%Y-%m-%d %H:%M:%S')
+        self.textLog.append(f'<a>Started: {begin_computation_str}</a>') 
+        list_file_name = []
+        if self.cb_ratio.isChecked():
+          self.mode_calc = "ratio"
+          self.prepare()
+          aliase_res = f'ratio_{aliase}'
+          vis.add_thematic_map (self.path_output, aliase_res)
+          list_file_name.append(self.path_output)
+
+        if self.cb_difference.isChecked():  
+          self.mode_calc = "difference"
+          self.prepare()
+          aliase_res = f'diff_{aliase}'
+          vis.add_thematic_map (self.path_output, aliase_res)
+          list_file_name.append(self.path_output)
+
+        if self.cb_relative_difference.isChecked():    
+          self.mode_calc = "relative_difference"
+          self.prepare()
+          aliase_res = f'rel_diff_{aliase}'
+          vis.add_thematic_map (self.path_output, aliase_res)
+          list_file_name.append(self.path_output)
+        
+        QApplication.processEvents()
+        after_computation_time = datetime.now()
+        after_computation_str = after_computation_time.strftime('%Y-%m-%d %H:%M:%S')
+        self.textLog.append(f'<a>Finished: {after_computation_str}</a>') 
+        duration_computation = after_computation_time - begin_computation_time
+        duration_without_microseconds = str(duration_computation).split('.')[0]
+        self.textLog.append(f'<a>Processing time: {duration_without_microseconds}</a>') 
+        text = self.textLog.toHtml()
+        filelog_name = f'{self.folder_name}//log_{self.curr_DateTime}.html'
+        with open(filelog_name, "w") as file:
+            file.write(text)
+        self.textLog.append(f'<a>Output</a>')
+        for file_name in list_file_name:
+          self.textLog.append(f'<a>{file_name}</a>')
+
+        self.textLog.append(f'<a href="file:///{self.folder_name}" target="_blank" >Protocol in folder</a>')
+
+        self.setMessage ("Finished")
+
+        self.close_button.setEnabled(True)
+               
     
     def on_close_button_clicked(self):
         
         self.reject()
         
     def on_help_button_clicked(self):
-        
-        pass
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        module_path = os.path.join(current_dir, 'help', 'build', 'html')
+        file = os.path.join(module_path, 'relative_ready-made.html')
+        webbrowser.open(f'file:///{file}')
    
     
     def showFoldersDialog(self, obj):        
@@ -197,7 +337,10 @@ class form_relative(QDialog, FORM_CLASS):
           obj.setText(obj.text())   
 
     def readParameters(self):
-      self.config.read(self.user_home + "/parameters_accessibility.txt")
+      project_directory = os.path.dirname(QgsProject.instance().fileName())
+      file_path = os.path.join(project_directory, 'parameters_accessibility.txt')
+
+      self.config.read(file_path)
 
       if 'PathToOutput_relative' not in self.config['Settings']:
         self.config['Settings']['PathToOutput_relative'] = 'C:/'
@@ -208,19 +351,41 @@ class form_relative(QDialog, FORM_CLASS):
       if 'PathToCar_relative' not in self.config['Settings']:
         self.config['Settings']['PathToCar_relative'] = 'C:/'  
       
+      if 'calc_ratio_relative' not in self.config['Settings']:
+        self.config['Settings']['calc_ratio_relative'] = "True"
       
+      if 'calc_difference_relative' not in self.config['Settings']:
+        self.config['Settings']['calc_difference_relative'] = "True"
+
+      if 'calc_relative_difference_relative' not in self.config['Settings']:
+        self.config['Settings']['calc_relative_difference_relative'] = "True"  
+
+      if 'VisLayer_relative' not in self.config['Settings']:
+        self.config['Settings']['VisLayer_relative'] = ''  
+
+      if 'VisLayers_fields_relative' not in self.config['Settings']:
+        self.config['Settings']['VisLayers_fields_relative'] = ''    
 
 
     # update config file   
     def saveParameters(self):
       
-      f = self.user_home + "/parameters_accessibility.txt" 
+      project_directory = os.path.dirname(QgsProject.instance().fileName())
+      f = os.path.join(project_directory, 'parameters_accessibility.txt')
+      
       self.config.read(f)
       
       
       self.config['Settings']['PathToOutput_relative'] = self.txtPathToOutput.text()
       self.config['Settings']['PathToPT_relative'] = self.txtPathToPT.text()
       self.config['Settings']['PathToCar_relative'] = self.txtPathToCar.text()
+
+      self.config['Settings']['calc_ratio_relative'] = str(self.cb_ratio.isChecked())
+      self.config['Settings']['calc_difference_relative'] = str(self.cb_difference.isChecked())
+      self.config['Settings']['calc_relative_difference_relative'] = str(self.cb_relative_difference.isChecked())
+
+      self.config['Settings']['VisLayer_relative'] = self.cbVisLayers.currentText()
+      self.config['Settings']['VisLayers_fields_relative'] = self.cbVisLayers_fields.currentText()
       
       
       with open(f, 'w') as configfile:
@@ -235,12 +400,24 @@ class form_relative(QDialog, FORM_CLASS):
       self.txtPathToOutput.setText(self.config['Settings']['PathToOutput_relative'])
       self.txtPathToPT.setText(self.config['Settings']['PathToPT_relative'])
       self.txtPathToCar.setText(self.config['Settings']['PathToCar_relative'])
+
       
+      cb1 = self.config['Settings']['calc_ratio_relative'].lower() == "true"  
+      self.cb_ratio.setChecked(cb1)
+      cb1 = self.config['Settings']['calc_difference_relative'].lower() == "true"  
+      self.cb_difference.setChecked(cb1)
+      cb1 = self.config['Settings']['calc_relative_difference_relative'].lower() == "true"  
+      self.cb_relative_difference.setChecked(cb1)
+      
+      self.cbVisLayers.setCurrentText(self.config['Settings']['VisLayer_relative'])
+      self.cbVisLayers_fields.setCurrentText(self.config['Settings']['VisLayers_fields_relative'])
+
+      self.txtAliase.setText (self.default_aliase)
 
     def check_output_folder(self):
       self.setMessage("")
       if not os.path.exists(self.txtPathToOutput.text()):
-        self.setMessage(f"Output folder '{self.txtPathToOutput.text()}' no exist")
+        self.setMessage(f"Output folder '{self.txtPathToOutput.text()}' does not exist")
         return False
             
       try:
@@ -250,11 +427,86 @@ class form_relative(QDialog, FORM_CLASS):
           f.write("test")
         os.remove(filename)
       except Exception as e:
-        self.setMessage(f"Output folder '{self.txtPathToOutput.text()}' permission denied")
+        self.setMessage (f"An access to the output folder '{self.txtPathToOutput.text()}' is denied")
         return False
       
       return True
+
+    def parse_log_file(self, file_path):
+      params = {}
+      with open(file_path, 'r') as file:
+        inside_mode = False
+        for line in file:
+            line = line.strip()
+            if line.startswith('[Mode]'):
+                inside_mode = True
+                continue
+            if line.startswith('Started:'):
+                break
+            if inside_mode and ': ' in line:
+                param, value = line.split(': ', 1)
+                params[param] = value
+      return params  
+
+    def make_log_compare(self):
+        path1 = self.txtPathToPT.text()
+        path2 = self.txtPathToCar.text()
+
+        pattern = 'log_*.txt'
+        file_path1 = glob.glob(os.path.join(path1, pattern))[0]
+        file_path2 = glob.glob(os.path.join(path2, pattern))[0]
+
+        # Парсим оба файла
+        params_file1 = self.parse_log_file(file_path1)
+        params_file2 = self.parse_log_file(file_path2)
+        comparison_array = []
+
+        # Обрабатываем параметр Mode отдельно, чтобы он был первым
+        mode_value_file1 = params_file1.pop('Mode', 'XXX')
+        mode_value_file2 = params_file2.pop('Mode', 'XXX')
+
+        comparison_array.append({
+          'parameter': 'Mode',
+          'value_file1': mode_value_file1,
+          'value_file2': mode_value_file2
+          })
+
+        all_params = set(params_file1.keys()).union(set(params_file2.keys()))
+        
+        # Добавляем все параметры из первого файла
+        for param in params_file1:
+          comparison_array.append({
+              'parameter': param,
+              'value_file1': params_file1[param],
+              'value_file2': params_file2.get(param, 'XXX')
+                })
+
+        # Добавляем оставшиеся параметры из второго файла, которые не были в первом
+        for param in params_file2:
+          if param not in [entry['parameter'] for entry in comparison_array]:
+            comparison_array.append({
+            'parameter': param,
+            'value_file1': 'XXX',
+            'value_file2': params_file2[param]
+              })
+          
+        # Генерация HTML таблицы
+        html_table = self.generate_html_table(comparison_array)
+
+        # Добавление HTML в QTextBrowser
+        self.textLog.append(html_table)  
+
     
+    def generate_html_table(self, comparison_array):
+      html = "<table border='1' cellpadding='5' cellspacing='0'>"
+      html += "<tr><th>Params</th><th>File1</th><th>File2</th></tr>"
+    
+      for entry in comparison_array:
+        html += f"<tr><td>{entry['parameter']}</td><td>{entry['value_file1']}</td><td>{entry['value_file2']}</td></tr>"
+    
+      html += "</table>"
+      return html
+
     def check_log(self, path):
         pattern = 'log_*.txt'
         file_path = glob.glob(os.path.join(path, pattern))
@@ -298,7 +550,7 @@ class form_relative(QDialog, FORM_CLASS):
     def check_folder_and_file(self, path):
      
       if not os.path.exists(path):
-        self.setMessage(f"Folder '{path}' no exist")
+        self.setMessage(f"The folder '{path}' does not exist")
         return False
                
       required_patterns = ['access_*.csv', 'log_*.txt']
@@ -313,23 +565,16 @@ class form_relative(QDialog, FORM_CLASS):
 
       if missing_files:
         missing_files_message = ", ".join(missing_files)
-        self.setMessage(f"The following files are missing from the folder '{path}': {missing_files_message}")
+        self.setMessage (f"Files are missing in '{path}': {missing_files_message}")
         return False
     
       return True
 
     def setMessage (self, message):
       self.lblMessages.setText(message)
-    
-    def time_to_seconds(self, time_str):
-      hours, minutes, seconds = map(int, time_str.split(':'))
-      total_seconds = hours * 3600 + minutes * 60 + seconds
-      return total_seconds
-    
+            
     def prepare(self):
-      time_start_computation = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-      self.textLog.append(f'<a>Time start computation {time_start_computation}</a>') 
-
+      
       self.break_on = False
  
       QApplication.processEvents()
@@ -351,25 +596,18 @@ class form_relative(QDialog, FORM_CLASS):
           run = False
         """  
         self.folder_name = f'{self.txtPathToOutput.text()}//{self.curr_DateTime}'
-        path_output = f'{self.folder_name}//access_{self.curr_DateTime}.csv'
+        self.path_output = f'{self.folder_name}//{self.mode_calc}_{self.curr_DateTime}.csv'
+        
         if not os.path.exists(self.folder_name):
             os.makedirs(self.folder_name)
                 
         file1 = glob.glob(os.path.join(self.txtPathToPT.text(), 'access*.csv'))[0]
         file2 = glob.glob(os.path.join(self.txtPathToCar.text(), 'access*.csv'))[0]
-        self.calc(file1, file2, path_output)
 
-        self.setMessage(f'Calculating done')
-        QApplication.processEvents()
-        time_after_computation = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        self.textLog.append(f'<a>Time after computation {time_after_computation}</a>') 
-        self.textLog.append(f'<a href="file:///{self.folder_name}" target="_blank" >Protocol in folder</a>')
-
-        text = self.textLog.toPlainText()
-        filelog_name = f'{self.folder_name}//log_{self.curr_DateTime}.txt'
-        with open(filelog_name, "w") as file:
-            file.write(text)
-        
+        if self.MAP_first:
+          self.calc_MAP(file1, file2)
+        else:
+          self.calc_AREA(file1, file2)
       
       if not(run):
          self.run_button.setEnabled(True)
@@ -379,60 +617,95 @@ class form_relative(QDialog, FORM_CLASS):
          self.setMessage("")
 
          
-    def calc(self, file1, file2, path_output):
+    def calc_MAP(self, file1, file2):
       
       df1 = pd.read_csv(file1)
       df2 = pd.read_csv(file2)
-      common_columns = [col for col in df1.columns if col != 'Source_ID' and col in df2.columns]
+      postfix1 = "_1"
+      postfix2 = "_2"
+      common_columns = [col for col in df1.columns if col != 'Origin_ID' and col in df2.columns]
 
-      merged_df = pd.merge(df1, df2, on='Source_ID', suffixes=('_pt', '_car'))
+      merged_df = pd.merge(df1, df2, on='Origin_ID', suffixes=(postfix1, postfix2))
       result_df = pd.DataFrame()
-      result_df['Source_ID'] = merged_df['Source_ID']
+      result_df['Origin_ID'] = merged_df['Origin_ID']
 
       for col in common_columns:
-        pt_col = f'{col}_pt'
-        car_col = f'{col}_car'
-        ratio_col = f'{col} pt/{col} car'
-
-        result_df[pt_col] = merged_df[pt_col]
-        result_df[car_col] = merged_df[car_col]
-        result_df[ratio_col] = result_df[pt_col] / result_df[car_col]
-     
-      #result_df.dropna(inplace=True)
-      result_df.to_csv(path_output, index=False, na_rep='NaN')
-
-      
-      
-
-    def get_qgis_info(self):
-      qgis_info = {}
-      qgis_info['QGIS version'] = qgis.core.Qgis.QGIS_VERSION
-      qgis_info['QGIS code revision'] = qgis.core.Qgis.QGIS_RELEASE_NAME
-      qgis_info['Qt version'] = qgis.PyQt.QtCore.QT_VERSION_STR
-      qgis_info['Python version'] = sys.version
-      qgis_info['GDAL version'] = osgeo.gdal.VersionInfo('RELEASE_NAME')
-      return qgis_info
-    
-    def get_config_info(self):
-      config_info = []
-      config_info.append(f"<a></a>")              
-      
-      for section in self.config.sections():
+        col1 = f'{col}{postfix1}'
+        col2 = f'{col}{postfix2}'
         
-        
-        for key, value in self.config.items(section):
+        result_df[col1] = merged_df[col1]
+        result_df[col2] = merged_df[col2]
 
-            if key == "pathtooutput_relative":
-              config_info.append(f"<a>Output folder: {value}</a>")          
+        if self.mode_calc == "ratio":
+          
+          if col == "Total":
+            ratio_col = "Total"
+            # Используем numpy.where, чтобы обработать деление на 0
+            result_df[ratio_col] = np.where(result_df[col2] != 0, result_df[col1] / result_df[col2], 0)
 
-            if key == "pathtopt_relative":
-              config_info.append(f"<a>Folder of public transport accessibility MAP: {value}</a>")            
+          
+        if self.mode_calc == "difference":
+          
+          if col == "Total":
+            ratio_col = "Total"
+            result_df[ratio_col] = (result_df[col1] - result_df[col2])
+          
+        if self.mode_calc == "relative_difference":
+          
+          if col == "Total":
+            ratio_col = "Total"
+            result_df[ratio_col] = np.where(result_df[col2] != 0, (result_df[col1] - result_df[col2]) / result_df[col2], 0)
 
-            if key == "pathtocar_relative":
-              config_info.append(f"<a>Folder of car accessibility MAP: {value}</a>")            
-            
-      return config_info
+
+      result_df.to_csv(self.path_output, index=False, na_rep='NaN')
+
+      
+    def calc_AREA(self, file1, file2):
+      
+      df1 = pd.read_csv(file1)
+      df2 = pd.read_csv(file2)
+
+      postfix1 = ""
+      postfix2 = "_2"
     
+      # Фильтрация данных по первому значению Origin_ID
+      origin_id = df1['Origin_ID'].iloc[0]
+      df1_filtered = df1[df1['Origin_ID'] == origin_id]
+      df2_filtered = df2[df2['Origin_ID'] == origin_id]
+    
+      result_df = pd.DataFrame()
+    
+      # Сохранение значений Destination_ID из первого файла
+      result_df['Destination_ID'] = df1_filtered['Destination_ID']
+    
+      # Соединение по Destination_ID
+      merged_df = pd.merge(df1_filtered[['Origin_ID','Destination_ID', 'Duration']],
+                         df2_filtered[['Destination_ID', 'Duration']],
+                         on='Destination_ID',
+                         suffixes=(postfix1, postfix2))
+
+      result_df = merged_df[['Origin_ID', 'Destination_ID']].copy()
+      result_df['Duration1'] = merged_df[f'Duration{postfix1}']
+      result_df['Duration2'] = merged_df[f'Duration{postfix2}']
+
+      # Расчет отношения Duration из первого файла к Duration из второго файла
+      if self.mode_calc == "ratio":
+        result_df['Duration'] = np.where(merged_df[f'Duration{postfix2}'] != 0, 
+                                         merged_df[f'Duration{postfix1}'] / merged_df[f'Duration{postfix2}'], 
+                                         0)
+              
+      if self.mode_calc == "difference":
+         result_df['Duration'] = (merged_df[f'Duration{postfix1}'] - merged_df[f'Duration{postfix2}'])
+      
+      if self.mode_calc == "relative_difference":
+        
+        result_df['Duration'] = np.where(merged_df[f'Duration{postfix2}'] != 0, 
+                                         (merged_df[f'Duration{postfix1}'] - merged_df[f'Duration{postfix2}']) / merged_df[f'Duration{postfix2}'], 
+                                         0)
+      
+    
+      # Сохранение результата в файл
+      result_df.to_csv(self.path_output, index=False, na_rep='NaN')  
     
     def eventFilter(self, obj, event):
         if event.type() == QEvent.Wheel:
@@ -444,12 +717,4 @@ class form_relative(QDialog, FORM_CLASS):
          
         return super().eventFilter(obj, event)
     
-    def getDateTime(self):
-        current_datetime = datetime.now()
-        year = current_datetime.year
-        month = str(current_datetime.month).zfill(2)
-        day = str(current_datetime.day).zfill(2)
-        hour = str(current_datetime.hour).zfill(2)
-        minute = str(current_datetime.minute).zfill(2)
-        second = str(current_datetime.second).zfill(2)
-        return f'{year}{month}{day}_{hour}{minute}{second}'
+  

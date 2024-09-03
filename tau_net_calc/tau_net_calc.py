@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
 
+#from .resources import *
+import sys
+import os
+
+import py_compile
+#import cProfile
+
 from qgis.PyQt.QtCore import (QSettings, 
                               QTranslator, 
                               QCoreApplication, 
@@ -7,11 +14,11 @@ from qgis.PyQt.QtCore import (QSettings,
 from qgis.PyQt.QtGui import QIcon
 from PyQt5.QtWidgets import QDockWidget,  QAction
 import shutil
-#from .resources import *
 from .accessibility_tools import AccessibilityTools
-import sys
-import os
-#import cProfile
+from qgis.core import QgsProject
+import configparser
+
+
 
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -55,6 +62,10 @@ class TAUNetCalc():
         self.menu = self.tr(u'&TAU Network Calculator')
         
         self.first_start = None
+
+        plugin_dir = os.path.dirname(__file__)
+        self.clean_pyc(plugin_dir)
+        self.compile_all_py(plugin_dir)
     
     def tr(self, message):
             return QCoreApplication.translate('TAUNetCalc', message)
@@ -96,6 +107,20 @@ class TAUNetCalc():
 
         return action
 
+    
+    def get_version_from_metadata(self):
+        
+      current_dir = os.path.dirname(os.path.abspath(__file__))
+      file_path = os.path.join(current_dir, 'metadata.txt')
+
+      config = configparser.ConfigParser()
+      config.read(file_path)
+        
+      if 'general' in config and 'version' in config['general']:
+            return config['general']['version']
+            
+      return ""
+    
     def initGui(self):
 
         #cache_dir = os.path.expanduser('~/.qgis2/cache/tau_net_calc')
@@ -105,14 +130,35 @@ class TAUNetCalc():
                 
         icon_accessibility_path = os.path.join(os.path.dirname(__file__), 'app.png')
         
-       
+        version = self.get_version_from_metadata()
+        name_plagin = f'Accessibility tools v.{version}'
+        
         self.add_action(
             icon_path=icon_accessibility_path,
-            text=self.tr(u'Accessibility tools'),
+            #text=self.tr(u'Accessibility tools v.4.15'),
+            text=self.tr(name_plagin),
             callback=self.runAccessibility_tools,
             parent=self.iface.mainWindow())
         self.first_start_accessibility = True
-        
+
+    """Рекурсивно компилирует все .py файлы в указанной директории."""    
+    def compile_all_py(self, directory):
+        for root, dirs, files in os.walk(directory):
+            for file in files:
+                if file.endswith('.py'):
+                    file_path = os.path.join(root, file)
+                    try:
+                        # Компиляция файла, результат будет сохранен в __pycache__
+                        py_compile.compile(file_path)
+                        print(f'Compiled: {file_path}')
+                    except py_compile.PyCompileError as e:
+                        print(f'Failed to compile: {file_path}\nError: {e}')   
+
+    def clean_pyc(self, directory):
+        for root, dirs, files in os.walk(directory):
+            for file in files:
+                if file.endswith('.pyc'):
+                    os.remove(os.path.join(root, file))
 
     def unload(self):
         
@@ -135,13 +181,19 @@ class TAUNetCalc():
     def runAccessibility_tools(self):
 
          if self.first_start_accessibility == True:
-            
-            parameters_path = os.path.join(user_home, "parameters_accessibility.txt")  
-            source_path = module_path + "/parameters_accessibility_shablon.txt"
+                        
+            project_directory = os.path.dirname(QgsProject.instance().fileName())
+            parameters_path = os.path.join(project_directory, 'parameters_accessibility.txt')
+            source_path = os.path.join(module_path,'parameters_accessibility_shablon.txt')
 
             if not os.path.exists(parameters_path):
-              # Копируем файл из shablon, если его нет
-              shutil.copy(source_path, parameters_path)
+                shutil.copy(source_path, parameters_path)
+
+            parameters_path_road = os.path.join(project_directory, "taunetcalc_type_road.csv")  
+            source_path_road = os.path.join(module_path,'taunetcalc_type_road_shablon.csv')
+
+            if not os.path.exists(parameters_path_road):
+                shutil.copy(source_path_road, parameters_path_road)    
 
 
          if not self.widget_visible:

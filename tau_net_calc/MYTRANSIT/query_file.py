@@ -1,18 +1,29 @@
 
 import os
 import zipfile
+import shutil
+import pickle
 from datetime import datetime, date
-import csv
+from numbers import Real
+import tempfile
 
 from PyQt5.QtWidgets import QApplication, QMessageBox
-from qgis.core import QgsProject, QgsVectorFileWriter
-import pickle
+from qgis.core import (QgsProject, 
+                       QgsVectorFileWriter, 
+                       QgsVectorLayer,
+                       QgsWkbTypes
+                      )
+
+
 
 from RAPTOR.std_raptor import raptor
 from RAPTOR.rev_std_raptor import rev_raptor
-#from footpath_on_road_b_to_b import footpath_on_road_b_b
-#from converter_layer import MultiLineStringToLineStringConverter
+from converter_layer import MultiLineStringToLineStringConverter
+from footpath_on_road import footpath_on_road
+from footpath_on_air_b_to_b import cls_footpath_on_air_b_b
+from PKL import PKL
 from visualization import visualization
+from common import getDateTime
 
 # # Get the current directory
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -39,39 +50,68 @@ def get_route_desc__route_id(path):
   return route_desc__route_id
 
 
-def myload_all_dict(self, PathToNetwork, mode, exclude_routes, numbers_routes, route_dict):
+def myload_all_dict(self, 
+                    parent,
+                    PathToNetwork, 
+                    mode, 
+                    exclude_routes, 
+                    numbers_routes, 
+                    route_dict, 
+                    layer_origin, 
+                    layer_origin_field
+                    ):
     
     path = PathToNetwork
     
-    self.setMessage ("Load footpath ...")        
-    QApplication.processEvents()
-    with open(path + '/transfers_dict.pkl', 'rb') as file:
-        footpath_dict = pickle.load(file)
-    
-    self.progressBar.setValue(1)
+    need_reload = False
+    if parent.path_to_pkl != PathToNetwork:
+       need_reload = True
+       parent.path_to_pkl = PathToNetwork    
 
-    footpath_dict_b_b = {}
+    footpath_dict_b_b = {}   
+    """
+    self.setMessage ("Load footpath building to building ...")        
+    QApplication.processEvents()
+    if need_reload:
+      footpath_dict_b_b = {}
+      if os.path.exists(path + '/transfers_dict_b_b.pkl'):
+          
+          with open(path + '/transfers_dict_b_b.pkl', 'rb') as file:
+            footpath_dict_b_b = pickle.load(file)
+          parent.dict_footpath_b_b =  footpath_dict_b_b
+          
+    else:
+      footpath_dict_b_b = parent.dict_footpath_b_b
+    """
+
+    self.setMessage ("Loading walking paths ...")        
+    QApplication.processEvents()
+           
+    if need_reload:
+      with open(path + '/transfers_dict.pkl', 'rb') as file:
+          footpath_dict = pickle.load(file)
+      
+      parent.dict_footpath =  footpath_dict
+     
+    else:
+       footpath_dict = parent.dict_footpath
+
+    filtered_footpath_dict_b_b = {}
+    """
+    self.progressBar.setValue(1)
+    self.setMessage ("Filtering footpath_dict_b_b...")        
+    QApplication.processEvents()    
+    layer = layer_origin
+    osm_ids = set()
+    for feature in layer.getFeatures():
+      osm_ids.add(int(feature[layer_origin_field]))
     
-    if os.path.exists(path + '/transfers_dict_b_b.pkl'):
-        self.setMessage ("Load footpath building to building ...")        
-        QApplication.processEvents()
-        with open(path + '/transfers_dict_b_b.pkl', 'rb') as file:
-          footpath_dict_b_b = pickle.load(file)
-        
-        
-        layer = QgsProject.instance().mapLayersByName('jaffa_buildings_west')[0]
-        osm_ids = set()
-        for feature in layer.getFeatures():
-          osm_ids.add(int(feature['osm_id']))
-        self.setMessage ("Filtering footpath_dict_b_b...")        
-        QApplication.processEvents()
-        filtered_footpath_dict_b_b = {k: v for k, v in footpath_dict_b_b.items() if k in osm_ids}
-    
-        footpath_dict_b_b = filtered_footpath_dict_b_b
+    filtered_footpath_dict_b_b = {k: v for k, v in footpath_dict_b_b.items() if k in osm_ids}
+    """    
         
     self.progressBar.setValue(2)
            
-    self.setMessage ("Load routes_by_stop ...")
+    self.setMessage ("Loading routes ...")
     QApplication.processEvents()
     with open(path + '/routes_by_stop.pkl', 'rb') as file:
         routes_by_stop_dict = pickle.load(file)
@@ -80,47 +120,39 @@ def myload_all_dict(self, PathToNetwork, mode, exclude_routes, numbers_routes, r
         
         
         filtered_routes_by_stop_dict = {}
-        count = 0
-        # Перебираем элементы исходного словаря
+        
         for key, routes in routes_by_stop_dict.items():
-            filtered_routes = []  # Список для хранения отфильтрованных маршрутов
+            filtered_routes = []  
             for route in routes:
-                # Флаг для проверки, нужно ли исключить маршрут
                 exclude = False
                 for nr in numbers_routes:
                     if route in route_dict.get(nr, '0'):
-                        count =+ 1
-                        if count < 50:
-                          print (f'route {route}')
-                          print (f'nr {nr}')
-                          print (f'route_dict.get {route_dict.get(nr, '0')}')
-
                         exclude = True
-                        break  # Если маршрут найден в значении, не нужно проверять остальные
+                        break  
                 if not exclude:
-                    filtered_routes.append(route)  # Добавляем маршрут в отфильтрованный список
-            filtered_routes_by_stop_dict[key] = filtered_routes  # Добавляем отфильтрованные маршруты в новый словарь
+                    filtered_routes.append(route)  
+            filtered_routes_by_stop_dict[key] = filtered_routes  
   
         routes_by_stop_dict = filtered_routes_by_stop_dict
         
     self.progressBar.setValue(3)
     
     if mode == 1:
-      self.setMessage ("Load stops ...")
+      self.setMessage ("Loading stops ...")
       QApplication.processEvents()
       with open(path + '/stops_dict_pkl.pkl', 'rb') as file:
         stops_dict = pickle.load(file)
       
       self.progressBar.setValue(4)
 
-      self.setMessage ("Load stoptimes ...")
+      self.setMessage ("Loading time schedule ...")
       QApplication.processEvents()
       with open(path + '/stoptimes_dict_pkl.pkl', 'rb') as file:
         stoptimes_dict = pickle.load(file)
       
       self.progressBar.setValue(5)
 
-      self.setMessage ("Load idx_by_route_stop ...")
+      self.setMessage ("Loading index ...")
       QApplication.processEvents()
       with open(path + '/idx_by_route_stop.pkl', 'rb') as file:
         idx_by_route_stop_dict = pickle.load(file)
@@ -130,14 +162,14 @@ def myload_all_dict(self, PathToNetwork, mode, exclude_routes, numbers_routes, r
       self.progressBar.setValue(6)
           
     else:
-     self.setMessage ("Load stops_reversed ...")
+     self.setMessage ("Loading stops ...")
      QApplication.processEvents()
      with open(path + '/stops_dict_reversed_pkl.pkl', 'rb') as file:  #reversed
         stops_dict = pickle.load(file)
      
      self.progressBar.setValue(4)   
 
-     self.setMessage ("Load stoptimes_reversed ...")
+     self.setMessage ("Loading stop schedule ...")
      QApplication.processEvents()      
      with open(path + '/stoptimes_dict_reversed_pkl.pkl', 'rb') as file: #reversed
         stoptimes_dict = pickle.load(file)
@@ -145,7 +177,7 @@ def myload_all_dict(self, PathToNetwork, mode, exclude_routes, numbers_routes, r
      self.progressBar.setValue(5)
      
      
-     self.setMessage ("Load rev_idx_by_route_stop ...")
+     self.setMessage ("Loading index ...")
      QApplication.processEvents()   
      with open(path + '/rev_idx_by_route_stop.pkl', 'rb') as file:
         idx_by_route_stop_dict = pickle.load(file) 
@@ -155,26 +187,21 @@ def myload_all_dict(self, PathToNetwork, mode, exclude_routes, numbers_routes, r
     return (stops_dict, 
             stoptimes_dict, 
             footpath_dict, 
-            footpath_dict_b_b, 
+            filtered_footpath_dict_b_b, 
             routes_by_stop_dict, 
             idx_by_route_stop_dict)
 
-# return postfix for name of filereport
-def getDateTime():
-  current_datetime = datetime.now()
-  year = current_datetime.year
-  month = str(current_datetime.month).zfill(2)
-  day = str(current_datetime.day).zfill(2)
-  hour = str(current_datetime.hour).zfill(2)
-  minute = str(current_datetime.minute).zfill(2)
-  second = str(current_datetime.second).zfill(2)
-  return f'{year}{month}{day}_{hour}{minute}{second}'
 
 def verify_break (self, 
                   Layer = "", 
                   LayerDest = "", 
                   curr_getDateTime = "", 
-                  folder_name = ""):
+                  folder_name = "",
+                  vis = "",
+                  fields_ok = "",
+                  f = "",
+                  protocol_type = "",
+                  aliase = ""):
   
   if self.break_on:
             
@@ -187,27 +214,73 @@ def verify_break (self,
                           LayerDest, 
                           curr_getDateTime, 
                           folder_name, 
-                          self.cbSelectedOnly1
+                          self.cbSelectedOnly1,
+                          vis ,
+                          fields_ok,
+                          f,
+                          protocol_type,
+                          aliase 
                           )  
             self.progressBar.setValue(0)  
-            self.setMessage ("Algorithm raptor is break")
+            self.setMessage ("Raptor algorithm is interrupted ")
             return True
   return False
 
 def file_exists_exclude_routes(directory):
-    base_filename = "exclude_routes"
+    base_filename = "exclude_routes.csv"
     file_path_without_ext = os.path.join(directory, base_filename)
     if os.path.isfile(file_path_without_ext):
         return file_path_without_ext
     return None
 
+def copy_files (self, source, destination):
+    for filename in os.listdir(source):
+        self.setMessage (f'Copying dictionary to "{destination}" ...')    
+        file_path = os.path.join(source, filename)
+        if os.path.isfile(file_path) and filename != 'add_routes' and filename != 'exclude_routes.csv':
+            QApplication.processEvents() 
+            shutil.copy(file_path, destination)
+
+def get_roads_from_file(path):
+  
+  shp_file_path = None
+  for root, dirs, files in os.walk(path):
+    for file in files:
+        if file.lower().endswith('.shp'):
+            shp_file_path = os.path.join(root, file)
+            break
+    if shp_file_path:
+        break
+
+  if shp_file_path:
+        layer_name = 'roads_add_route'
+        existing_layers = QgsProject.instance().mapLayersByName(layer_name)
+        for existing_layer in existing_layers:
+            QgsProject.instance().removeMapLayer(existing_layer.id())
+        
+        layer = QgsVectorLayer(shp_file_path, layer_name, 'ogr')
+        QgsProject.instance().addMapLayer(layer)
+        layer_roads = QgsProject.instance().mapLayersByName(layer_name)[0]
+
+        
+        geom_type = layer_roads.geometryType()
+        
+        if geom_type != QgsWkbTypes.LineGeometry and geom_type != QgsWkbTypes.MultiLineString:
+          return 0
+        
+        return layer_roads
+  
+  return 0
+
 def runRaptorWithProtocol(self, 
+                          parent,
                           sources, 
                           raptor_mode, 
                           protocol_type, 
                           timetable_mode, 
                           selected_only1, 
-                          selected_only2)-> tuple:
+                          selected_only2,
+                          aliase)-> tuple:
 
   
   count = len(sources)
@@ -223,7 +296,11 @@ def runRaptorWithProtocol(self,
   MIN_TRANSFER = int (self.config['Settings']['Min_transfer'])
 
   MaxExtraTime = int (self.config['Settings']['MaxExtraTime'])*60
-  DepartureInterval = int (self.config['Settings']['DepartureInterval'])*60
+  #DepartureInterval = int (self.config['Settings']['DepartureInterval'])*60
+
+  # THE EXPERIMENT !!!!
+  DepartureInterval = 0
+  # THE EXPERIMENT !!!!
   
   Speed = float(self.config['Settings']['Speed'].replace(',', '.')) * 1000 / 3600                    # from km/h to m/sec
 
@@ -238,19 +315,26 @@ def runRaptorWithProtocol(self,
   CHANGE_TIME_SEC = int(self.change_time)
   time_step = int (self.config['Settings']['TimeInterval'])
   Layer = self.config['Settings']['Layer']
-
-  UseField = self.config['Settings']['UseField'] == "True"
-  Field = self.config['Settings']['Field']
+  layer_origin_field = self.config['Settings']['Layer_field']
+  
   LayerDest = self.config['Settings']['LayerDest']
+  layer_dest_field = self.config['Settings']['LayerDest_field']
 
   LayerViz = self.config['Settings']['LayerViz']
+  layer_vis_field = self.config['Settings']['LayerViz_field']
 
-  if protocol_type == 2:
-    UseField = False
+  layer_origin = QgsProject.instance().mapLayersByName(Layer)[0]
+  layer_dest = QgsProject.instance().mapLayersByName(LayerDest)[0] 
+    
+  if 'Field_ch' in self.config['Settings']:  
+    list_fields_aggregate = self.config['Settings']['Field_ch']
+  else:
+     list_fields_aggregate = ""  
+
+  begin_computation_time = datetime.now()
+  begin_computation_str = begin_computation_time.strftime('%Y-%m-%d %H:%M:%S')
   
-  begin_computation_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-  
-  self.textLog.append(f'<a>Algorithm started at {begin_computation_time}</a>')
+  self.textLog.append(f'<a>Started: {begin_computation_str}</a>')
 
   today = date.today()
   
@@ -259,15 +343,22 @@ def runRaptorWithProtocol(self,
       return 0, 0
   QApplication.processEvents()
 
+  #
+  # processing "exclude_routes.csv"
+  #
   numbers_routes = []
   route_dict = {}
+  exlude_routes = False
+  recalculate = False
+
+  footpath_on_air_b_b = cls_footpath_on_air_b_b(layer_dest, round(MaxWalkDist1/1.3), layer_dest_field , Speed)
 
   if file_exists_exclude_routes (PathToNetwork):
     msgBox = QMessageBox()
     msgBox.setIcon(QMessageBox.Question)
     msgBox.setWindowTitle("Confirm")
     msgBox.setText(
-                  f'There is a file called "exclude_routes" in the {PathToNetwork} directory.\n'
+                  f'There is a file called "exclude_routes.csv" in the {PathToNetwork} directory.\n'
                   'Exclude these routes from calculation?'
                   )
     msgBox.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
@@ -275,10 +366,11 @@ def runRaptorWithProtocol(self,
     result = msgBox.exec_()
     if result == QMessageBox.Yes:
       exlude_routes = True
-      file_path = os.path.join(PathToNetwork, "exclude_routes")
+      file_path = os.path.join(PathToNetwork, "exclude_routes.csv")
       with open(file_path, 'r') as file:
-          numbers = file.readlines()  
+          lines = file.readlines()[1:]
 
+      numbers = [line.split(',')[1].strip() for line in lines]
       # Разбиваем строку по первому знаку "-" и сохраняем только первую часть
       numbers_routes = [line.split('-')[0].strip() for line in numbers]
       route_dict = get_route_desc__route_id (PathToNetwork)
@@ -296,6 +388,94 @@ def runRaptorWithProtocol(self,
     else:
       exlude_routes = False
 
+  #
+  # processing "add_routes"
+  #
+  
+  add_routes_path = os.path.join(PathToNetwork, 'add_routes')
+  if os.path.exists(add_routes_path):
+    msgBox = QMessageBox()
+    msgBox.setIcon(QMessageBox.Question)
+    msgBox.setWindowTitle("Confirm")
+    msgBox.setText(
+                  f'There is a folder called "add_routes" in the {PathToNetwork} directory.\n'
+                  'Add these routes to calculation?'
+                  )
+    msgBox.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        
+    result = msgBox.exec_()
+
+    if result == QMessageBox.Yes:
+        add_routes = True
+        add_routes_pkl_path = os.path.join(add_routes_path, 'pkl')
+        file_path = os.path.join(add_routes_pkl_path, "routes_by_stop.pkl")
+        if os.path.exists(add_routes_pkl_path) and os.path.isfile(file_path):
+          msgBox = QMessageBox()
+          msgBox.setIcon(QMessageBox.Question)
+          msgBox.setWindowTitle("Confirm")
+          msgBox.setText(
+                  f'There is a folder called "pkl" in the {add_routes_path} directory.\n'
+                  'Recalculate pkl?'
+                  )
+          msgBox.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+          result = msgBox.exec_()
+          if result == QMessageBox.Yes:
+            recalculate = True
+          else:
+            recalculate = False
+        else:
+          recalculate = True  
+
+    else:
+        add_routes = False
+
+    
+    if recalculate:
+
+      
+      layer_road = get_roads_from_file (add_routes_path)
+      
+      if layer_road != 0:
+          self.textLog.append (f'<a><b>Run recalculate pkl<font color="blue"></font> </b></a>') 
+          converter = MultiLineStringToLineStringConverter(self, layer_road)
+          layer_road = converter.execute()
+          if verify_break(self):
+              return 0, 0
+          footpath_road = footpath_on_road (self,
+                                        layer_road, 
+                                        layer_dest, 
+                                        add_routes_path,
+                                        layer_dest_field
+                                        )
+          footpath_road.run()
+
+          if verify_break(self):
+              return 0, 0
+          
+          if not os.path.exists(add_routes_pkl_path):
+            os.makedirs(add_routes_pkl_path)
+          copy_files (self, PathToNetwork,add_routes_pkl_path)
+
+          layer_buildings = layer_dest
+          calc_PKL = PKL (self, 
+                              dist = 400, 
+                              path_to_pkl = add_routes_pkl_path, 
+                              path_to_GTFS = add_routes_path, 
+                              layer_buildings = layer_buildings, 
+                              mode_append = True
+                              )
+          calc_PKL.create_files()
+      
+          
+      else:
+        self.textLog.append (f'<a><b>No run recalculate pkl. Missing or damaged road layer<font color="blue"></font> </b></a>')      
+        add_routes = False
+      #return 0, 0    
+      
+
+    if add_routes:
+      PathToNetwork = add_routes_pkl_path
+
   (
   stops_dict,
   stoptimes_dict, 
@@ -303,11 +483,19 @@ def runRaptorWithProtocol(self,
   footpath_dict_b_b, 
   routes_by_stop_dict, 
   idx_by_route_stop_dict
-  ) = myload_all_dict (self, PathToNetwork, raptor_mode, exlude_routes, numbers_routes, route_dict)
-        
+  ) = myload_all_dict (self, 
+                       parent,
+                       PathToNetwork, 
+                       raptor_mode, 
+                       exlude_routes, 
+                       numbers_routes, 
+                       route_dict, 
+                       layer_origin, 
+                       layer_origin_field
+                       )
+  
   if verify_break(self):
       return 0, 0
-
   
   #print (f'mode = {raptor_mode}')
   #print("stops_dict:\n" + "\n".join([f"{key}: {value}" for key, value in list(stops_dict.items())]))
@@ -317,72 +505,21 @@ def runRaptorWithProtocol(self,
   #print("idx_by_route_stop_dict:\n" + "\n".join([f"{key}: {value}" for key, value in list(idx_by_route_stop_dict.items())]))
 
   #print("footpath_dict:\n" + "\n".join([f"{key}: {value}" for key, value in list(footpath_dict.items())]))
-  
-  
-      
-  self.textLog.append(f'<a>Loading dictionary done</a>')
-  self.textLog.append(f'<a>Starting calculating</a>')
    
-  
   reachedLabels = dict()
 
-
-  layers_dest = QgsProject.instance().mapLayersByName(LayerDest)
-  layer_dest = layers_dest[0]
   features_dest = layer_dest.getFeatures() 
 
   if selected_only2:
     features_dest = layer_dest.selectedFeatures() 
   
-  attribute_dict = {}
-  if UseField:
-    self.setMessage ("Make dictionary for aggregate ...")    
-    QApplication.processEvents()          
-    fields = layer_dest.fields()
-      
-    first_field_name = fields[0].name()
-    
-    for feature in features_dest:
-        #if isinstance(feature[Field], int) or (isinstance(feature[Field], str) and feature[Field].isdigit()):
-        if str(feature[Field]).isdigit():  
-          attribute_dict[int(feature[first_field_name])] = int(feature[Field])
-        else:
-          self.textLog.append (f'<a><b><font color="red"> WARNING: type of field "{Field}" to aggregate  is no digital, aggregate no run</font> </b></a>')
-          UseField = False
-          break
-    
-  if protocol_type == 1:
-   """Prepare header and time grades  
-   statistics_by_accessibility_time_header="Stop_ID,0-10 m,10-20 m,20-30 m,30-40 m,40-50 m,50-60 m"+"\n"+"\n"
-   """
-   intervals_number = round(MaxTimeTravel/(time_step*60))
-   
-   protocol_header = "Source_ID"
-   time_step_min = time_step
-   low_bound_min = 0
-   top_bound_min = time_step_min
-   grades = []
-   """
-   for i in range(0,intervals_number):
-            header += f'{low_bound_min}min-{top_bound_min}min,'
-            if self.use_aggregate:
-                header += f'sum({self.field_aggregate}),'
-   """
+  curr_getDateTime = getDateTime()
+  folder_name = f'{PathToProtocols}//{curr_getDateTime}'
 
-   for i in range(0, intervals_number):
-    protocol_header +=  f',{low_bound_min}min-{top_bound_min}min'
-    
-    if UseField:
-      protocol_header += f',sum({Field})'
-    grades.append ([low_bound_min,top_bound_min])
-    low_bound_min = low_bound_min + time_step_min
-    top_bound_min = top_bound_min + time_step_min
-   protocol_header += ',Total\n'  
-   #increase by one the last top bound
-   #last_top = grades[intervals_number-1][1]
-   #grades[intervals_number-1][1] = last_top
-
-  
+  if not os.path.exists(folder_name):
+    os.makedirs(folder_name)
+  else:
+    return 0
    
   if protocol_type == 2:   
    
@@ -398,45 +535,129 @@ def runRaptorWithProtocol(self,
      ss += ",Arrives before"
    ss += ",Duration"  
    protocol_header = ss + "\n"  
+    
+   f = f'{folder_name}//access_{curr_getDateTime}.csv'
+   with open(f, 'w') as filetowrite:
+     filetowrite.write(protocol_header)   
 
-  curr_getDateTime = getDateTime()
-  folder_name = f'{PathToProtocols}//{curr_getDateTime}'
+  ###
+  fields_ok = []
+  if protocol_type == 1:
+        
+        intervals_number = round(MaxTimeTravel/(time_step*60))
 
-  if not os.path.exists(folder_name):
-    os.makedirs(folder_name)
-  else:
-    return 0
+        if list_fields_aggregate == "":
+           
+           protocol_header = "Origin_ID"
+           time_step_min = time_step
+           low_bound_min = 0
+           top_bound_min = time_step_min
+           grades = []
+                   
+           for i in range(0, intervals_number):
+              protocol_header +=  f',{low_bound_min}min-{top_bound_min}min'
+              grades.append ([low_bound_min,top_bound_min])
+              low_bound_min = low_bound_min + time_step_min
+              top_bound_min = top_bound_min + time_step_min
+
+           protocol_header += ',Total\n'  
+           f = f'{folder_name}//access_noaggr_{curr_getDateTime}.csv'
+           with open(f, 'w') as filetowrite:
+              filetowrite.write(protocol_header)
+           
+        
+
+        if list_fields_aggregate != "":
+            aggregate_dict_all = {}
+            aggregate_this_fields = {}
+            f = {}
+
+            field_name_id = layer_dest_field
+            fields_aggregate = [value.strip() for value in list_fields_aggregate.split(',')]
+            
+            for field in fields_aggregate:
+                  
+                    attribute_dict = {}  
+                    self.setMessage (f"Building dictionary for '{field}' ...")    
+                    QApplication.processEvents()          
+
+                    aggregate_this_fields[field] = True
+
+                    features_dest = layer_dest.getFeatures() 
+                    if selected_only2:
+                        features_dest = layer_dest.selectedFeatures() 
+
+                    for feature in features_dest:
+                      if isinstance(feature[field], Real) or str(feature[field]).isdigit():
+                          attribute_dict[int(feature[field_name_id])] = int(feature[field])
+                      else:
+                        self.textLog.append (f'<a><b><font color="red"> WARNING: type of field "{field}" to aggregate  is no digital, aggregate no run</font> </b></a>')
+                        aggregate_this_fields[field] = False
+                        
+                        break
+
+                    if aggregate_this_fields[field]:
+                       
+                        fields_ok.extend([field])
+                        aggregate_dict_all[field] = attribute_dict
+
+                    """Prepare header and time grades  
+                    statistics_by_accessibility_time_header="Stop_ID,0-10 m,10-20 m,20-30 m,30-40 m,40-50 m,50-60 m"+"\n"+"\n"
+                    """
+                    if aggregate_this_fields[field]:
+                      
+                      protocol_header = "Origin_ID"
+                      time_step_min = time_step
+                      low_bound_min = 0
+                      top_bound_min = time_step_min
+                      grades = []
+                   
+                      for i in range(0, intervals_number):
+                        protocol_header +=  f',{low_bound_min}min-{top_bound_min}min'
+    
+                        
+                        protocol_header += f',sum({field})'
+
+                        grades.append ([low_bound_min,top_bound_min])
+
+                        low_bound_min = low_bound_min + time_step_min
+                        top_bound_min = top_bound_min + time_step_min
+
+                      protocol_header += ',Total\n'  
+                      f[field] = f'{folder_name}//access_{field}_{curr_getDateTime}.csv'
+                      with open(f[field], 'w') as filetowrite:
+                        filetowrite.write(protocol_header)
+     
   
-    
-  f = f'{folder_name}//access_{curr_getDateTime}.csv'
-  with open(f, 'w') as filetowrite:
-      filetowrite.write(protocol_header)   
+  vis = visualization (self, LayerViz, mode = protocol_type, fieldname_layer = layer_vis_field)                        
+  if protocol_type == 1 :
+      count_diapazone = round(MaxTimeTravel/(time_step*60))
+      vis.set_count_diapazone (count_diapazone)
 
-  """
-  road_layer = QgsProject.instance().mapLayersByName('roads_israel')[0]
-  converter = MultiLineStringToLineStringConverter(self, road_layer)
-  road_layer = converter.execute()
-  footpath_b_b = footpath_on_road_b_b(self,
-                                      road_layer,
-                                      layer_dest, 
-                                      Speed)
-  footpath_b_b.init()
-  """
-    
   for i in range(0,count):
+      
           
           if verify_break(self, 
                           Layer, 
                           LayerDest, 
                           curr_getDateTime, 
-                          folder_name
+                          folder_name,
+                          vis,
+                          fields_ok,
+                          f,
+                          protocol_type,
+                          aliase
                           ):
             return 0, folder_name
           
           self.progressBar.setValue(i + 6)
-          self.setMessage(f'Calc point №{i+1} from {count}')
+          self.setMessage (f'Calculating feature №{i+1} from {count}')
           QApplication.processEvents()
           SOURCE, D_TIME = sources[i]
+
+          nearby_buildings_from_start = footpath_on_air_b_b.get_nearby_buildings(SOURCE)
+          list_buildings_from_start = [osm_id for osm_id, _ in nearby_buildings_from_start]
+
 
           #b_b = footpath_b_b.calc(str(SOURCE))
                
@@ -451,7 +672,7 @@ def runRaptorWithProtocol(self,
                             stops_dict, 
                             stoptimes_dict, 
                             footpath_dict,
-                            footpath_dict_b_b,  
+                            
                             idx_by_route_stop_dict,
                             MaxTimeTravel, 
                             MaxWalkDist1, 
@@ -478,7 +699,7 @@ def runRaptorWithProtocol(self,
                                 stops_dict, 
                                 stoptimes_dict, 
                                 footpath_dict,
-                                footpath_dict_b_b,  
+                                
                                 idx_by_route_stop_dict,
                                 MaxTimeTravel, 
                                 MaxWalkDist1, 
@@ -501,39 +722,68 @@ def runRaptorWithProtocol(self,
           reachedLabels = output
           
           # Now write current row   
-          if protocol_type == 1:   
-            make_protocol_summary(SOURCE, 
-                                  reachedLabels, 
-                                  f, 
-                                  grades, 
-                                  UseField, 
-                                  attribute_dict
-                                  ) 
+
+          if protocol_type == 1 :
+            if len(fields_ok) > 0:
+              for field in fields_ok:
+                make_protocol_summary (SOURCE, 
+                                    reachedLabels, 
+                                    f[field], 
+                                    grades, 
+                                    aggregate_this_fields[field], 
+                                    aggregate_dict_all[field],
+                                    nearby_buildings_from_start,
+                                    list_buildings_from_start
+                                    )
+  
+            
+            else:
+                make_protocol_summary (SOURCE, 
+                                    reachedLabels, 
+                                    f, 
+                                    grades, 
+                                    False, 
+                                    0,
+                                    nearby_buildings_from_start,
+                                    list_buildings_from_start
+                                    )
+                
           if protocol_type == 2 :           
             make_protocol_detailed (raptor_mode, 
                                     D_TIME, 
                                     reachedLabels, 
                                     f, 
                                     timetable_mode,
+                                    nearby_buildings_from_start,
+                                    list_buildings_from_start
                                     )
-  if protocol_type == 1:
-    vis = visualization (self, f, LayerViz, mode = 1)
-  if protocol_type == 2:
-    vis = visualization (self, f, LayerViz, mode = 2)
-  vis.run()  
+  
+            
+  
+   
 
   QApplication.processEvents()
-  time_after_computation = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-  self.textLog.append(f'<a>Time after computation {time_after_computation}</a>')  
+  after_computation_time = datetime.now()
+  after_computation_str = after_computation_time.strftime('%Y-%m-%d %H:%M:%S')
+  self.textLog.append(f'<a>Finished {after_computation_str}</a>')  
+  duration_computation = after_computation_time - begin_computation_time
+  duration_without_microseconds = str(duration_computation).split('.')[0]
+  self.textLog.append(f'<a>Processing time: {duration_without_microseconds}</a>')  
 
   write_info (self, 
               Layer, 
               LayerDest, 
               curr_getDateTime, 
               folder_name, 
-              selected_only1
+              selected_only1,
+              vis,
+              fields_ok,
+              f,
+              protocol_type,
+              aliase
               )
-  self.setMessage(f'Calculating done')
+  self.setMessage(f'Finished')
+  self.progressBar.setValue(self.progressBar.maximum())
   return 1, folder_name
   
 
@@ -541,8 +791,31 @@ def write_info (self,Layer,
                 LayerDest, 
                 curr_getDateTime, 
                 folder_name, 
-                selected_only1
+                selected_only1,
+                vis,
+                fields_ok,
+                f,
+                protocol_type,
+                aliase
                 ):
+  
+  self.textLog.append(f'<a>Output:</a>')  
+  if protocol_type == 1 :
+      if len(fields_ok) > 0:
+          for field in fields_ok:
+              
+              vis.add_thematic_map(f[field],aliase)
+              self.textLog.append(f'<a>{f[field]}</a>')  
+      else:
+          
+          vis.add_thematic_map(f, aliase)      
+          self.textLog.append(f'<a>{f}</a>')  
+  
+  if protocol_type == 2 :
+  
+      vis.add_thematic_map(f, aliase)
+      self.textLog.append(f'<a>{f}</a>')  
+
   text = self.textLog.toPlainText()
   filelog_name = f'{folder_name}//log_{curr_getDateTime}.txt'
   with open(filelog_name, "w") as file:
@@ -551,10 +824,10 @@ def write_info (self,Layer,
   zip_filename1 = f'{folder_name}//origins_{Layer}_{curr_getDateTime}.zip'
   filename1 = f'{folder_name}//origins_{Layer}_{curr_getDateTime}.geojson'
 
-  self.setMessage(f'Compressing layer ...')
+  self.setMessage(f'Zipping...')
   QApplication.processEvents()
   
-  save_layer_to_zip(Layer, zip_filename1, filename1, selected_only1)
+  #save_layer_to_zip(Layer, zip_filename1, filename1, selected_only1)
   
   """
   if Layer != LayerDest: 
@@ -572,7 +845,9 @@ def make_protocol_summary (SOURCE,
                            f, 
                            grades, 
                            use_fields, 
-                           attribute_dict
+                           attribute_dict,
+                           nearby_buildings_from_start,
+                           list_buildings_from_start
                            ):
     
   time_grad = grades
@@ -580,14 +855,15 @@ def make_protocol_summary (SOURCE,
   counts = {x: 0 for x in range(0, len(time_grad))} #counters for grades
   agrregates = {x: 0 for x in range(0, len(time_grad))} #counters for agrregates
 
-  #f1 = r'c:/temp/rep.txt'
-
   with open(f, 'a') as filetowrite:
-   #with open(f1, 'a') as rep:
+   
     for dest, info in dictInput.items():
        
        if int(dest) <= 50585 or int(dest) >= 10000000000: # exclude bus stops from protokol
         continue
+       
+       if int(dest) in list_buildings_from_start:
+        continue  
 
        time_to_dest = int (round(info[2]))
     
@@ -595,14 +871,23 @@ def make_protocol_summary (SOURCE,
         grad = time_grad[i]
         if time_to_dest > grad[0]*60 and time_to_dest <= grad[1]*60:
          counts[i] = counts[i] + 1
-      
-       #if i == 1:
-       #      rep.write(str(dest) + "\n")  
-       #      print ('str(dest)')
+       
          if use_fields:
            agrregates[i] = agrregates[i] + attribute_dict.get(int(dest), 0)
          break
-     
+
+    # add build to build to var counts 
+    for build_item, time_item in nearby_buildings_from_start:
+       for i in range (0, len(time_grad)) :
+        grad = time_grad[i]
+        if time_item > grad[0]*60 and time_item <= grad[1]*60:
+         counts[i] = counts[i] + 1
+       
+         if use_fields:
+           agrregates[i] = agrregates[i] + attribute_dict.get(int(build_item), 0)
+         break
+       
+    
     row = str(SOURCE)
     Total = 0   
     for i in range (0, len (time_grad)) :  
@@ -613,6 +898,7 @@ def make_protocol_summary (SOURCE,
        row = f'{row},{agrregates[i]}'
        Total += agrregates[i]
     filetowrite.write(f'{row},{Total}\n')
+    
   
  
 # for type_protokol =2 
@@ -621,6 +907,8 @@ def  make_protocol_detailed(raptor_mode,
                             dictInput, 
                             protocol_full_path, 
                             timetable_mode,
+                            nearby_buildings_from_start,
+                            list_buildings_from_start
                             ):
   
   
@@ -653,11 +941,22 @@ def  make_protocol_detailed(raptor_mode,
     if not write_first_line:
       if raptor_mode == 1:
         row = f'{SOURCE}{sep}{sep}{sep}{sep}{sep}{sep}{sep}{sep}{sep}{sep}{sep}{sep}{sep}{sep}{sep}{sep}{sep}\
-          {sep}{sep}{sep}{sep}{sep}{sep}{sep}{sep}{sep}{sep}{SOURCE}{sep}{sep}0'
+{sep}{sep}{sep}{sep}{sep}{sep}{sep}{sep}{sep}{sep}{SOURCE}{sep}{sep}0'
       else:
         row = f'{SOURCE}{sep}{sep}{sep}{sep}{sep}{sep}{sep}{sep}{sep}{sep}{sep}{sep}{sep}{sep}{sep}{sep}{sep}\
-          {sep}{sep}{sep}{sep}{sep}{sep}{sep}{sep}{sep}{sep}{SOURCE}{sep}{sep}{sep}0'
+{sep}{sep}{sep}{sep}{sep}{sep}{sep}{sep}{sep}{sep}{SOURCE}{sep}{sep}{sep}0'
       filetowrite.write(row +"\n")
+
+      for build, dist in nearby_buildings_from_start:
+        if raptor_mode == 1:
+          row = f'{SOURCE}{sep}{sep}{sep}{sep}{sep}{sep}{sep}{sep}{sep}{sep}{sep}{sep}{sep}{sep}{sep}{sep}{sep}\
+{sep}{sep}{sep}{sep}{sep}{sep}{sep}{sep}{sep}{sep}{build}{sep}{sep}{dist}'
+        else:
+          row = f'{build}{sep}{sep}{sep}{sep}{sep}{sep}{sep}{sep}{sep}{sep}{sep}{sep}{sep}{sep}{sep}{sep}{sep}\
+{sep}{sep}{sep}{sep}{sep}{sep}{sep}{sep}{sep}{sep}{SOURCE}{sep}{sep}{sep}{dist}'
+          
+        filetowrite.write(row +"\n")  
+         
       write_first_line = True
     """
     if not write_b_b:
@@ -1055,7 +1354,8 @@ def  make_protocol_detailed(raptor_mode,
 
          
          if raptor_mode == 1:
-              if orig_dest <= stop_max_number or orig_dest >= stop_newnumber_startnumber:
+              if orig_dest <= stop_max_number or orig_dest >= stop_newnumber_startnumber\
+                  or  orig_dest in list_buildings_from_start:
                   continue 
               row = f'{SOURCE}{sep}{seconds_to_time(D_TIME)}{sep}{walk1_time}{sep}{sfirst_boarding_stop}\
 {sep}{wait1_time}{sep}{sfirst_boarding_time}{sep}{line1_id}{sep}{ride1_time}{sep}{sfirst_arrive_stop}{sep}{sfirst_arrive_time}\
@@ -1064,7 +1364,8 @@ def  make_protocol_detailed(raptor_mode,
 {sep}{dest_walk_time}{sep}{orig_dest}{sep}{sarrival_time}{sep}{duration}'
            
          else:
-              if SOURCE_REV <= stop_max_number or SOURCE_REV >= stop_newnumber_startnumber:
+              if SOURCE_REV <= stop_max_number or SOURCE_REV >= stop_newnumber_startnumber\
+                or  SOURCE_REV in list_buildings_from_start:
                   continue 
           
               row = f'{SOURCE_REV}{sep}{seconds_to_time(start_time)}{sep}{walk1_time}{sep}{sfirst_boarding_stop}\
@@ -1084,23 +1385,25 @@ def int1(s):
    result = 0
   return result
 
-def save_layer_to_zip(layer_name, 
-                      zip_filename, 
-                      filename, 
-                      selected_only1
-                      ):
-    try:
-      layer = QgsProject.instance().mapLayersByName(layer_name)[0]
-      temp_file = "temp_layer_file.geojson"
-      QApplication.processEvents()  
-      QgsVectorFileWriter.writeAsVectorFormat(layer, temp_file, "utf-8", layer.crs(), "GeoJSON")
-      QApplication.processEvents()  
-      with zipfile.ZipFile(zip_filename, 'w', zipfile.ZIP_DEFLATED) as zipf:
+def save_layer_to_zip(layer_name, zip_filename, filename, selected_only1):
+    
+    layer = QgsProject.instance().mapLayersByName(layer_name)[0]
+    with tempfile.NamedTemporaryFile(suffix=".geojson", delete=False) as tmp_file:
+        temp_file = tmp_file.name
+    
+    QApplication.processEvents()
+    
+    QgsVectorFileWriter.writeAsVectorFormat( layer, temp_file, "utf-8", layer.crs(), "GeoJSON" )
+    QApplication.processEvents()
+
+    with zipfile.ZipFile(zip_filename, 'w', zipfile.ZIP_DEFLATED) as zipf:
         zipf.write(temp_file, os.path.basename(filename))
-      QApplication.processEvents()    
-      os.remove(temp_file)   
-    except:
-      return 0  
+    
+    QApplication.processEvents()
+
+    if os.path.exists(temp_file):
+        os.remove(temp_file)
+    
     
     
      

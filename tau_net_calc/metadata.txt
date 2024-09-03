@@ -6,11 +6,11 @@
 name=TAU Network Calculator
 qgisMinimumVersion=3.1.1
 description=Accessibility Calculations
-version=4.5
+version=4.19.1
 author=Igor Shusterman (based on dev of Evgeny Kleiman)
 email=ishusterman2011@gmail.com
 
-about=Accessibility calculations in public transportation network and car road
+about=Accessibility calculations in public transportation network and car roads
 
 tracker=http://bugs
 repository=http://repo

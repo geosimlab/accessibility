@@ -1,3 +1,5 @@
+import os
+import webbrowser
 from PyQt5.QtWidgets import QDialogButtonBox
 from .form_raptor_summary import RaptorSummary
 
@@ -11,6 +13,10 @@ class Settings(RaptorSummary):
             
             self.progressBar.setVisible(False)
             self.btnBreakOn.setVisible(False)
+
+            self.cbSelectedOnly1.setVisible(False)
+            self.cbSelectedOnly2.setVisible(False)
+            
             self.tabWidget.removeTab(1)
                         
             self.buttonBox.clear()
@@ -23,7 +29,13 @@ class Settings(RaptorSummary):
             ok_button.clicked.connect(self.on_ok)
             save_button.clicked.connect(self.on_save)
             close_button.clicked.connect(self.on_close)
-    
+
+    def on_help_button_clicked(self):
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        module_path = os.path.join(current_dir, 'help', 'build', 'html')
+        file = os.path.join(module_path, 'introduction.html')
+        webbrowser.open(f'file:///{file}')
+
     def on_close(self):
         self.reject()
         

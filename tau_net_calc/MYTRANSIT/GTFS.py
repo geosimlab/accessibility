@@ -12,23 +12,27 @@ import geopandas as gpd
 import codecs
 import os
 from shapely.geometry import Point
-from qgis.core import (QgsCoordinateReferenceSystem, 
-                       QgsPointXY,  
-                       QgsGeometry)
+#from qgis.core import (QgsCoordinateReferenceSystem, 
+#                       QgsPointXY,  
+#                       QgsGeometry)
 from zipfile import ZipFile
 from datetime import datetime
 from collections import defaultdict
 from PyQt5.QtWidgets import QApplication
-
-
-
 from footpath_on_road import footpath_on_road
 
 
 class GTFS ():
   
     
-    def __init__(self, parent, path_to_file, path_to_GTFS, layer_origins, layer_road, RunCalcFootPathRoad):
+    def __init__(self, 
+                 parent, 
+                 path_to_file, 
+                 path_to_GTFS, 
+                 layer_origins, 
+                 layer_road,
+                 layer_origins_field 
+                 ):
         self.__path_to_file = path_to_file
         self.__path_to_GTFS = path_to_GTFS
         self.__zip_name = f'{path_to_file}/gtfs_cut.zip'
@@ -36,12 +40,14 @@ class GTFS ():
         self.parent = parent
         self.layer_origins = layer_origins
         self.layer_road = layer_road
-        self.RunCalcFootPathRoad = RunCalcFootPathRoad
+        self.layer_origins_field = layer_origins_field
+        
+        
         self.already_display_break = False
-        self.parent.break_on = False
+        
 
 
-    def __zip_directory(self):    
+    def zip_directory(self):    
         timestamp = time.strftime("%Y%m%d%H%M%S")
         zip_name = f"{self.__zip_name}_{timestamp}.zip"
 
@@ -56,60 +62,38 @@ class GTFS ():
 
     
 
-    def create_cut_from_GTFS(self):
+    def create_cut_from_GTFS(self, path_routes_cut):
         
-        ###
-        try:
-            routes_df = pd.read_csv(f'{self.__path_to_file}//routes.txt', encoding='utf-8-sig')
-        except:
-            routes_df = pd.read_csv(f'{self.__path_to_file}//routes.txt', encoding='windows-1255')
+        file1 = os.path.join(self.__path_to_GTFS, 'routes.txt')
+        file2 = os.path.join(self.__path_to_file, 'routes.txt')
+        routes_eilat = pd.read_csv(path_routes_cut)
+        routes = pd.read_csv(file1)
+        filtered_routes = routes[routes['route_id'].isin(routes_eilat['route_id'])]
+        filtered_routes.to_csv(file2, index=False)
 
-        trips_df = pd.read_csv(f'{self.__path_to_GTFS}//trips.txt')
-        merged_df = pd.merge(trips_df, routes_df, on='route_id', how='inner')
-        merged_df.to_csv(f'{self.__path_to_file}//trips.txt', index=False, encoding='')
-        ###
-        trips_df = pd.read_csv(f'{self.__path_to_file}//trips.txt', encoding='utf-8')
-        stops_df = pd.read_csv(f'{self.__path_to_GTFS}//stop_times.txt')
-        unique_trip_ids = trips_df['trip_id'].unique()
-        filtered_stops_df = stops_df[stops_df['trip_id'].isin(unique_trip_ids)].sort_values(by='arrival_time')
+        file3 = os.path.join(self.__path_to_GTFS, 'trips.txt')
+        file4 = os.path.join(self.__path_to_file, 'trips.txt')
+        trips = pd.read_csv(file3)
+        filtered_trips = trips[trips['route_id'].isin(routes_eilat['route_id'])]
+        filtered_trips.to_csv(file4, index=False)
 
+        file5 = os.path.join(self.__path_to_GTFS, 'stop_times.txt')
+        file6 = os.path.join(self.__path_to_file, 'stop_times.txt')
+        stop_times = pd.read_csv(file5)
+        filtered_stop_times = stop_times[stop_times['trip_id'].isin(filtered_trips['trip_id'])]
+        filtered_stop_times.to_csv(file6, index=False)
 
-        filtered_stops_df[['hour', 'minute', 'second']] = filtered_stops_df['arrival_time'].str.split(':', expand=True)
-        filtered_stops_df['hour'] = filtered_stops_df['hour'].astype(int)
-        filtered_stops_df = filtered_stops_df[filtered_stops_df['hour'] <= 23]
-        filtered_stops_df['arrival_time'] = filtered_stops_df['hour'].astype(str) + ':' + filtered_stops_df['minute'].astype(str) + ':' + filtered_stops_df['second'].astype(str)
-        filtered_stops_df.drop(columns=['hour', 'minute', 'second'], inplace=True)
+        file7 = os.path.join(self.__path_to_GTFS, 'stops.txt')
+        file8 = os.path.join(self.__path_to_file, 'stops.txt')
+        stops = pd.read_csv(file7)
+        filtered_stops = stops[stops['stop_id'].isin(filtered_stop_times['stop_id'])]
+        filtered_stops.to_csv(file8, index=False)
 
-        filtered_stops_df.to_csv(f'{self.__path_to_file}//stop_times.txt', index=False, encoding='utf-8')
-        ###
-
-        stop_df = pd.read_csv(f'{self.__path_to_GTFS}//stops.txt')
-        stop_times_df = pd.read_csv(f'{self.__path_to_file}//stop_times.txt')
-        unique_stop_ids = stop_times_df['stop_id'].unique()
-        filtered_stop_df = stop_df[stop_df['stop_id'].isin(unique_stop_ids)]
-        filtered_stop_df.to_csv(f'{self.__path_to_file}//stops.txt', index=False, encoding='windows-1255')
-
-        
-       
-        #self.create_tranfers_txt()
-
-        # Coding 2 files (routes.txt, stops.txt)to utf-8-sig
-        try:
-            file_path = f'{self.__path_to_file}//routes.txt'
-            with codecs.open(file_path, 'r', encoding='windows-1255') as file:
-                content = file.read()
-            with codecs.open(file_path, 'w', 'utf-8-sig') as file:
-                file.write(content)
-        except:
-            error = 0
-
-        file_path = f'{self.__path_to_file}//stops.txt'
-        with codecs.open(file_path, 'r', encoding='windows-1255') as file:
-            content = file.read()
-        with codecs.open(file_path, 'w', 'utf-8-sig') as file:
-            file.write(content)
-        ################################
-        self.__zip_directory()
+        file9 = os.path.join(self.__path_to_GTFS, 'calendar.txt')
+        file10 = os.path.join(self.__path_to_file, 'calendar.txt')
+        calendar = pd.read_csv(file9)
+        filtered_calendar = calendar[calendar['service_id'].isin(filtered_trips['service_id'])]
+        filtered_calendar.to_csv(file10, index=False)
 
 
     def change_time(self, time1_str):
@@ -232,7 +216,7 @@ class GTFS ():
         for route_id, route_group in grouped_routes:
             i += 1
             if i%50 == 0:
-                self.parent.setMessage(f'Peparing GTFS. Separate route {i} from {len(grouped_routes)} ...')
+                self.parent.setMessage(f'Separating route {i} from {len(grouped_routes)} ...')
                 QApplication.processEvents()
                 if self.verify_break():
                     return 0
@@ -321,7 +305,7 @@ class GTFS ():
         
     def load_GTFS (self):
         
-        self.parent.setMessage(f'Peparing GTFS. Loadig data ...')
+        self.parent.setMessage(f'Loadig data ...')
         QApplication.processEvents()
         if self.verify_break():
                 return 0
@@ -338,19 +322,19 @@ class GTFS ():
         self.calendar_df = pd.read_csv(f'{self.__path_to_GTFS}//calendar.txt', sep=',')
 
         
-        self.parent.setMessage(f'Peparing GTFS. Remained only tuesday trips ...')
+        self.parent.setMessage(f'Selecting Tuesday trips ...')
         QApplication.processEvents()
         self.trips_df = pd.merge(self.trips_df, self.calendar_df, on='service_id').query('tuesday == 1')
         if self.verify_break():
                 return 0        
-        self.parent.setMessage(f'Peparing GTFS. Merging data ...')
+        self.parent.setMessage(f'Merging data ...')
         QApplication.processEvents()
         self.merged_df = pd.merge(self.routes_df, self.trips_df, on="route_id")
         self.merged_df = pd.merge(self.merged_df, self.stop_times_df, on="trip_id")
         if self.verify_break():
                 return 0
         # filtering on trip_id
-        self.parent.setMessage(f'Peparing GTFS. Filtering data ...')
+        self.parent.setMessage(f'Filtering data ...')
         QApplication.processEvents()
         self.stop_times_df = self.stop_times_df[self.stop_times_df['trip_id'].isin(self.trips_df['trip_id'])]
         if self.verify_break():
@@ -360,22 +344,16 @@ class GTFS ():
 
     def correcting_files(self):
         
-        begin_computation_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        
-  
-        self.parent.textLog.append(f'<a>Algorithm started at {begin_computation_time}</a>')
-        self.parent.textLog.append(f'<a>Starting calculating</a>')
-
-        self.parent.progressBar.setMaximum(10)
+        self.parent.progressBar.setMaximum(12)
         self.parent.progressBar.setValue(0)
         
+        self.parent.break_on = False
         self.load_GTFS()
         self.parent.progressBar.setValue(1)
         if self.verify_break():
                 return 0
         QApplication.processEvents()
-        
-        
+                
         self.create_my_routes()
         self.parent.progressBar.setValue(2)
         if self.verify_break():
@@ -393,7 +371,7 @@ class GTFS ():
         self.stop_times_df.reset_index()
         
         
-        self.parent.setMessage(f'Peparing GTFS. Filtering stoptimes by arrival time sorting ...')
+        self.parent.setMessage(f'Filtering data ...')
         self.parent.progressBar.setValue(4)
         if self.verify_break():
                 return 0
@@ -412,7 +390,7 @@ class GTFS ():
         self.stop_times_df = self.stop_times_df[self.stop_times_df.index.get_level_values('trip_id').isin(trips_with_correct_timestamps)]
 
                
-        self.parent.setMessage(f'Peparing GTFS. Filtering stoptimes by stop sequence sorting ...')
+        self.parent.setMessage(f'Filtering data ...')
         self.parent.progressBar.setValue(5)
         if self.verify_break():
                 return 0
@@ -437,7 +415,7 @@ class GTFS ():
         #Еще один баг в GTFS – пропущенный номер stop_sequence
         # Проверка последовательности остановок и удаление неправильных trip_id
        
-        self.parent.setMessage(f'Peparing GTFS. Filtering stoptimes by missing stop_sequence ...')
+        self.parent.setMessage(f'Filtering data ...')
         self.parent.progressBar.setValue(6)
         if self.verify_break():
                 return 0
@@ -446,53 +424,53 @@ class GTFS ():
         self.stop_times_df = self.stop_times_df[~self.stop_times_df.index.get_level_values('trip_id').isin(trips_to_delete)]
         
         
-        self.parent.setMessage(f'Peparing GTFS. Saving GTFS ...')
+        self.parent.setMessage(f'Saving ...')
         self.parent.progressBar.setValue(7)
         if self.verify_break():
                 return 0
         QApplication.processEvents()
         self.save_GTFS()
         
-        
+        """
         self.parent.setMessage(f'Peparing GTFS. Creating footpath air ...')
         self.parent.progressBar.setValue(8)
         if self.verify_break():
                 return 0
         QApplication.processEvents()
         self.create_footpath_AIR()
-        
-
-        
+                        
         self.parent.setMessage(f'Peparing GTFS. Creating footpath air building to building...')
         self.parent.progressBar.setValue(9)
         if self.verify_break():
                 return 0
         QApplication.processEvents()
         self.create_footpath_AIR_b_b()
+        """
         
-        
-
-        if self.RunCalcFootPathRoad:
-            self.parent.setMessage(f'Peparing GTFS. Creating footpath road b_b...')
-            QApplication.processEvents()
-            self.parent.progressBar.setValue(10)
-            if self.verify_break():
+        footpath_road = footpath_on_road (self.parent, 
+                                              self.layer_road, 
+                                              self.layer_origins, 
+                                              self.__path_to_file,
+                                              self.layer_origins_field,
+                                              )
+        """
+        self.parent.setMessage (f'Building network shortest paths…')
+        QApplication.processEvents()
+        self.parent.progressBar.setValue(10)
+        if self.verify_break():
                 return 0
-            footpath_road = footpath_on_road (self.parent, self.layer_road, self.layer_origins, self.__path_to_file)
-            footpath_road.run_b_b()
+        footpath_road.run_b_b()
+        """
         
-        
-        if self.RunCalcFootPathRoad:
-            self.parent.setMessage(f'Peparing GTFS. Creating footpath road ...')
-            QApplication.processEvents()
-            self.parent.progressBar.setValue(10)
-            if self.verify_break():
-                return 0
-            footpath_road = footpath_on_road (self.parent, self.layer_road, self.layer_origins, self.__path_to_file)
-            footpath_road.run()
-        
-        
+        self.parent.setMessage (f'Building network shortest paths…')
+        QApplication.processEvents()
         self.parent.progressBar.setValue(11)
+        if self.verify_break():
+                return 0
+        footpath_road.run()
+        
+        
+        self.parent.progressBar.setValue(12)
         return 1
                 
     def found_repeated_in_trips_stops(self):
@@ -528,10 +506,10 @@ class GTFS ():
         self.stop_times_df = self.stop_times_df.set_index(['trip_id', 'stop_sequence'])
 
         #print (f'Merging data ...')
-        self.parent.setMessage(f'Peparing GTFS. Correcting repeated stops...')
+        self.parent.setMessage(f'Correcting repeated stops...')
         QApplication.processEvents()
         
-        self.parent.setMessage(f'Peparing GTFS. Grouping ...')
+        self.parent.setMessage(f'Grouping ...')
         QApplication.processEvents()
 
         grouped = self.merged_df.groupby('route_id')
@@ -546,7 +524,7 @@ class GTFS ():
             count += 1
             if count%100 == 0:
                 
-                self.parent.setMessage(f'Peparing GTFS. Correcting repeated stops. Processing route {count} of {all_routes}')
+                self.parent.setMessage (f'Cleaning duplicate stops, route {count} of {all_routes}')
                 QApplication.processEvents()
                 if self.verify_break():
                     return 0
@@ -580,7 +558,7 @@ class GTFS ():
             
             stops_to_update = self.merged_df.merge(new_stops_df, on=['route_id', 'stop_sequence'], how='inner')
 
-            self.parent.setMessage(f'Peparing GTFS. Correcting repeated stops...')
+            self.parent.setMessage (f'Cleaning duplicate stops...')
             QApplication.processEvents() 
             if self.verify_break():
                 return 0   
@@ -592,12 +570,12 @@ class GTFS ():
     def save_GTFS(self):
         #print(f'', end='\n')
         #print ('Saving GTFS ...') 
-        self.parent.setMessage ('Peparing GTFS. Saving stops file ...')
+        self.parent.setMessage ('Saving stops ...')
         QApplication.processEvents()  
         if self.verify_break():
                 return 0                                 
         self.stop_df.to_csv(f'{self.__path_to_file}//stops.txt', index=False) 
-        self.parent.setMessage ('Peparing GTFS. Saving stop_times file ...')
+        self.parent.setMessage ('Saving time schedule ...')
         QApplication.processEvents()  
         if self.verify_break():
                 return 0                                 
@@ -606,7 +584,7 @@ class GTFS ():
         self.stop_times_df = self.stop_times_df.reset_index()
         unique_trip_ids = self.stop_times_df['trip_id'].unique()
         
-        self.parent.setMessage ('Peparing GTFS. Saving trips file ...')
+        self.parent.setMessage ('Saving trips ...')
         QApplication.processEvents()
         if self.verify_break():
                 return 0    
@@ -615,7 +593,7 @@ class GTFS ():
         self.trips_df = self.trips_df[self.trips_df['trip_id'].isin(unique_trip_ids)]
         self.trips_df.to_csv(f'{self.__path_to_file}//trips.txt', header=['route_id','service_id','trip_id','trip_headsign','direction_id','shape_id'], index=False)
         
-        self.parent.setMessage ('Peparing GTFS. Saving routes files ...')
+        self.parent.setMessage ('Saving routes ...')
         QApplication.processEvents() 
         if self.verify_break():
                 return 0   
@@ -653,18 +631,18 @@ class GTFS ():
         
         filename = self.__path_to_file + 'stops.txt'
         with open(filename, 'r', encoding='utf-8') as file:
-            reader = csv.reader(file)
-            next(reader, None)  # Пропускаем заголовок
+            reader = csv.DictReader(file)
+            #next(reader, None)  # Пропускаем заголовок
             for row in reader:
-                stop_id = int(row[0])
-                latitude = float(row[4])  # Широта
-                longitude = float(row[5])  # Долгота
+                stop_id = int(row['stop_id'])
+                latitude = float(row['stop_lat'])  # Широта
+                longitude = float(row['stop_lon'])  # Долгота
                 x_meter, y_meter = transformer.transform(longitude, latitude)
                 points.append((stop_id, Point(x_meter, y_meter)))  
 
         points_copy = gpd.GeoDataFrame(points, columns=['stop_id', 'geometry'], crs=web_mercator)
         return points_copy
-
+    """
     def create_footpath_AIR (self):    
         
         points_copy = self.create_stops_gpd()
@@ -738,7 +716,8 @@ class GTFS ():
                 distance = pair[2]
                 file.write(f'{id_from_points_layer},{stop_id1},{distance}\n')
                 file.write(f'{stop_id1},{id_from_points_layer},{distance}\n')
-
+    """
+    """
     def create_footpath_AIR_b_b (self):    
                
         points_layer = self.layer_origins
@@ -788,11 +767,11 @@ class GTFS ():
                 b2 = pair[1]
                 distance = pair[2]
                 file.write(f'{b1},{b2},{distance}\n')
-                    
+    """                
     
     def verify_break (self):
       if self.parent.break_on:
-            self.parent.setMessage ("Process preparing GTFS is break")
+            self.parent.setMessage ("Dictionary construction is interrupted ")
             if not self.already_display_break:
                 self.parent.textLog.append (f'<a><b><font color="red">Process preparing GTFS is break</font> </b></a>')
                 self.already_display_break = True
@@ -803,16 +782,27 @@ class GTFS ():
 
 if __name__ == "__main__":
     
-    path_to_file = r'C:/Users/geosimlab/Documents/Igor/sample_gtfs/separated double stops//'
-    path_to_GTFS = r'C:/Users/geosimlab/Documents/Igor/israel-public-transportation_gtfs//'
-        
-    calc = GTFS(path_to_file, path_to_GTFS)
+    #path_to_file = r'C:/Users/geosimlab/Documents/Igor/sample_gtfs/separated double stops//'
+    #path_to_GTFS = r'C:/Users/geosimlab/Documents/Igor/israel-public-transportation_gtfs//'
+    
+    parent = ""
+    path_to_file = r"C:\Users\geosimlab\Documents\Igor\israel-public-transportation_gtfs\eilat\cut_gtfs" 
+    path_to_GTFS = r"C:\Users\geosimlab\Documents\Igor\israel-public-transportation_gtfs\eilat\full_gtfs" 
+    layer_origins = ""
+    layer_road = ""
+
+    calc = GTFS(parent, 
+                 path_to_file, 
+                 path_to_GTFS, 
+                 layer_origins, 
+                 layer_road
+                 )
+    calc.create_cut_from_GTFS(r"C:\Users\geosimlab\Documents\Igor\israel-public-transportation_gtfs\eilat\cut_gtfs\routes_eilat.csv")
     #calc.correct_repeated_stops_in_trips()
     #calc.found_repeated_in_trips_stops()
-    #calc.create_cut_from_GTFS()
+    
     #calc.modify_time_and_sequence()
     #calc.modify_time_in_file (r'C:/Users/geosimlab/Documents/Igor/Protocols//access_1_detail.csv')
     #print (calc.change_time ('8:52:00'))
-        
-    calc.correcting_files()
+    #calc.correcting_files()
 

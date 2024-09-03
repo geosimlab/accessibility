@@ -44,25 +44,7 @@ def get_latest_trip_new(stoptimes_dict,
                         pi_index, 
                         change_time, 
                         max_waiting_time) -> tuple:
-    '''
-    Get latest trip after a certain timestamp from the given stop of a route.
-
-    Args:
-        stoptimes_dict (dict): preprocessed dict. Format {route_id: [[trip_1], [trip_2]]}.
-        route (int): id of route.
-        arrival_time_at_pi (pandas.datetime): arrival time at stop pi.
-        pi_index (int): index of the stop from which route was boarded.
-        change_time (pandas.datetime): change time at stop (set to 0).
-
-    Returns:
-        If a trip exists:
-            trip index, trip
-        else:
-            -1,-1   (e.g. when there is no trip after the given timestamp)
-
-    Examples:
-        >>> output = get_latest_trip_new(stoptimes_dict, 1000, pd.to_datetime('2019-06-10 17:40:00'), 0, pd.to_timedelta(0, unit='seconds'))
-    '''
+   
     t2 = arrival_time_at_pi + change_time
     t3 = arrival_time_at_pi + max_waiting_time
 
@@ -182,12 +164,16 @@ def post_processing (DESTINATION,
             journey.reverse()
             append = True                            
 
+            ### !!! test
+            #timetable_mode = False
+
             if timetable_mode:
                                 
                 if len (journey) > 1 and journey[0][0] == "walking" and journey[1][0] != "walking":
                    
                     #new_value = D_Time + journey[0][3] + departure_interval
                     if mode_raptor == 1:
+                        #new_value = journey[1][0]
                         new_value = journey[1][0] - departure_interval
                     else:
                         #### it is TESTING
@@ -205,6 +191,7 @@ def post_processing (DESTINATION,
                 
                 if mode_raptor == 1:
                     if (duration > Maximal_travel_time) or start_time < D_Time:
+                    
                        append = False 
                 
                 if mode_raptor == 2:

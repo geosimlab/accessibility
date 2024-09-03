@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>1041</width>
-    <height>291</height>
+    <height>449</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -83,8 +83,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>506</width>
-             <height>153</height>
+             <width>586</width>
+             <height>311</height>
             </rect>
            </property>
            <property name="sizePolicy">
@@ -98,78 +98,189 @@
              <enum>QLayout::SetDefaultConstraint</enum>
             </property>
             <item>
-             <layout class="QGridLayout" name="gridLayout">
-              <property name="sizeConstraint">
-               <enum>QLayout::SetDefaultConstraint</enum>
-              </property>
-              <property name="horizontalSpacing">
-               <number>5</number>
-              </property>
-              <property name="verticalSpacing">
-               <number>3</number>
-              </property>
-              <item row="15" column="1">
-               <widget class="QToolButton" name="toolButton_Car">
+             <layout class="QFormLayout" name="formLayout">
+              <item row="3" column="0">
+               <widget class="QLabel" name="label_2">
                 <property name="text">
-                 <string>...</string>
+                 <string>Results_1 folder</string>
+                </property>
+               </widget>
+              </item>
+              <item row="6" column="0" colspan="2">
+               <layout class="QHBoxLayout" name="horizontalLayout_311">
+                <item>
+                 <widget class="QLineEdit" name="txtPathToCar">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="baseSize">
+                   <size>
+                    <width>16</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QToolButton" name="toolButton_Car">
+                  <property name="text">
+                   <string>...</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item row="5" column="0">
+               <widget class="QLabel" name="label_3">
+                <property name="text">
+                 <string>Results_2 folder</string>
+                </property>
+               </widget>
+              </item>
+              <item row="13" column="0">
+               <widget class="QCheckBox" name="cb_ratio">
+                <property name="text">
+                 <string>Ratio: Result_1/Result_2</string>
+                </property>
+               </widget>
+              </item>
+              <item row="14" column="0">
+               <widget class="QCheckBox" name="cb_difference">
+                <property name="text">
+                 <string>Difference: Result_1 - Result_2</string>
                 </property>
                </widget>
               </item>
               <item row="15" column="0">
-               <layout class="QHBoxLayout" name="horizontalLayout_7">
+               <widget class="QCheckBox" name="cb_relative_difference">
+                <property name="text">
+                 <string>Relative difference: [Result_1 - Result_2]/Result 2</string>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="0" colspan="2">
+               <layout class="QHBoxLayout" name="horizontalLayout_31">
                 <item>
-                 <widget class="QLineEdit" name="txtPathToCar"/>
+                 <widget class="QLineEdit" name="txtPathToPT">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="baseSize">
+                   <size>
+                    <width>16</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QToolButton" name="toolButton_PT">
+                  <property name="text">
+                   <string>...</string>
+                  </property>
+                 </widget>
                 </item>
                </layout>
               </item>
-              <item row="6" column="1">
-               <widget class="QToolButton" name="toolButton_PT">
-                <property name="text">
-                 <string>...</string>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="1">
-               <widget class="QToolButton" name="toolButton_Output">
-                <property name="text">
-                 <string>...</string>
-                </property>
-               </widget>
-              </item>
-              <item row="6" column="0">
-               <layout class="QHBoxLayout" name="horizontalLayout_3">
-                <item>
-                 <widget class="QLineEdit" name="txtPathToPT"/>
-                </item>
-               </layout>
-              </item>
-              <item row="3" column="0">
-               <widget class="QLabel" name="label">
-                <property name="text">
-                 <string>Folder of public transport accessibility MAP</string>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="0">
-               <layout class="QHBoxLayout" name="horizontalLayout_4">
-                <item>
-                 <widget class="QLineEdit" name="txtPathToOutput"/>
-                </item>
-               </layout>
-              </item>
-              <item row="13" column="0">
-               <widget class="QLabel" name="label_13">
-                <property name="text">
-                 <string>Folder of car accessibility MAP</string>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="0">
-               <widget class="QLabel" name="label_2">
+              <item row="7" column="0">
+               <widget class="QLabel" name="label_1">
                 <property name="text">
                  <string>Output folder</string>
                 </property>
                </widget>
+              </item>
+              <item row="9" column="0" colspan="2">
+               <layout class="QHBoxLayout" name="horizontalLayout_3">
+                <item>
+                 <widget class="QLineEdit" name="txtPathToOutput">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="baseSize">
+                   <size>
+                    <width>16</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QToolButton" name="toolButton_Output">
+                  <property name="text">
+                   <string>...</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item row="12" column="0">
+               <widget class="QLabel" name="label_6">
+                <property name="text">
+                 <string>Select the measure</string>
+                </property>
+               </widget>
+              </item>
+              <item row="10" column="0">
+               <widget class="QLabel" name="label">
+                <property name="text">
+                 <string>Layer for visualization </string>
+                </property>
+               </widget>
+              </item>
+              <item row="11" column="0" colspan="2">
+               <layout class="QHBoxLayout" name="horizontalLayout_6">
+                <item>
+                 <widget class="QComboBox" name="cbVisLayers"/>
+                </item>
+                <item>
+                 <widget class="QLabel" name="label_4">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="text">
+                   <string>id=</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QComboBox" name="cbVisLayers_fields"/>
+                </item>
+                <item>
+                 <widget class="QLabel" name="label_5">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="text">
+                   <string>aliase</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="txtAliase">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
               </item>
              </layout>
             </item>
@@ -190,11 +301,7 @@
        </layout>
       </widget>
      </widget>
-     <widget class="QPlainTextEdit" name="textInfo">
-      <property name="readOnly">
-       <bool>true</bool>
-      </property>
-     </widget>
+     <widget class="QTextBrowser" name="textInfo"/>
     </widget>
    </item>
    <item>

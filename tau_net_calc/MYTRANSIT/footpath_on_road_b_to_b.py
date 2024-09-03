@@ -5,7 +5,8 @@
 
 
 from datetime import datetime
-
+from qgis.core import QgsWkbTypes
+                      
 
 from PyQt5.QtWidgets import QApplication
 import networkx as nx
@@ -33,7 +34,7 @@ class footpath_on_road_b_b:
     
     def create_dict_node_to_buildings(self):
         comment = 'vertex : nearest buildings'
-        features = list(self.layer_origins.getFeatures())  # объекты из self.layer_origins
+        features = self.layer_origins.getFeatures()  # объекты из self.layer_origins
         self.kd_tree_buildings = KDTree([(feature.geometry().asPoint().x(), feature.geometry().asPoint().y()) for feature in features])
 
         len_graph_nodes_coords = len(self.graph_nodes_coords)
@@ -42,7 +43,7 @@ class footpath_on_road_b_b:
 
         for i, node in enumerate(self.graph_nodes_coords, start = 1):
             if i % 10000 == 0:
-                self.parent.setMessage(f'Calc footpath on road. Creating dict ({comment}). Calc node №{i} from {len_graph_nodes_coords}')
+                self.parent.setMessage(f'Calculating network distances for node №{i} from {len_graph_nodes_coords}')
                 QApplication.processEvents()
 
             # Находим ближайшие объекты для данного узла на расстоянии до 30 метров
@@ -58,23 +59,28 @@ class footpath_on_road_b_b:
     def create_dict_building_to_node (self) :
              
         features = self.layer_origins.getFeatures()
-        features_list = list(features)
-        count = len(features_list)
-        comment = 'building : {nearest vertex, dist}'
+        features_list = features
+        count = self.layer_origins.featureCount()
+        comment = '(building : {nearest vertex, dist})'
        
         i = 0
 
         for feature  in features_list:
             i += 1
             if i%10000 == 0:
-                self.parent.setMessage(f'Calc footpath on road. Creating dict ({comment}). Calc point №{i} from {count}')
+                self.parent.setMessage(f'Building the shortest paths by foot for node №{i} from {count}')
                 QApplication.processEvents()
                 if self.verify_break():
                     return 0
 
             
             geometry = feature.geometry()
-            points = [geometry.asPoint()]
+
+            if geometry.type() == QgsWkbTypes.PointGeometry:
+                points = geometry.asPoint()
+            elif geometry.type() == QgsWkbTypes.PolygonGeometry:
+               points = geometry.centroid().asPoint()
+            
             pFeature = points[0]
             source = feature['osm_id']
                                 
@@ -92,17 +98,7 @@ class footpath_on_road_b_b:
         self.source = osm_id
 
         idStart, _ = self.dict_building_to_node.get(self.source)[0]
-        #print (f'self.source {self.source}')
-        #print (f'idStart {idStart}')
-        #print("First 10 elements of self.dict_building_to_node:")
-        #for key, value in itertools.islice(self.dict_building_to_node.items(), 10):
-        #    print(f"{key}: {value}")
-
-        #nodes = list(self.graph.nodes)
-        # Печатаем первые 10 узлов графа
-        #for node in itertools.islice(nodes, 10):
-        #    print(node) 
-                        
+                                
         lengths, _ = nx.single_source_dijkstra(self.graph, 
                                                    idStart,
                                                    cutoff = 350,
@@ -113,7 +109,7 @@ class footpath_on_road_b_b:
         for node in end_nodes_nearest: # cicle of all founded node of graph
             nearest_buildings = self.dict_vertex_buildings.get(node) # find list nearest buildings to coords node
             distance = round(lengths[node])
-            #print (f'nearest_buildings {nearest_buildings}')
+          
             if nearest_buildings:
                 for building in nearest_buildings:
                     if building in self.distances_dict:
@@ -133,7 +129,7 @@ class footpath_on_road_b_b:
         for feature in roads.getFeatures():
             i += 1
             if i%10000 == 0:
-               self.parent.setMessage(f'Preparing GTFS. Making graph of road. Add link №{i} from {count}')
+               self.parent.setMessage(f'Constructing road graph, adding link №{i} from {count}')
                QApplication.processEvents()
                if self.verify_break():
                     return 0 
@@ -169,18 +165,7 @@ class footpath_on_road_b_b:
         dist, nearest_node_idx = self.kd_tree_graph.query(nearest_point_coords)
         nearest_node = self.nodes[nearest_node_idx]
         return nearest_node, dist 
-    
    
-    
-    def getDateTime(self):
-        current_datetime = datetime.now()
-        year = current_datetime.year
-        month = str(current_datetime.month).zfill(2)
-        day = str(current_datetime.day).zfill(2)
-        hour = str(current_datetime.hour).zfill(2)
-        minute = str(current_datetime.minute).zfill(2)
-        second = str(current_datetime.second).zfill(2)
-        return f'{year}{month}{day}_{hour}{minute}{second}'
 
     def calc (self, osm_id):
         self.find_immediate_buildings(osm_id)
@@ -188,7 +173,7 @@ class footpath_on_road_b_b:
             
     def init(self):
         QApplication.processEvents()
-        self.parent.setMessage(f'Preparing GTFS. Calc footpath on road. Making graph ...')
+        self.parent.setMessage(f'Constructing the road graph ...')
         self.build_graph(self.road_layer)
         QApplication.processEvents()
         if self.verify_break():
@@ -208,9 +193,9 @@ class footpath_on_road_b_b:
         
     def verify_break (self):
       if self.parent.break_on:
-            self.parent.setMessage ("Process calculation footpath on road is break")
+            self.parent.setMessage ("The shortest paths construction is interrupted")
             if not self.already_display_break:
-                self.parent.textLog.append (f'<a><b><font color="red">Process calculation footpath on road is break</font> </b></a>')
+                self.parent.textLog.append (f'<a><b><font color="red">The shortest paths construction is interrupted</b></a>')
                 self.already_display_break = True
             self.parent.progressBar.setValue(0)  
             return True

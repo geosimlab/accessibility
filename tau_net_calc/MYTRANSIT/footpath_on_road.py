@@ -1,23 +1,29 @@
-from datetime import datetime
+import os
 import csv
-import pyproj
-
-from PyQt5.QtWidgets import QApplication
-from qgis.core import QgsPointXY
 import geopandas as gpd
 import networkx as nx
+import pyproj
+
+from datetime import datetime
+from PyQt5.QtWidgets import QApplication
+from qgis.core import QgsPointXY
 from scipy.spatial import KDTree
+from qgis.core import QgsWkbTypes
 
 class footpath_on_road:
     def __init__(self, 
                  parent, 
                  road_layer, 
                  layer_origins, 
-                 path_to_protocol):
+                 path_to_protocol,
+                 layer_origins_field):
         
         self.path_to_protocol = path_to_protocol
         self.road_layer = road_layer
         self.layer_origins = layer_origins
+       
+        self.layer_origins_field = layer_origins_field
+
         self.parent = parent
         self.count = 0
         self.already_display_break = False
@@ -28,6 +34,7 @@ class footpath_on_road:
         self.node_pairs = []
         self.node_pairs_dict = {}
         self.node_pairs_dict_b_b = {}
+        self.graph = nx.Graph()
         
     def create_stops_gpd(self):
         wgs84 = pyproj.CRS('EPSG:4326')  # WGS 84
@@ -36,14 +43,15 @@ class footpath_on_road:
 
         points = []
            
-        filename = self.path_to_protocol + 'stops.txt'
+        #filename = self.path_to_protocol + 'stops.txt'
+        filename = os.path.join(self.path_to_protocol, 'stops.txt')
         with open(filename, 'r', encoding='utf-8') as file:
-            reader = csv.reader(file)
-            next(reader, None)  # Пропускаем заголовок
+            reader = csv.DictReader(file)
+            #next(reader, None)  # Пропускаем заголовок
             for row in reader:
-                stop_id = int(row[0])
-                latitude = float(row[4])  # Широта
-                longitude = float(row[5])  # Долгота
+                stop_id = int(row['stop_id'])
+                latitude = float(row['stop_lat'])  # Широта
+                longitude = float(row['stop_lon'])  # Долгота
                 x_meter, y_meter = transformer.transform(longitude, latitude)
                 qgs_point = QgsPointXY(x_meter, y_meter)
                 points.append((stop_id, qgs_point))  
@@ -64,7 +72,7 @@ class footpath_on_road:
 
         for i, node in enumerate(self.graph_nodes_coords, start = 1):
             if i % 10000 == 0:
-                self.parent.setMessage(f'Calc footpath on road. Creating dict ({comment}). Calc node №{i} from {self.len_graph_nodes_coords}')
+                self.parent.setMessage(f'Building the dictionary, node №{i} from {self.len_graph_nodes_coords}')
                 QApplication.processEvents()
                 if self.verify_break():
                     return 0
@@ -82,9 +90,10 @@ class footpath_on_road:
 
         if mode == 1: # buildings to stops
             features = self.layer_origins.getFeatures()
-            features_list = list(features)
-            count = len(features_list)
-            comment = 'building : {nearest vertex, dist}'
+            features_list = features
+            count = self.layer_origins.featureCount()
+            comment = '(building : {nearest vertex, dist})'
+            
         
         if mode == 2: # stops to stops
             features = self.stops.itertuples(index=False)
@@ -97,20 +106,27 @@ class footpath_on_road:
         for feature  in features_list:
             i += 1
             if i%10000 == 0:
-                self.parent.setMessage(f'Preparing GTFS. Calc footpath on road. Creating dict ({comment}). Calc point №{i} from {count}')
+                self.parent.setMessage(f'Building the dictionary {comment}, link №{i} from {count}')
                 QApplication.processEvents()
                 if self.verify_break():
                     return 0
 
             if mode == 1:
                 geometry = feature.geometry()
-                points = [geometry.asPoint()]
-                pFeature = points[0]
-                source = feature['osm_id']
+
+                if geometry.type() == QgsWkbTypes.PointGeometry:
+                    points = geometry.asPoint()
+                elif geometry.type() == QgsWkbTypes.PolygonGeometry:
+                    points = geometry.centroid().asPoint()
+
+                pFeature = points
+                #source = feature['osm_id']
+                source = feature[self.layer_origins_field]
+                
             else:
                 pFeature = feature.geometry
                 source = feature.stop_id
-                    
+
             idVertex, dist = self.find_nearest_node(pFeature)
 
             self.dict_feature_to_node[source] = [(idVertex, dist)]
@@ -179,8 +195,8 @@ class footpath_on_road:
         
         
         features = self.layer_origins.getFeatures()
-        features_list = list(features)
-        count = len(features_list)
+        features_list = features
+        count = self.layer_origins.featureCount()  
         
         self.parent.progressBar.setMaximum(count)
         self.parent.progressBar.setValue(1)
@@ -192,15 +208,16 @@ class footpath_on_road:
             
             i += 1
             if i%100 == 0:
-                self.parent.setMessage(f'Preparing GTFS. Calc footpath on road b_b. Calc point №{i} from {count}')
+                self.parent.setMessage (f'Building the dictionary, node №{i} from {count}')
                 self.parent.progressBar.setValue(i + 3)
                 QApplication.processEvents()
                 if self.verify_break():
                     return 0
 
             
-            self.source = feature['osm_id']
-
+            #self.source = feature['osm_id']
+            self.source = feature[self.layer_origins_field]
+            
 
             idStart, dist_start = self.dict_building_to_node.get(self.source)[0] # (id_node, dist) for self.source
             
@@ -241,7 +258,7 @@ class footpath_on_road:
 
         features_list = list(features)
         count = len(features_list)
-
+        
         self.parent.progressBar.setMaximum(count)
         
         
@@ -255,14 +272,16 @@ class footpath_on_road:
             
             i += 1
             if i%1000 == 0:
-                self.parent.setMessage(f'Preparing GTFS. Calc footpath on road. Calc point №{i} from {count}')
+                self.parent.setMessage (f'Building the dictionary, node №{i} from {count}')
                 self.parent.progressBar.setValue(i + 3)
                 QApplication.processEvents()
                 if self.verify_break():
                     return 0
 
             if mode == 1:
-                self.source = feature['osm_id']
+                #self.source = feature['osm_id']
+                self.source = feature[self.layer_origins_field]
+                
             else:
                 self.source = feature.stop_id
 
@@ -278,7 +297,7 @@ class footpath_on_road:
                                                    weight = 'length'
                                                    )
             end_nodes_nearest = list(lengths.keys())
-          
+            
             for node in end_nodes_nearest: # cicle of all founded node of graph
                 nearest_stops = self.dict_vertex_stops.get(node) # find one nearest stops to coords node
                 distance = lengths[node]
@@ -288,7 +307,7 @@ class footpath_on_road:
                     if b == self.source:
                         continue
                     distance_all = dist_start + distance + dist_finish
-                    
+                                        
                     if (distance_all <= 400):
                         key = (self.source, b)
                         existing_distance = self.node_pairs_dict.get(key)
@@ -297,26 +316,28 @@ class footpath_on_road:
            
                 
     def build_graph(self, roads):
-        self.graph = nx.Graph()
 
+        if len(self.graph.edges) > 0:
+            return
+        
         i = 0
         count = roads.featureCount()
         for feature in roads.getFeatures():
             i += 1
             if i%10000 == 0:
-               self.parent.setMessage(f'Preparing GTFS. Making graph of road. Add link №{i} from {count}')
+               self.parent.setMessage (f'Building the dictionary,  link №{i} from {count}')
                QApplication.processEvents()
                if self.verify_break():
                     return 0 
             line = feature.geometry().asPolyline()
-            len = feature['length']
+            length = feature['length']
 
             start_point = (line[0].x(), line[0].y())
             end_point = (line[-1].x(), line[-1].y())
 
             self.graph.add_node(start_point)
             self.graph.add_node(end_point)
-            self.graph.add_edge(start_point, end_point, length=len
+            self.graph.add_edge(start_point, end_point, length=length
                                 )
         
         self.build_index_graph ()
@@ -336,24 +357,13 @@ class footpath_on_road:
         dist, nearest_node_idx = self.kd_tree.query(nearest_point_coords)
         nearest_node = self.nodes[nearest_node_idx]
         return nearest_node, dist
-   
-    
-    def getDateTime(self):
-        current_datetime = datetime.now()
-        year = current_datetime.year
-        month = str(current_datetime.month).zfill(2)
-        day = str(current_datetime.day).zfill(2)
-        hour = str(current_datetime.hour).zfill(2)
-        minute = str(current_datetime.minute).zfill(2)
-        second = str(current_datetime.second).zfill(2)
-        return f'{year}{month}{day}_{hour}{minute}{second}'
+
     
     def create_head_files(self):
 
         table_header = "from_stop_id,to_stop_id,min_transfer_time\n"
-        self.folder_name = f'{self.path_to_protocol}'
-        self.f = f'{self.folder_name}footpath_road.txt'
-                        
+        self.f = os.path.join(self.path_to_protocol, 'footpath_road.txt')
+                
         with open(self.f, 'w') as self.filetowrite:
             self.filetowrite.write(table_header)
 
@@ -361,8 +371,8 @@ class footpath_on_road:
     def create_head_files_b_b(self):
 
         table_header = "from_stop_id,to_stop_id,min_transfer_time\n"
-        self.folder_name = f'{self.path_to_protocol}'
-        self.f_b_b = f'{self.folder_name}footpath_road_b_b.txt'
+        self.f_b_b = os.path.join(self.path_to_protocol, 'footpath_road_b_b.txt')
+
         with open(self.f_b_b, 'w') as self.filetowrite:
             self.filetowrite.write(table_header)          
 
@@ -418,43 +428,59 @@ class footpath_on_road:
     def create_dict_building_to_node (self) :
              
         features = self.layer_origins.getFeatures()
-        features_list = list(features)
-        count = len(features_list)
+        #features_list = list(features)
+        count = self.layer_origins.featureCount()
         comment = 'building : {nearest vertex, dist}'
        
         i = 0
 
-        for feature  in features_list:
+        for feature  in features:
             i += 1
             if i%10000 == 0:
-                self.parent.setMessage(f'Calc footpath on road. Creating dict ({comment}). Calc point №{i} from {count}')
+                self.parent.setMessage (f'Building dictionary {comment}, node №{i} from {count}')
                 QApplication.processEvents()
                 if self.verify_break():
                     return 0
             
             geometry = feature.geometry()
-            points = [geometry.asPoint()]
-            pFeature = points[0]
-            source = feature['osm_id']
-                                
+            if geometry.type() == QgsWkbTypes.PointGeometry:
+                    points = geometry.asPoint()
+            elif geometry.type() == QgsWkbTypes.PolygonGeometry:
+                    points = geometry.centroid().asPoint()
+            pFeature = points
+            #source = feature['osm_id']
+            source = feature[self.layer_origins_field]
+            
+
             idVertex, dist = self.find_nearest_node(pFeature)
             self.dict_building_to_node[source] = [(idVertex, dist)]
 
     def create_dict_node_to_buildings(self):
         comment = 'vertex : {nearby buildings, dist}'
         features = list(self.layer_origins.getFeatures())  # объекты из self.layer_origins
-        self.kd_tree_buildings = KDTree([(feature.geometry().asPoint().x(), feature.geometry().asPoint().y()) for feature in features])
+        #self.kd_tree_buildings = KDTree([(feature.geometry().asPoint().x(), feature.geometry().asPoint().y()) for feature in features])
+
+        points = []
+        for feature in features:
+            geometry = feature.geometry()
+            if geometry.type() == QgsWkbTypes.PointGeometry:
+                point = geometry.asPoint()
+            elif geometry.type() == QgsWkbTypes.PolygonGeometry:
+                point = geometry.centroid().asPoint()
+        
+            points.append((point.x(), point.y()))
+        self.kd_tree_buildings = KDTree(points)
                 
         nearby_features = {node: [] for node in self.graph.nodes}
 
         for i, node in enumerate(self.graph_nodes_coords, start = 1):
             if i % 10000 == 0:
-                self.parent.setMessage(f'Calc footpath on road. Creating dict ({comment}). Calc node №{i} from {self.len_graph_nodes_coords}')
+                self.parent.setMessage (f' Building dictionary,  node №{i} from {self.len_graph_nodes_coords}')
                 QApplication.processEvents()
             
             distances, indices = self.kd_tree_buildings.query(node, k = 1000, distance_upper_bound = 400)
             filtered_indices_distances = [(int(index), distance) for index, distance in zip(indices, distances) if distance <= 400]
-            nearest_features = [(features[index]['osm_id'], distance) for index, distance in filtered_indices_distances]
+            nearest_features = [(features[index][self.layer_origins_field], distance) for index, distance in filtered_indices_distances]
             nearby_features[node] = nearest_features
 
         return nearby_features
@@ -467,7 +493,7 @@ class footpath_on_road:
         #self.create_dict_b_b()
 
         QApplication.processEvents()
-        self.parent.setMessage(f'Preparing GTFS. Calc footpath on road building to building. Making graph ...')
+        self.parent.setMessage(f'Building graph ...')
         self.build_graph(self.road_layer)
         QApplication.processEvents()
         if self.verify_break():
@@ -494,20 +520,19 @@ class footpath_on_road:
                     file.write(f'{id_source},{id_destination},{dist}\n')
                     count += 1
                     if count%100000 == 0: 
-                        self.parent.setMessage(f'Preparing GTFS. Calc footpath on road building to building. Save path {count} ...')
+                        self.parent.setMessage(f'Storing the shortest walking paths {count} ...')
                         QApplication.processEvents()
 
                     #file.write(f'{id_destination},{id_source},{dist}\n')
             
             
-        self.parent.setMessage(f'Preparing GTFS. Calc footpath building to building on road. Calculating done')
+        self.parent.setMessage(f'Finished')
         QApplication.processEvents()
              
     def run(self):
         self.create_head_files()
-        self.parent.textLog.append(f'<a>Starting calculating footpath on road</a>')
-        
-        self.parent.setMessage('Preparing GTFS. Calc footpath on road. Loadings stops.txt  ...')
+                
+        self.parent.setMessage('Loadings stops ...')
         QApplication.processEvents()
         self.stops = self.create_stops_gpd()
         self.stops['stop_id'] = self.stops['stop_id'].astype(str)
@@ -517,7 +542,7 @@ class footpath_on_road:
         #self.create_dict_b_s()
 
         QApplication.processEvents()
-        self.parent.setMessage(f'Preparing GTFS. Calc footpath on road. Making graph ...')
+        self.parent.setMessage(f'Building graph ...')
         self.build_graph(self.road_layer)
         QApplication.processEvents()
         if self.verify_break():
@@ -537,12 +562,8 @@ class footpath_on_road:
         #            return 0
         
         self.find_shortest_paths(mode = 1)
-        computation_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        self.parent.textLog.append(f'<a>Founded shortest path 1 on time {computation_time}</a>')
-        
         self.find_shortest_paths(mode = 2)
-        computation_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        self.parent.textLog.append(f'<a>Founded shortest path 2 on time {computation_time}</a>')
+        
         
         self.node_pairs =  [(source, stop, dist) for (source, stop), dist in self.node_pairs_dict.items()]
         
@@ -553,12 +574,12 @@ class footpath_on_road:
                     file.write(f'{id_destination},{id_source},{dist}\n')
             
             
-        self.parent.setMessage(f'Preparing GTFS. Calc footpath on road. Calculating footpath on road done')
+        self.parent.setMessage(f'Finished')
         QApplication.processEvents()
         
     def verify_break (self):
       if self.parent.break_on:
-            self.parent.setMessage ("Process calculation footpath on road is break")
+            self.parent.setMessage ("Network walking paths  calculations are interrupted")
             if not self.already_display_break:
                 self.parent.textLog.append (f'<a><b><font color="red">Process calculation footpath on road is break</font> </b></a>')
                 self.already_display_break = True

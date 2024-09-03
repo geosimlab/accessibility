@@ -15,7 +15,7 @@ def raptor (SOURCE,
            stops_dict, 
            stoptimes_dict, 
            footpath_dict, 
-           footpath_dict_b_b,
+           
            idx_by_route_stop_dict, 
            Maximal_travel_time, 
            MaxWalkDist1, 
@@ -62,13 +62,7 @@ def raptor (SOURCE,
         try:
            if trans_info == -1:
             
-            trans_info1 = footpath_dict_b_b.get(SOURCE, [])
-            trans_info2 = footpath_dict.get(SOURCE, [])
-
-            for i,dist in trans_info2:
-               trans_info1.append ((i,dist))
-
-            trans_info = trans_info2   
+                trans_info = footpath_dict.get(SOURCE, [])
               
            for i in trans_info:
                 
@@ -89,12 +83,15 @@ def raptor (SOURCE,
                                        to_pdash_time, 
                                        new_p_dash_time
                                        )
+                
+                
                 list_stops.add(p_dash)
                 
                                 
                 if marked_stop_dict[p_dash] == 0:
-                    marked_stop.append(p_dash)
-                    marked_stop_dict[p_dash] = 1
+                    
+                        marked_stop.append(p_dash)
+                        marked_stop_dict[p_dash] = 1
 
                 
             
@@ -109,12 +106,11 @@ def raptor (SOURCE,
         if k == 1:
             MaxWaitCurr = MaxWaitTime
             change_time = 0
+            if timetable_mode:
+                MaxWaitCurr += departure_interval
         else:
             MaxWaitCurr = MaxWaitTimeTransfer 
             change_time = change_time_save
-        
-        #print (f'round {k}')
-        #print (f'part 1') 
           
         Q.clear()        
         while marked_stop:
@@ -133,16 +129,9 @@ def raptor (SOURCE,
                     Q[route] = min(stp_idx, Q[route])
                 except  KeyError as e:
                     Q[route] = stp_idx
-            
-        #print (f' Q = {Q}')
-        #print (f' after part1 {datetime.now()}')    
-        #print (f' pi_label {pi_label}')
-        #print (f' marked_stop {marked_stop}')     
-
         
         # Main code part 2
-        
-        #print (f'part 2')
+                
         boarding_time, boarding_point  = -1, -1  
 
         for route, current_stopindex_by_route in Q.items():
@@ -155,8 +144,6 @@ def raptor (SOURCE,
                continue
             
             for p_i in stops_dict[route][current_stopindex_by_route-1:]:
-
-                           
                                                
                 to_process = True  
                 
@@ -180,8 +167,7 @@ def raptor (SOURCE,
                     
                     
                     if to_process and boarding_point != p_i: # and boarding_time <= arr_by_t_at_pi:                                        
-                       
-                       
+                                    
                        
                        label[k][p_i] = arr_by_t_at_pi
                        pi_label[k][p_i] = (boarding_time, 
@@ -199,12 +185,20 @@ def raptor (SOURCE,
 
                     
                 
-                if current_trip_t == -1 or (label[k - 1][p_i] + change_time < current_trip_t[current_stopindex_by_route-1][1]):
+                if (current_trip_t == -1 or (label[k - 1][p_i] + change_time < current_trip_t[current_stopindex_by_route-1][1])):
+                    #and label[k-1][p_i] != 200000:
+
                     #my comment: this condition means that with current trip one is not on time
                     # to next arriving so on need to get more later trip
-                    
-                    
-                    tid, current_trip_t = get_latest_trip_new(stoptimes_dict, route, label[k - 1][p_i], current_stopindex_by_route, change_time, MaxWaitCurr)
+                    arrival_time_at_pi = label[k - 1][p_i]
+
+                    ### test !!!!
+                    if timetable_mode and k ==  1:
+                        arrival_time_at_pi = arrival_time_at_pi + departure_interval
+                        #MaxWaitCurr = 500
+                    ### test !!!!    
+
+                    tid, current_trip_t = get_latest_trip_new(stoptimes_dict, route, arrival_time_at_pi, current_stopindex_by_route, change_time, MaxWaitCurr)
                                     
                     if current_trip_t == -1:
                         boarding_time, boarding_point = -1, -1
@@ -223,16 +217,10 @@ def raptor (SOURCE,
                               )
             max_time = t_max + Maximal_travel_time
 
+            
 
-
-        #print (f' pi_label {pi_label}')
-        #print (f' marked_stop {marked_stop}')
-        #print (f' after part2 {datetime.now()}')    
         
         # Main code part 3
-        #print (f'part 3')
-
-        
 
         if k < roundsCount and MaxWalkDist2_time != MaxWalkDist3_time:
         
@@ -266,14 +254,14 @@ def raptor (SOURCE,
                               list_stops
                               )
         
-        #print (f' pi_label {pi_label}')
-        #print (f' marked_stop {marked_stop}')
-        #print (f' after part3 {datetime.now()}')   
         
         # Main code End
         if marked_stop == deque([]):
             break
     
+    ### TEST !!!!!!!!!!!!
+    #timetable_mode = False
+
     reachedLabels = post_processingAll (my_name, 
                                         SOURCE, 
                                         D_TIME, 
@@ -282,8 +270,8 @@ def raptor (SOURCE,
                                         pi_label, 
                                         MIN_TRANSFER, 
                                         MaxWalkDist3, 
-                                        timetable_mode, 
-                                        Maximal_travel_time, 
+                                        timetable_mode,
+                                        Maximal_travel_time,
                                         departure_interval, 
                                         mode = 1
                                         )

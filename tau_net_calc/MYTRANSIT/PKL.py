@@ -6,6 +6,7 @@ from io import StringIO
 import geopandas as gpd
 import datetime
 from PyQt5.QtWidgets import QApplication
+from collections import defaultdict
 
 
 def time_to_seconds(time_str):
@@ -15,7 +16,7 @@ def time_to_seconds(time_str):
 
 class PKL ():
       
-    def __init__(self, parent, dist = 0,  path_to_pkl = '', path_to_GTFS = '', layer_buildings = '', RunCalcFootPathRoad = False):
+    def __init__(self, parent, dist = 0,  path_to_pkl = '', path_to_GTFS = '', layer_buildings = '', mode_append = False):
         if path_to_GTFS == '':
             self.__path_gtfs = path_to_pkl
         else:
@@ -27,12 +28,11 @@ class PKL ():
         self.parent = parent
         self.layer_buildings= layer_buildings
         
-        self.RunCalcFootPathRoad = RunCalcFootPathRoad
         
-        if self.RunCalcFootPathRoad:
-            self.__transfers_start_file = pd.read_csv(f'{self.__path_gtfs}/footpath_road.txt', sep=',')
-        else:
-            self.__transfers_start_file = pd.read_csv(f'{self.__path_gtfs}/footpath_air.txt', sep=',')
+        self.mode_append = mode_append
+        
+        self.__transfers_start_file = pd.read_csv(f'{self.__path_gtfs}/footpath_road.txt', sep=',')
+        
         
         if not os.path.exists(self.__path_pkl):
             os.makedirs(self.__path_pkl)
@@ -71,12 +71,13 @@ class PKL ():
         self.parent.progressBar.setValue(5)
         if self.verify_break():
                 return 0
-        
-        
-        self.build_footpath_dict_b_b()
-        self.parent.progressBar.setValue(6)
-        if self.verify_break():
+        """
+        if not(self.mode_append):
+            self.build_footpath_dict_b_b()
+            self.parent.progressBar.setValue(6)
+            if self.verify_break():
                 return 0
+        """        
         
         self.build__route_by_stop()
         self.parent.progressBar.setValue(7)
@@ -87,34 +88,39 @@ class PKL ():
         self.parent.progressBar.setValue(8)
         if self.verify_break():
                 return 0
-
+        
         self.build_reversed_stops_dict()
         self.parent.progressBar.setValue(9)
         if self.verify_break():
                 return 0
+        
         self.build_reversed_stoptimes_dict()
         self.parent.progressBar.setValue(10)
         if self.verify_break():
                 return 0
+        
         self.build_reverse_stoptimes_file_txt()
         self.parent.progressBar.setValue(11)
         if self.verify_break():
                 return 0
+        
         self.build_rev_stop_idx_in_route()
         self.parent.progressBar.setValue(12)
         if self.verify_break():
                 return 0
         
-        self.build_route_desc__route_id_dict()
-        self.parent.progressBar.setValue(13)
-        if self.verify_break():
+        if not(self.mode_append):
+            self.build_route_desc__route_id_dict()
+            self.parent.progressBar.setValue(13)
+            if self.verify_break():
                 return 0
         
     def load_gtfs(self):
-        self.parent.setMessage(f'Creating PKL. Loading GTFS ...')
+        self.parent.setMessage(f'Loading GTFS ...')
         QApplication.processEvents()
         if self.verify_break():
                 return 0
+        
         self.__trips_file = pd.read_csv(f'{self.__path_gtfs}/trips.txt', sep=',')
         QApplication.processEvents()
         if self.verify_break():
@@ -123,6 +129,7 @@ class PKL ():
         QApplication.processEvents()
         if self.verify_break():
                 return 0
+        
         self.__stop_times_file = pd.merge(self.__stop_times_file, self.__trips_file, on='trip_id')
         QApplication.processEvents()
         if self.verify_break():
@@ -136,7 +143,7 @@ class PKL ():
    
     def build_route_desc__route_id_dict(self):
         
-        self.parent.setMessage('Creating PKL. Making route_desc: {route_id} dict ...')
+        self.parent.setMessage('Building route desciption for {route_id} ...')
         QApplication.processEvents()
         if self.verify_break():
                 return 0
@@ -163,7 +170,7 @@ class PKL ():
 
     def build_stops_dict(self):
         
-        self.parent.setMessage(f'Creating PKL. Making stop_dict ...')
+        self.parent.setMessage(f'Building dictionary ...')
         QApplication.processEvents()
         if self.verify_break():
                 return 0
@@ -174,15 +181,21 @@ class PKL ():
         stops_dict = {id: routes.sort_values(by='stop_sequence')['stop_id'].to_list() for id, routes in route_groups}
         f = f'{self.__path_pkl}/stops_dict_pkl.pkl'
         
-        with open(f, "wb") as pickle_file:
-            pickle.dump(stops_dict, pickle_file)
-        
-        
+        if not (self.mode_append):
+            with open(f, "wb") as pickle_file:
+                pickle.dump(stops_dict, pickle_file)
+        else:
+            with open(f, 'rb') as pickle_file:
+                existing_data = pickle.load(pickle_file)
+            existing_data.update(stops_dict)
+            with open(f, 'wb') as pickle_file:
+                pickle.dump(existing_data, pickle_file)
+                
         return stops_dict
 
     
     def build_stopstimes_dict(self):
-        self.parent.setMessage(f'Creating PKL. Making stoptimes_dict ...')
+        self.parent.setMessage(f'Building dictionary ...')
         QApplication.processEvents()
         if self.verify_break():
                 return 0
@@ -196,7 +209,7 @@ class PKL ():
             cycle += 1
             if cycle%500 == 0:
                 
-                self.parent.setMessage(f'Creating PKL. Making stoptimes_dict (route {cycle} from {len_data})...')
+                self.parent.setMessage(f'Building dictionary for route {cycle} from {len_data}...')
                 QApplication.processEvents()
                 if self.verify_break():
                     return 0
@@ -209,21 +222,24 @@ class PKL ():
             sorted_trips = sorted(trip_dict.items(), key=lambda x: x[1][0][1], reverse = False)
             
             result_dict[route_id] = {trip_id: [(stop_id, time_to_seconds(arrival_time)) for stop_id, arrival_time in trip_data] for trip_id, trip_data in sorted_trips}
-
-        with open(f'{self.__path_pkl}/stoptimes_dict_pkl.pkl', 'wb') as pickle_file:
-            pickle.dump(result_dict, pickle_file)  
         
-
+        f = f'{self.__path_pkl}/stoptimes_dict_pkl.pkl'
+        if not (self.mode_append):
+            with open(f, "wb") as pickle_file:
+                pickle.dump(result_dict, pickle_file)
+        else:
+            with open(f, 'rb') as pickle_file:
+                existing_data = pickle.load(pickle_file)
+            existing_data.update(result_dict)
+            with open(f, 'wb') as pickle_file:
+                pickle.dump(existing_data, pickle_file)
+        
         return 1
     
     def build_footpath_dict_b_b(self):
 
-        if self.RunCalcFootPathRoad:
-            filename = 'footpath_road_b_b.txt'
-        else: 
-            filename = 'footpath_AIR_b_b.txt'
-            
-        self.parent.setMessage(f'Creating PKL. Making transfers_dict b_b...')
+        filename = 'footpath_road_b_b.txt'
+        self.parent.setMessage(f'Building dictionary ...')
         QApplication.processEvents()
         obj_txt = pd.read_csv(f'{self.__path_gtfs}/{filename}', sep=',')
         file_name = 'transfers_dict_b_b.pkl'
@@ -238,7 +254,7 @@ class PKL ():
         for from_stop, details in g:
             i += 1
             if i%1000 == 0:
-                self.parent.setMessage(f'Creating PKL. Making transfers_dict b_b(source {i} from {len_g})...')
+                self.parent.setMessage(f'Building transfer for route {i} from {len_g}...')
                 QApplication.processEvents()
                 if self.verify_break():
                     return 0
@@ -252,10 +268,18 @@ class PKL ():
             pickle.dump(footpath_dict, pickle_file)
         
         return 1
-
+    
+    # Функция для объединения значений словарей
+    def merge_dicts(self, dict1, dict2):
+        result = defaultdict(list)  
+        for d in (dict1, dict2):
+            for key, value in d.items():
+                result[key].extend(value)  
+        return dict(result)
+    
     def build_footpath_dict(self, obj_txt, file_name):
         
-        self.parent.setMessage(f'Creating PKL. Making transfers_dict ...')
+        self.parent.setMessage(f'Building transfers ...')
         QApplication.processEvents()
         if self.verify_break():
                 return 0
@@ -267,7 +291,7 @@ class PKL ():
         for from_stop, details in g:
             i += 1
             if i%1000 == 0:
-                self.parent.setMessage(f'Creating PKL. Making transfers_dict (source {i} from {len_g})...')
+                self.parent.setMessage(f'Building transfers  for source {i} from {len_g}...')
                 QApplication.processEvents()
                 if self.verify_break():
                     return 0
@@ -276,9 +300,25 @@ class PKL ():
                 footpath_dict[from_stop].append(
                     
                     (row.to_stop_id, (row.min_transfer_time)))
-           
-        with open(f'{self.__path_pkl}/{file_name}', 'wb') as pickle_file:    
-            pickle.dump(footpath_dict, pickle_file)
+
+        
+        f = f'{self.__path_pkl}/{file_name}'
+        if not (self.mode_append):
+            with open(f, "wb") as pickle_file:
+                pickle.dump(footpath_dict, pickle_file)
+        else:
+            with open(f, 'rb') as pickle_file:
+                existing_data = pickle.load(pickle_file)
+            
+            footpath_merge_dict = self.merge_dicts(existing_data, footpath_dict)
+            
+            with open(f, 'wb') as pickle_file:
+                pickle.dump(footpath_merge_dict, pickle_file)
+
+
+
+        #with open(f'{self.__path_pkl}/{file_name}', 'wb') as pickle_file:    
+        #    pickle.dump(footpath_dict, pickle_file)
                 
         
 
@@ -287,7 +327,7 @@ class PKL ():
 
     def build_stop_idx_in_route (self):
 
-        self.parent.setMessage(f'Creating PKL. Making idx_by_route_stop ...')
+        self.parent.setMessage(f'Building index ...')
         QApplication.processEvents()
         if self.verify_break():
                 return 0
@@ -298,17 +338,24 @@ class PKL ():
 
         pandas_group = stop_times_file.groupby(["route_id", "stop_id"])
         idx_by_route_stop = {route_stop_pair: details.stop_sequence.iloc[0] for route_stop_pair, details in pandas_group}
-
-        with open(f'{self.__path_pkl}/idx_by_route_stop.pkl', 'wb') as pickle_file:
-            pickle.dump(idx_by_route_stop, pickle_file)
-
+        
+        f = f'{self.__path_pkl}/idx_by_route_stop.pkl'
+        if not (self.mode_append):
+            with open(f, "wb") as pickle_file:
+                pickle.dump(idx_by_route_stop, pickle_file)
+        else:
+            with open(f, 'rb') as pickle_file:
+                existing_data = pickle.load(pickle_file)
+            existing_data.update(idx_by_route_stop)
+            with open(f, 'wb') as pickle_file:
+                pickle.dump(existing_data, pickle_file)
             
         return 1
 
 
     def build_routes_by_stop_dict(self):
         
-        self.parent.setMessage(f'Creating PKL. Making routesindx_by_stop_dict ...')
+        self.parent.setMessage(f'Building index ...')
         QApplication.processEvents()
         if self.verify_break():
                 return 0
@@ -323,15 +370,22 @@ class PKL ():
                 routes_stops_index[(route, stop)] = stop_index
         routesindx_by_stop_dict = routes_stops_index
 
+        f = f'{self.__path_pkl}/routesindx_by_stop.pkl'
+        if not (self.mode_append):
+            with open(f, "wb") as pickle_file:
+                pickle.dump(routesindx_by_stop_dict, pickle_file)
+        else:
+            with open(f, 'rb') as pickle_file:
+                existing_data = pickle.load(pickle_file)
+            existing_data.update(routesindx_by_stop_dict)
+            with open(f, 'wb') as pickle_file:
+                pickle.dump(existing_data, pickle_file)
 
-        with open(f'{self.__path_pkl}/routesindx_by_stop.pkl', 'wb') as pickle_file:
-            pickle.dump(routesindx_by_stop_dict, pickle_file)
-        
         return 1
 
     def build_reversed_stops_dict(self):
         
-        self.parent.setMessage(f'Creating PKL. Making stops_dict_reversed ...')
+        self.parent.setMessage (f'Building dictionary for the backward accessibility...')
         QApplication.processEvents()
         if self.verify_break():
                 return 0
@@ -339,8 +393,18 @@ class PKL ():
         for key in self.__stop_pkl.keys():
             self.__stop_pkl[key] = self.__reverse(self.__stop_pkl[key])
 
-        with open(self.__path_pkl+'/stops_dict_reversed_pkl.pkl', 'wb') as pickle_file:
-            pickle.dump(self.__stop_pkl, pickle_file)    
+        f = self.__path_pkl+'/stops_dict_reversed_pkl.pkl'
+
+        if not (self.mode_append):
+            with open(f, "wb") as pickle_file:
+                pickle.dump(self.__stop_pkl, pickle_file)
+        else:
+            with open(f, 'rb') as pickle_file:
+                existing_data = pickle.load(pickle_file)
+            existing_data.update(self.__stop_pkl)
+            with open(f, 'wb') as pickle_file:
+                pickle.dump(existing_data, pickle_file)
+        
 
             
     def __reverse(self, lst):
@@ -349,7 +413,7 @@ class PKL ():
         
     def build_reversed_stoptimes_dict(self):
         
-        self.parent.setMessage(f'Creating PKL. Making stoptimes_dict_reversed ...')
+        self.parent.setMessage (f'Building dictionary for the backward accessibility...')
         QApplication.processEvents()
         if self.verify_break():
                 return 0
@@ -366,7 +430,7 @@ class PKL ():
             cycle += 1
             if cycle%500 == 0:
                 
-                self.parent.setMessage(f'Creating PKL. Making stoptimes_dict (route {cycle} from {len_data})...')
+                self.parent.setMessage (f'Building dictionary for route {cycle} from {len_data}...')
                 QApplication.processEvents()
                 if self.verify_break():
                     return 0
@@ -378,10 +442,18 @@ class PKL ():
 
             sorted_trips = sorted(trip_dict.items(), key=lambda x: x[1][0][1], reverse=True)
             result_dict[route_id] = {trip_id: [(stop_id, time_to_seconds(arrival_time)) for stop_id, arrival_time in trip_data] for trip_id, trip_data in sorted_trips}
-            
 
-        with open(f'{self.__path_pkl}/stoptimes_dict_reversed_pkl.pkl', 'wb') as pickle_file:
-            pickle.dump(result_dict, pickle_file)  
+        f = f'{self.__path_pkl}/stoptimes_dict_reversed_pkl.pkl'            
+        if not (self.mode_append):
+            with open(f, "wb") as pickle_file:
+                pickle.dump(result_dict, pickle_file)
+        else:
+            with open(f, 'rb') as pickle_file:
+                existing_data = pickle.load(pickle_file)
+            existing_data.update(result_dict)
+            with open(f, 'wb') as pickle_file:
+                pickle.dump(existing_data, pickle_file)
+        
            
 
     # Функция для замены номеров остановок на противоположные в пределах каждой поездки
@@ -396,7 +468,7 @@ class PKL ():
 
     def build_reverse_stoptimes_file_txt(self):
 
-        self.parent.setMessage(f'Creating PKL. Making rev_stop_times ...')
+        self.parent.setMessage (f'Building dictionary for the backward accessibility...')
         QApplication.processEvents()
         if self.verify_break():
                 return 0
@@ -419,8 +491,9 @@ class PKL ():
         # Получаем строку данных
         # We get a row of data
         output_data = output_str.getvalue()
-                
-        with open(self.__path_gtfs + "/rev_stop_times.txt", "w") as output_file:
+        f = self.__path_gtfs + "/rev_stop_times.txt"        
+
+        with open(f, "w") as output_file:
             output_file.write(output_data)
 
         return 1
@@ -428,7 +501,7 @@ class PKL ():
 
     def build_rev_stop_idx_in_route(self):
 
-        self.parent.setMessage(f'Creating PKL. Making rev idx_by_route_stop ...')
+        self.parent.setMessage (f'Building dictionary for the backward accessibility...')
         QApplication.processEvents()
         if self.verify_break():
                 return 0
@@ -451,16 +524,23 @@ class PKL ():
         if self.verify_break():
                 return 0
 
-    
-        with open(f'{self.__path_pkl}/rev_idx_by_route_stop.pkl', 'wb') as pickle_file:
-            pickle.dump(idx_by_route_stop, pickle_file)
+        f = f'{self.__path_pkl}/rev_idx_by_route_stop.pkl'
+        if not (self.mode_append):
+            with open(f, "wb") as pickle_file:
+                pickle.dump(idx_by_route_stop, pickle_file)
+        else:
+            with open(f, 'rb') as pickle_file:
+                existing_data = pickle.load(pickle_file)
+            existing_data.update(idx_by_route_stop)
+            with open(f, 'wb') as pickle_file:
+                pickle.dump(existing_data, pickle_file)
         
         return 1
     
     
     def build__route_by_stop(self):
 
-        self.parent.setMessage(f'Creating PKL. Making routes_by_stop ...')
+        self.parent.setMessage (f'Building dictionary for the backward accessibility...')
         QApplication.processEvents()
         if self.verify_break():
                 return 0
@@ -480,17 +560,24 @@ class PKL ():
             osm_id = feature['osm_id']
             route_by_stop_dict[int(osm_id)] = []
         
-
-        with open(f'{self.__path_pkl}/routes_by_stop.pkl', 'wb') as pickle_file:
-            pickle.dump(route_by_stop_dict, pickle_file)
+        f = f'{self.__path_pkl}/routes_by_stop.pkl'
+        if not (self.mode_append):
+            with open(f, "wb") as pickle_file:
+                pickle.dump(route_by_stop_dict, pickle_file)
+        else:
+            with open(f, 'rb') as pickle_file:
+                existing_data = pickle.load(pickle_file)
+            existing_data.update(route_by_stop_dict)
+            with open(f, 'wb') as pickle_file:
+                pickle.dump(existing_data, pickle_file)
             
         return 1
     
     def verify_break (self):
       if self.parent.break_on:
-            self.parent.setMessage ("Process building dictionary (pkl) is break")
+            self.parent.setMessage ("Building dictionary procedure is interrupted")
             if not self.already_display_break:
-                self.parent.textLog.append (f'<a><b><font color="red">Process building dictionary (pkl) is break</font> </b></a>')
+                self.parent.textLog.append (f'<a><b><font color="red">Building dictionary procedure is interrupted</font> </b></a>')
                 self.already_display_break = True
             self.parent.progressBar.setValue(0)  
             return True
