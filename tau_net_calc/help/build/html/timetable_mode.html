@@ -1,0 +1,182 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>7. PT accessibility for the travelers whose decision to start depends on the PT timetable &mdash; Introduction to QGIS plugin &#34;Accessibility calculations&#34;</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+    <link rel="shortcut icon" href="_static/app.png"/>
+      <script src="_static/documentation_options.js?v=4c4d3c97"></script>
+      <script src="_static/doctools.js?v=9a2dae69"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="8. Сar accessibility" href="car_accessibility.html" />
+    <link rel="prev" title="6. Public transport: Accessibility MAP, fixed start/arrival time" href="raptor_map.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Introduction to QGIS plugin "Accessibility calculations"
+          </a>
+              <div class="version">
+                1.1
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="welcome.html">1. Workshop Conventions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">2. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">3. Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="building_pkl.html">4. Building the Accessibility dictionary (<span class="xref std std-term">pkl</span>)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="raptor_area.html">5. Public Transport: Accessibility AREA, fixed start or arrival time</a></li>
+<li class="toctree-l1"><a class="reference internal" href="raptor_map.html">6. Public transport: Accessibility MAP, fixed start/arrival time</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">7. PT accessibility for the travelers whose decision to start depends on the PT timetable</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#the-computation-steps">7.1. The computation steps</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#report-structure">7.2. Report structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#the-example-accessibility-of-the-gesher-theater-in-yafo-tel-aviv-in-2018-and-2024">7.3. The example: Accessibility of the GESHER theater in Yafo, Tel Aviv, in 2018 and 2024</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="car_accessibility.html">8. Сar accessibility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="relative_ready-made.html">9. Compare accessibility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">10. Visualization of accessibility computations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sample.html">11. Example of accessibility computations for the Gesher theater, Yafo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="markav.html">12. Appendix A: How to find the catalog number (מקט) of the bus line at the http://markav.net</a></li>
+<li class="toctree-l1"><a class="reference internal" href="glossary.html">13. Appendix B: Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">14. Appendix C: License</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Introduction to QGIS plugin "Accessibility calculations"</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active"><span class="section-number">7. </span>PT accessibility for the travelers whose decision to start depends on the PT timetable</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="pt-accessibility-for-the-travelers-whose-decision-to-start-depends-on-the-pt-timetable">
+<span id="timetable-mode"></span><h1><span class="section-number">7. </span>PT accessibility for the travelers whose decision to start depends on the PT timetable<a class="headerlink" href="#pt-accessibility-for-the-travelers-whose-decision-to-start-depends-on-the-pt-timetable" title="Link to this heading">¶</a></h1>
+<div class="line-block">
+<div class="line">The modern users of public transport are aware of the time the bus arrives to the stop they plan to start from, or to the final stops of the trip.</div>
+<div class="line">These travelers start their trip to be at initial stop just a few minutes before the bus arrival, or takes the bus that arrives to the destination just a few minutes before the time a traveler must be at their destination.</div>
+<div class="line">We have modified <a class="reference internal" href="glossary.html#term-RAPTOR-Algorithm"><span class="xref std std-term">RAPTOR algorithm</span></a> to compute accessibility for these schedule-informed travelers.</div>
+</div>
+<section id="the-computation-steps">
+<h2><span class="section-number">7.1. </span>The computation steps<a class="headerlink" href="#the-computation-steps" title="Link to this heading">¶</a></h2>
+<ol class="arabic simple">
+<li><p>Choose one of the options</p></li>
+</ol>
+<div class="line-block">
+<div class="line"><em>Public transport accessibility AREA -&gt; Forward accessibility AREA, departure matches the schedule</em>.</div>
+<div class="line">or</div>
+<div class="line"><em>Public transport accessibility AREA -&gt; Backward accessibility MAP, arrival time interval</em>.</div>
+<div class="line">or</div>
+<div class="line"><em>Public transport accessibility MAP -&gt; Forward accessibility AREA, departure matches the schedule</em>.</div>
+<div class="line">or</div>
+<div class="line"><em>Public transport accessibility MAP -&gt; Backward accessibility MAP, arrival time interval</em>.</div>
+</div>
+<blockquote>
+<div><img alt="_images/mainwindow.png" class="inline border" src="_images/mainwindow.png" />
+</div></blockquote>
+<ol class="arabic" start="2">
+<li><p>In the dialog:</p>
+<img alt="_images/pt-tt.png" class="inline border" src="_images/pt-tt.png" />
+</li>
+<li><p>For <strong>Forward accessibility</strong> enter:</p>
+<ul class="simple">
+<li><p><span class="guilabel">Maximum extra time at the first stop, min</span>: Maximum extra time at the first stop of the trip - WHAT IS IT?</p></li>
+<li><p><span class="guilabel">Be at the first stop in advance of (min)</span>: How long before the departure a rider must be at the first stop</p></li>
+</ul>
+</li>
+<li><p>For <strong>Backward accessibility</strong> enter:</p>
+<ul class="simple">
+<li><p><span class="guilabel">Maximum extra time at the first stop, min</span>: Maximum extra time at the first stop of the trip - WHAT IS IT?</p></li>
+<li><p><span class="guilabel">Be at the arrival stop in advance of (min)</span>: How long before the arrival to the destination a rider must be at the final stop of a trip</p></li>
+</ul>
+</li>
+</ol>
+<p>5. Click <strong>Run</strong> to start. The <strong>progressbar</strong> shows the progress of the computations.
+The <strong>Log</strong> tab contains information about the results of the computations. You can break the computation by pressing <strong>Break</strong>.</p>
+<blockquote>
+<div><p>In case the computations were based on the selection of buildings, the results will contain these buildings as a separate layer.</p>
+</div></blockquote>
+</section>
+<section id="report-structure">
+<h2><span class="section-number">7.2. </span>Report structure<a class="headerlink" href="#report-structure" title="Link to this heading">¶</a></h2>
+<p>For the AREA regime <a class="reference internal" href="raptor_area.html#raptor-area-structure-rep"><span class="std std-ref">AREA</span></a>
+For the MAP regime <a class="reference internal" href="raptor_map.html#raptor-map-structure-rep"><span class="std std-ref">MAP</span></a></p>
+</section>
+<section id="the-example-accessibility-of-the-gesher-theater-in-yafo-tel-aviv-in-2018-and-2024">
+<h2><span class="section-number">7.3. </span>The example: Accessibility of the GESHER theater in Yafo, Tel Aviv, in 2018 and 2024<a class="headerlink" href="#the-example-accessibility-of-the-gesher-theater-in-yafo-tel-aviv-in-2018-and-2024" title="Link to this heading">¶</a></h2>
+<div class="line-block">
+<div class="line">The computations follow <a class="reference internal" href="raptor_area.html#sample-area"><span class="std std-ref">The example: Accessibility of the GESHER theater in Yafo, Tel Aviv, in 2018 and 2024</span></a> example, additional parameters must be provided.</div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="raptor_map.html" class="btn btn-neutral float-left" title="6. Public transport: Accessibility MAP, fixed start/arrival time" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="car_accessibility.html" class="btn btn-neutral float-right" title="8. Сar accessibility" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Geosimlab | TLV university.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
