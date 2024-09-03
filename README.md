@@ -20,7 +20,7 @@ the D-building.
 
 # The algorithms employed in the ACCESSIBILITY plugin
 
--   We employ the modified RAPTOR algorithm for estimating the PT accessibility.
+-   We employ the modified RAPTOR algorithm for estimating the PT accessibility based on [https://github.com/transnetlab/transit-routing](https://github.com/transnetlab/transit-routing).
 -   To estimate accessibility with the private car we employ
     Dijkstra algorithm, also with modifications.
 
