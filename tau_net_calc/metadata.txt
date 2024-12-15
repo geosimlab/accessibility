@@ -3,10 +3,10 @@
 # This file should be included when you package your plugin.# Mandatory items:
 
 [general]
-name=TAU Network Calculator
+name=Accessibility calculator
 qgisMinimumVersion=3.1.1
 description=Accessibility Calculations
-version=4.19.1
+version=5.24
 author=Igor Shusterman (based on dev of Evgeny Kleiman)
 email=ishusterman2011@gmail.com
 

@@ -9,7 +9,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1041</width>
+    <width>700</width>
     <height>555</height>
    </rect>
   </property>
@@ -82,9 +82,9 @@
            <property name="geometry">
             <rect>
              <x>0</x>
-             <y>-100</y>
-             <width>619</width>
-             <height>411</height>
+             <y>0</y>
+             <width>375</width>
+             <height>565</height>
             </rect>
            </property>
            <property name="sizePolicy">
@@ -100,13 +100,34 @@
             <item>
              <layout class="QFormLayout" name="formLayout">
               <item row="1" column="0">
+               <widget class="QLabel" name="label_14">
+                <property name="text">
+                 <string>Car routing database folder</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0" colspan="2">
+               <layout class="QHBoxLayout" name="horizontalLayout_5">
+                <item>
+                 <widget class="QLineEdit" name="txtPathToPKL"/>
+                </item>
+                <item>
+                 <widget class="QToolButton" name="toolButtonPKL">
+                  <property name="text">
+                   <string>...</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item row="4" column="0">
                <widget class="QLabel" name="label_13">
                 <property name="text">
                  <string>Output folder</string>
                 </property>
                </widget>
               </item>
-              <item row="2" column="0" colspan="2">
+              <item row="5" column="0" colspan="2">
                <layout class="QHBoxLayout" name="horizontalLayout_3">
                 <item>
                  <widget class="QLineEdit" name="txtPathToProtocols">
@@ -133,104 +154,24 @@
                 </item>
                </layout>
               </item>
-              <item row="3" column="0">
-               <widget class="QLabel" name="label_2">
+              <item row="6" column="0">
+               <widget class="QLabel" name="label_12">
                 <property name="text">
-                 <string>Roads</string>
+                 <string>Output alias</string>
                 </property>
                </widget>
               </item>
-              <item row="4" column="0" colspan="2">
-               <layout class="QHBoxLayout" name="horizontalLayout_4">
-                <item>
-                 <widget class="QComboBox" name="cmbLayersRoad">
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                  <property name="baseSize">
-                   <size>
-                    <width>16</width>
-                    <height>0</height>
-                   </size>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLabel" name="label_10">
-                  <property name="text">
-                   <string>speed</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QComboBox" name="cmbFieldsSpeed">
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                  <property name="baseSize">
-                   <size>
-                    <width>16</width>
-                    <height>0</height>
-                   </size>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLabel" name="label">
-                  <property name="text">
-                   <string>type road</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QComboBox" name="cmbLayersRoad_type_road">
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLabel" name="label_11">
-                  <property name="text">
-                   <string>direction</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QComboBox" name="cmbFieldsDirection">
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                  <property name="baseSize">
-                   <size>
-                    <width>16</width>
-                    <height>0</height>
-                   </size>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
+              <item row="7" column="0" colspan="2">
+               <widget class="QLineEdit" name="txtAlias"/>
               </item>
-              <item row="7" column="0">
+              <item row="10" column="0">
                <widget class="QLabel" name="label_17">
                 <property name="text">
-                 <string>Origins</string>
+                 <string>Facilities</string>
                 </property>
                </widget>
               </item>
-              <item row="8" column="0" colspan="2">
+              <item row="11" column="0" colspan="2">
                <layout class="QHBoxLayout" name="horizontalLayout_4">
                 <item>
                  <widget class="QComboBox" name="cmbLayers">
@@ -280,14 +221,14 @@
                 </item>
                </layout>
               </item>
-              <item row="9" column="0">
+              <item row="12" column="0">
                <widget class="QLabel" name="label_5">
                 <property name="text">
-                 <string>Destinations</string>
+                 <string>Destinations of the region</string>
                 </property>
                </widget>
               </item>
-              <item row="10" column="0" colspan="2">
+              <item row="13" column="0" colspan="2">
                <layout class="QHBoxLayout" name="horizontalLayout_4">
                 <item>
                  <widget class="QComboBox" name="cmbLayersDest">
@@ -337,14 +278,14 @@
                 </item>
                </layout>
               </item>
-              <item row="12" column="0">
+              <item row="15" column="0">
                <widget class="QLabel" name="lblVusual">
                 <property name="text">
-                 <string>Basic visualization layer</string>
+                 <string>Visualization layer</string>
                 </property>
                </widget>
               </item>
-              <item row="13" column="0" colspan="2">
+              <item row="16" column="0" colspan="2">
                <layout class="QHBoxLayout" name="horizontalLayout_6">
                 <item>
                  <widget class="QComboBox" name="cmbVisLayers">
@@ -379,98 +320,169 @@
                   </property>
                  </widget>
                 </item>
+               </layout>
+              </item>
+              <item row="18" column="0" colspan="2">
+               <layout class="QHBoxLayout" name="horizontalLayout_9">
                 <item>
-                 <widget class="QLabel" name="label_12">
+                 <widget class="QLabel" name="label_2">
                   <property name="text">
-                   <string>aliase</string>
+                   <string>Walking distance from origin to car parking, m</string>
                   </property>
                  </widget>
                 </item>
                 <item>
-                 <widget class="QLineEdit" name="txtAliase"/>
+                 <widget class="QLineEdit" name="txtWalkToCAR">
+                  <property name="alignment">
+                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                  </property>
+                 </widget>
                 </item>
                </layout>
               </item>
-              <item row="14" column="0">
-               <widget class="QLabel" name="label_4">
-                <property name="text">
-                 <string>Default speed value (km/h)</string>
-                </property>
-               </widget>
+              <item row="19" column="0" colspan="2">
+               <layout class="QHBoxLayout" name="horizontalLayout_10">
+                <item>
+                 <widget class="QLabel" name="label_4">
+                  <property name="text">
+                   <string>Walking distance from parking to destination, m</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="txtWalkToDestination">
+                  <property name="alignment">
+                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
               </item>
-              <item row="14" column="1">
-               <widget class="QLineEdit" name="txtSpeed">
-                <property name="text">
-                 <string/>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignRight</set>
-                </property>
-               </widget>
+              <item row="20" column="0" colspan="2">
+               <layout class="QHBoxLayout" name="horizontalLayout_11">
+                <item>
+                 <widget class="QLabel" name="label_10">
+                  <property name="text">
+                   <string>Walking speed, km/h</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="txtWalkingSpeed">
+                  <property name="alignment">
+                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
               </item>
-              <item row="15" column="0">
-               <widget class="QLabel" name="label_3">
-                <property name="text">
-                 <string>Maximal time travel, min</string>
-                </property>
-               </widget>
+              <item row="27" column="0" colspan="2">
+               <layout class="QHBoxLayout" name="horizontalLayout_7">
+                <item>
+                 <widget class="QLabel" name="label">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="text">
+                   <string>Aggregate</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QgsCheckableComboBox" name="cmbFields_ch">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
               </item>
-              <item row="15" column="1">
-               <widget class="QLineEdit" name="txtMaxTimeTravel">
-                <property name="text">
-                 <string/>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignRight</set>
-                </property>
-               </widget>
+              <item row="23" column="0" colspan="2">
+               <layout class="QHBoxLayout" name="horizontalLayout_12">
+                <item>
+                 <widget class="QLabel" name="label_11">
+                  <property name="text">
+                   <string>Start at (hh:mm:ss)</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QTimeEdit" name="dtStartTime">
+                  <property name="alignment">
+                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                  </property>
+                  <property name="displayFormat">
+                   <string>hh:mm:ss</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
               </item>
-              <item row="18" column="0">
-               <widget class="QCheckBox" name="cbUseFields">
-                <property name="text">
-                 <string>Run aggregate</string>
-                </property>
-               </widget>
+              <item row="25" column="0" colspan="2">
+               <layout class="QHBoxLayout" name="horizontalLayout_8">
+                <item>
+                 <widget class="QLabel" name="label_3">
+                  <property name="text">
+                   <string>Maximal time travel, min</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="txtMaxTimeTravel">
+                  <property name="text">
+                   <string/>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignRight</set>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
               </item>
-              <item row="19" column="0">
-               <widget class="QLabel" name="lblFields">
-                <property name="text">
-                 <string>Field to aggregate</string>
-                </property>
-               </widget>
+              <item row="26" column="0" colspan="2">
+               <layout class="QHBoxLayout" name="horizontalLayout_13">
+                <item>
+                 <widget class="QLabel" name="label_6">
+                  <property name="text">
+                   <string>Number of bins</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="txtTimeInterval">
+                  <property name="text">
+                   <string/>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignRight</set>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
               </item>
-              <item row="19" column="1">
-               <widget class="QComboBox" name="cmbFields">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="baseSize">
-                 <size>
-                  <width>16</width>
-                  <height>0</height>
-                 </size>
-                </property>
-               </widget>
-              </item>
-              <item row="20" column="0">
-               <widget class="QLabel" name="label_6">
-                <property name="text">
-                 <string>Time bin for storing the results, min</string>
-                </property>
-               </widget>
-              </item>
-              <item row="20" column="1">
-               <widget class="QLineEdit" name="txtTimeInterval">
-                <property name="text">
-                 <string/>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignRight</set>
-                </property>
-               </widget>
+              <item row="24" column="0" colspan="2">
+               <layout class="QHBoxLayout" name="horizontalLayout_14">
+                <item>
+                 <widget class="QLabel" name="label_15">
+                  <property name="text">
+                   <string>Driving start/finish gap, s</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="txtTimeGap">
+                  <property name="alignment">
+                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
               </item>
              </layout>
             </item>
@@ -513,36 +525,44 @@
     </layout>
    </item>
    <item>
-    <widget class="QFrame" name="gridFrame">
-     <layout class="QGridLayout" name="gridLayout_2">
-      <property name="sizeConstraint">
-       <enum>QLayout::SetFixedSize</enum>
-      </property>
-      <property name="spacing">
-       <number>0</number>
-      </property>
-      <item row="0" column="0">
-       <widget class="QLabel" name="lblMessages">
-        <property name="text">
-         <string/>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item alignment="Qt::AlignRight">
-    <widget class="QDialogButtonBox" name="buttonBox">
-     <property name="standardButtons">
-      <set>QDialogButtonBox::NoButton</set>
-     </property>
-     <property name="centerButtons">
-      <bool>true</bool>
-     </property>
-    </widget>
+    <layout class="QHBoxLayout" name="horizontalLayout_4">
+     <item>
+      <widget class="QLabel" name="lblMessages">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="lineWidth">
+        <number>0</number>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </item>
+     <item alignment="Qt::AlignRight">
+      <widget class="QDialogButtonBox" name="buttonBox">
+       <property name="standardButtons">
+        <set>QDialogButtonBox::NoButton</set>
+       </property>
+       <property name="centerButtons">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QgsCheckableComboBox</class>
+   <extends>QComboBox</extends>
+   <header>qgscheckablecombobox.h</header>
+  </customwidget>
+ </customwidgets>
  <tabstops>
   <tabstop>textInfo</tabstop>
   <tabstop>tabWidget</tabstop>

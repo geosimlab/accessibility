@@ -9,12 +9,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>705</width>
-    <height>503</height>
+    <width>1041</width>
+    <height>555</height>
    </rect>
   </property>
   <property name="sizePolicy">
-   <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
     <horstretch>0</horstretch>
     <verstretch>0</verstretch>
    </sizepolicy>
@@ -83,8 +83,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>330</width>
-             <height>251</height>
+             <width>592</width>
+             <height>221</height>
             </rect>
            </property>
            <property name="sizePolicy">
@@ -99,8 +99,12 @@
             </property>
             <item>
              <layout class="QFormLayout" name="formLayout">
-              <item row="0" column="0">
-               <layout class="QVBoxLayout" name="verticalLayout_4"/>
+              <item row="1" column="0">
+               <widget class="QLabel" name="label_3">
+                <property name="text">
+                 <string>Roads database folder </string>
+                </property>
+               </widget>
               </item>
               <item row="2" column="0" colspan="2">
                <layout class="QHBoxLayout" name="horizontalLayout_5">
@@ -116,57 +120,34 @@
                 </item>
                </layout>
               </item>
-              <item row="5" column="0">
-               <widget class="QLabel" name="label_2">
-                <property name="text">
-                 <string>Layer of buildings</string>
-                </property>
-               </widget>
-              </item>
-              <item row="6" column="0" colspan="2">
-               <layout class="QHBoxLayout" name="horizontalLayout_6">
+              <item row="4" column="0" colspan="2">
+               <layout class="QHBoxLayout" name="horizontalLayout_4">
                 <item>
-                 <widget class="QComboBox" name="cmbLayers">
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                  <property name="mouseTracking">
-                   <bool>false</bool>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLabel" name="label_5">
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
+                 <widget class="QLabel" name="label">
                   <property name="text">
-                   <string>id=</string>
+                   <string>link type</string>
                   </property>
                  </widget>
                 </item>
                 <item>
-                 <widget class="QComboBox" name="cmbLayers_fields"/>
+                 <widget class="QComboBox" name="cmbLayersRoad_type_road">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                 </widget>
                 </item>
-               </layout>
-              </item>
-              <item row="7" column="0">
-               <widget class="QLabel" name="label_4">
-                <property name="text">
-                 <string>GTFS folder</string>
-                </property>
-               </widget>
-              </item>
-              <item row="8" column="0" colspan="2">
-               <layout class="QHBoxLayout" name="horizontalLayout_3">
                 <item>
-                 <widget class="QLineEdit" name="txtPathToGTFS">
+                 <widget class="QLabel" name="label_10">
+                  <property name="text">
+                   <string>speed</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QComboBox" name="cmbFieldsSpeed">
                   <property name="sizePolicy">
                    <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
                     <horstretch>0</horstretch>
@@ -182,23 +163,100 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QToolButton" name="toolButton_GTFS">
+                 <widget class="QLabel" name="label_11">
                   <property name="text">
-                   <string>...</string>
+                   <string>direction</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QComboBox" name="cmbFieldsDirection">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="baseSize">
+                   <size>
+                    <width>16</width>
+                    <height>0</height>
+                   </size>
                   </property>
                  </widget>
                 </item>
                </layout>
               </item>
-              <item row="9" column="0">
-               <widget class="QLabel" name="label">
+              <item row="5" column="0">
+               <widget class="QLabel" name="label_17">
                 <property name="text">
-                 <string>Folder to store transit database</string>
+                 <string>Layer of buildings</string>
                 </property>
                </widget>
               </item>
-              <item row="10" column="0" colspan="2">
+              <item row="6" column="0" colspan="2">
                <layout class="QHBoxLayout" name="horizontalLayout_4">
+                <item>
+                 <widget class="QComboBox" name="cmbLayers_buildings">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="baseSize">
+                   <size>
+                    <width>16</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="label_8">
+                  <property name="text">
+                   <string>id=</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QComboBox" name="cmbLayers_buildings_fields">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item row="7" column="0">
+               <widget class="QLabel" name="label_4">
+                <property name="text">
+                 <string>Default speed (km/h)</string>
+                </property>
+               </widget>
+              </item>
+              <item row="7" column="1">
+               <widget class="QLineEdit" name="txtSpeed">
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignRight</set>
+                </property>
+               </widget>
+              </item>
+              <item row="8" column="0">
+               <widget class="QLabel" name="label_13">
+                <property name="text">
+                 <string>Folder to store car database </string>
+                </property>
+               </widget>
+              </item>
+              <item row="9" column="0" colspan="2">
+               <layout class="QHBoxLayout" name="horizontalLayout_3">
                 <item>
                  <widget class="QLineEdit" name="txtPathToProtocols">
                   <property name="sizePolicy">
@@ -224,13 +282,6 @@
                 </item>
                </layout>
               </item>
-              <item row="1" column="0">
-               <widget class="QLabel" name="label_6">
-                <property name="text">
-                 <string>Layer of roads</string>
-                </property>
-               </widget>
-              </item>
              </layout>
             </item>
            </layout>
@@ -250,11 +301,7 @@
        </layout>
       </widget>
      </widget>
-     <widget class="QPlainTextEdit" name="textInfo">
-      <property name="readOnly">
-       <bool>true</bool>
-      </property>
-     </widget>
+     <widget class="QTextBrowser" name="textInfo"/>
     </widget>
    </item>
    <item>
