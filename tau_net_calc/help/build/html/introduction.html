@@ -6,9 +6,10 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>2. Introduction &mdash; Introduction to QGIS plugin &#34;Accessibility calculations&#34;</title>
+  <title>2. Introduction &mdash; Introduction to QGIS plugin &#34;Accessibility Calculator&#34;</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="_static/css/custom.css?v=e9518a68" />
 
   
     <link rel="shortcut icon" href="_static/app.png"/>
@@ -30,7 +31,7 @@
           
           
           <a href="index.html" class="icon icon-home">
-            Introduction to QGIS plugin "Accessibility calculations"
+            Introduction to QGIS plugin "Accessibility Calculator"
           </a>
               <div class="version">
                 1.1
@@ -47,29 +48,29 @@
 <li class="toctree-l1"><a class="reference internal" href="welcome.html">1. Workshop Conventions</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">2. Introduction</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#what-is-it-all-about">2.1. What is it all about?</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#accessibility-plugin-accounts-for-every-component-of-a-trip">2.2. ACCESSIBILITY plugin accounts for every component of a trip</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#the-algorithms-employed-in-the-accessibility-plugin">2.3. The algorithms employed in the ACCESSIBILITY plugin</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#the-data-necessary-for-accessibility-computations">2.4. The data necessary for ACCESSIBILITY computations</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#forward-versus-backward-accessibility">2.5. Forward versus Backward accessibility</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#area-and-map-regimes-of-accessibility-computation">2.6. AREA and MAP regimes of accessibility computation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#adjustment-of-the-start-or-arrival-time-to-the-transit-timetable">2.7. Adjustment of the start or arrival time to the transit timetable</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#car-speed-for-accessibility-computation">2.8. Car speed for accessibility computation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#comparing-accessibility-scenarios">2.9. Comparing accessibility scenarios</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#visualization-of-accessibility-computations">2.10. Visualization of accessibility computations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#accessibility-calculator-accounts-for-every-component-of-a-trip">2.2. Accessibility Calculator accounts for every component of a trip</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#the-algorithms-of-accessibility-calculator">2.3. The Algorithms of Accessibility Calculator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#the-data-necessary-for-accessibility-computations">2.4. The data necessary for accessibility computations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#the-menu-of-accessibility-calculator">2.5. The menu of Accessibility  Calculator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#constructing-databases">2.6. Constructing Databases</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#from-accessibility-versus-to-accessibility">2.7. From-accessibility versus To-accessibility</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#service-area-of-several-facilities-versus-accessibility-of-all-buildings-in-the-region">2.8. Service area of several facilities versus accessibility of all buildings in the region</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#adjustment-of-the-trips-start-or-arrival-time-to-the-transit-timetable">2.9. Adjustment of the trip’s start or arrival time to the transit timetable</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#car-speed-for-accessibility-computation">2.10. Car speed for accessibility computation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#comparison-of-accessibility-computations-for-different-scenarios">2.11. Comparison of accessibility computations for different scenarios</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#visualization-of-accessibility-computations">2.12. Visualization of accessibility computations</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">3. Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="building_pkl.html">4. Building the Accessibility dictionary (<span class="xref std std-term">pkl</span>)</a></li>
-<li class="toctree-l1"><a class="reference internal" href="raptor_area.html">5. Public Transport: Accessibility AREA, fixed start or arrival time</a></li>
-<li class="toctree-l1"><a class="reference internal" href="raptor_map.html">6. Public transport: Accessibility MAP, fixed start/arrival time</a></li>
-<li class="toctree-l1"><a class="reference internal" href="timetable_mode.html">7. PT accessibility for the travelers whose decision to start depends on the PT timetable</a></li>
-<li class="toctree-l1"><a class="reference internal" href="car_accessibility.html">8. Сar accessibility</a></li>
-<li class="toctree-l1"><a class="reference internal" href="relative_ready-made.html">9. Compare accessibility</a></li>
-<li class="toctree-l1"><a class="reference internal" href="visualization.html">10. Visualization of accessibility computations</a></li>
-<li class="toctree-l1"><a class="reference internal" href="sample.html">11. Example of accessibility computations for the Gesher theater, Yafo</a></li>
-<li class="toctree-l1"><a class="reference internal" href="markav.html">12. Appendix A: How to find the catalog number (מקט) of the bus line at the http://markav.net</a></li>
-<li class="toctree-l1"><a class="reference internal" href="glossary.html">13. Appendix B: Glossary</a></li>
-<li class="toctree-l1"><a class="reference internal" href="license.html">14. Appendix C: License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="building_pkl.html">4. Data preprocessing for fast routing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="raptor_area.html">5. Transit accessibility – Service area</a></li>
+<li class="toctree-l1"><a class="reference internal" href="raptor_map.html">6. Transit Accessibility of all locations in the     Region</a></li>
+<li class="toctree-l1"><a class="reference internal" href="car_accessibility.html">7. Сar accessibility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="relative_ready-made.html">8. Compare accessibility maps</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">9. Visualization of accessibility map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sample.html">10. Assessing the effect of a new Light Rail Transit line on transport accessibility in the Tel-Aviv Metropolitan Area</a></li>
+<li class="toctree-l1"><a class="reference internal" href="glossary.html">11. Appendix A: Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">12. Appendix B: License</a></li>
 </ul>
 
         </div>
@@ -78,7 +79,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">Introduction to QGIS plugin "Accessibility calculations"</a>
+          <a href="index.html">Introduction to QGIS plugin "Accessibility Calculator"</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -96,153 +97,223 @@
            <div itemprop="articleBody">
              
   <section id="introduction">
-<span id="id1"></span><h1><span class="section-number">2. </span>Introduction<a class="headerlink" href="#introduction" title="Link to this heading">¶</a></h1>
+<h1><span class="section-number">2. </span>Introduction<a class="headerlink" href="#introduction" title="Link to this heading"></a></h1>
 <section id="what-is-it-all-about">
-<h2><span class="section-number">2.1. </span>What is it all about?<a class="headerlink" href="#what-is-it-all-about" title="Link to this heading">¶</a></h2>
-<p>The goal of the ACCESSIBILITY plugin is to assess transport accessibility at the resolution of a single building.
-The assessment is based on a precise estimation of the travel time between the building of the trip Origin (O), and the Destination (D) building.</p>
-<div class="line-block">
-<div class="line">The OD travel time depends on the transportation mode that can be Public Transport (PT) or Private Car.</div>
-</div>
+<h2><span class="section-number">2.1. </span>What is it all about?<a class="headerlink" href="#what-is-it-all-about" title="Link to this heading"></a></h2>
+<p>The goal of the Accessibility Calculator plugin is to assess transport accessibility at the resolution of a single building. The assessment is based on a precise estimation of the travel time between the Origin (O), and the Destination (D) buildings of a trip. The OD travel time depends on the transportation mode which can be a Public Transport (PT) or a Private Car. The results of accessibility computations are stored as a CSV table that presents the details of trips and presented visually as an accessibility map.</p>
 </section>
-<section id="accessibility-plugin-accounts-for-every-component-of-a-trip">
-<h2><span class="section-number">2.2. </span>ACCESSIBILITY plugin accounts for every component of a trip<a class="headerlink" href="#accessibility-plugin-accounts-for-every-component-of-a-trip" title="Link to this heading">¶</a></h2>
-<p>The PT trip consists of many elementary components: A traveler walks from the O-building to the PT stop, waits for a bus, rides to the transfer stop,
-waits for the next bus, and, after, possibly, additional transfers, alights at the final stop and walks to the D-building.</p>
-<div class="line-block">
-<div class="line">The car traveler takes a walk from the O-building to the parked car, drives to the parking place near the destination, and then walks to the D-building.</div>
-</div>
+<section id="accessibility-calculator-accounts-for-every-component-of-a-trip">
+<h2><span class="section-number">2.2. </span>Accessibility Calculator accounts for every component of a trip<a class="headerlink" href="#accessibility-calculator-accounts-for-every-component-of-a-trip" title="Link to this heading"></a></h2>
+<p>The PT or car trip consists of several components: A PT user walks from the O-building to the initial stop, waits for a PT vehicle (bus, tram, metro, other), rides to the transfer stop, waits for the next PT vehicle, and, after, possibly, more transfers, alights at the final stop and walks to the D-building. The car traveler takes a walk from the O-building to the parked car, drives to the destination, finds a parking place nearby, and then walks to the D-building.</p>
 </section>
-<section id="the-algorithms-employed-in-the-accessibility-plugin">
-<h2><span class="section-number">2.3. </span>The algorithms employed in the ACCESSIBILITY plugin<a class="headerlink" href="#the-algorithms-employed-in-the-accessibility-plugin" title="Link to this heading">¶</a></h2>
+<section id="the-algorithms-of-accessibility-calculator">
+<h2><span class="section-number">2.3. </span>The Algorithms of Accessibility Calculator<a class="headerlink" href="#the-algorithms-of-accessibility-calculator" title="Link to this heading"></a></h2>
 <ul class="simple">
-<li><p>We employ the modified <a class="reference internal" href="glossary.html#term-RAPTOR-Algorithm"><span class="xref std std-term">RAPTOR algorithm</span></a> for estimating the PT accessibility.</p></li>
-<li><p>To estimate accessibility with the private car we employ <a class="reference internal" href="glossary.html#term-Dijkstra-Algorithm"><span class="xref std std-term">Dijkstra algorithm</span></a>, also with modifications.</p></li>
+<li><p>To estimate transit accessibility we employ the <a class="reference internal" href="glossary.html#term-RAPTOR-Algorithm"><span class="xref std std-term">RAPTOR algorithm</span></a>.</p></li>
+<li><p>To estimate accessibility with the private car we employ the <a class="reference internal" href="glossary.html#term-Dijkstra-Algorithm"><span class="xref std std-term">Dijkstra algorithm</span></a>.</p></li>
 </ul>
+<p>Both algorithms are modified to deal with real-world data on the transit and road networks and to consider accessibility to city buildings and not only network nodes.
+<span style="display: block; margin-top: 5px;"></span></p>
 </section>
 <section id="the-data-necessary-for-accessibility-computations">
-<h2><span class="section-number">2.4. </span>The data necessary for ACCESSIBILITY computations<a class="headerlink" href="#the-data-necessary-for-accessibility-computations" title="Link to this heading">¶</a></h2>
-<p>To use the ACCESSIBILITY plugin you need three sets of data, all covering the same region:</p>
+<h2><span class="section-number">2.4. </span>The data necessary for accessibility computations<a class="headerlink" href="#the-data-necessary-for-accessibility-computations" title="Link to this heading"></a></h2>
+<p>To use the Accessibility Calculator, you need three sets of data, all covering the region of your interest:</p>
 <ul class="simple">
-<li><p>The standard <a class="reference internal" href="glossary.html#term-GTFS"><span class="xref std std-term">GTFS</span></a> dataset that represents the PT network and schedule.</p></li>
-<li><p>The topologically correct layer of roads.</p></li>
-<li><p>The layer of buildings represented by polygons (better) or points.</p></li>
+<li><p>The layer of roads.</p></li>
+<li><p>The layer of buildings that are represented by polygons or points.</p></li>
+<li><p>The <a class="reference internal" href="glossary.html#term-GTFS"><span class="xref std std-term">GTFS</span></a> dataset of the PT network and schedule.</p></li>
 </ul>
-<div class="line-block">
-<div class="line">In this tutorial we use: Israel GTFS dataset available from the <a class="reference external" href="https://gtfs.pro/">https://gtfs.pro/</a>, and</div>
-<div class="line">the OSM layers of roads and buildings for Israel - gis_osm_roads_free and gis_osm_buildings_a_free.</div>
-<div class="line">These three datasets are translated into the fast-access dictionary that serves as an input for all ACCESSIBILITY algorithms.</div>
+<p>Three datasets are checked and translated into three fast-access databases. The first one contains a topologically cleaned road network, the second is constructed for computing transit accessibility and the third is constructed for computing car accessibility. It is often convenient to use datasets that cover an area that is larger than the region of the current interest.
+<span style="display: block; margin-top: 5px;"></span>
+In this tutorial, we use GTFS datasets that cover the entire Israel and exploit them for computing accessibility maps for the Tel Aviv Metropolitan Area. The Israeli GTFS datasets are available from <a class="reference external" href="https://gtfs.pro/">https://gtfs.pro/</a>, and in our examples, we use GTFS datasets for June 2018 and June 2024. The OSM layers of roads and buildings for Israel are available from <a class="reference external" href="https://www.openstreetmap.org/">https://www.openstreetmap.org/</a>. In this tutorial, we use the <code class="docutils literal notranslate"><span class="pre">gis_osm_buildings_a_free</span></code> layer of buildings (as polygons) and the <code class="docutils literal notranslate"><span class="pre">gis_osm_roads_free</span> <span class="pre">layer</span></code> layer of roads.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The layer of roads that you download from the OSM site often contains significant topological errors and must be topologically cleaned before using for computations. This cleaning is a part of the construction of the road database, see section 4.2.</p>
 </div>
 </section>
-<section id="forward-versus-backward-accessibility">
-<h2><span class="section-number">2.5. </span>Forward versus Backward accessibility<a class="headerlink" href="#forward-versus-backward-accessibility" title="Link to this heading">¶</a></h2>
-<div class="line-block">
-<div class="line">Forward accessibility is based on the travel time FROM each of the selected buildings TO all other locations in the city.</div>
+<section id="the-menu-of-accessibility-calculator">
+<h2><span class="section-number">2.5. </span>The menu of Accessibility  Calculator<a class="headerlink" href="#the-menu-of-accessibility-calculator" title="Link to this heading"></a></h2>
+<p>Figure 1 presents the menu of the Accessibility Calculator.</p>
+<p><em>The service area is employed for accessing accessibility of the specific set of locations.</em>
+<span style="display: block; margin-top: 5px;"></span>
+<em>The region accessibility is employed for assessing accessibility of all locations in the area.</em></p>
+<p>In this introductory section, we briefly present the abilities of the Accessibility Calculator. Each of these abilities is then presented in detail in the consequent sections.</p>
+ <div style="display: flex; justify-content: center; align-items: center; height: 100%;">
+    <img src="_images/mainwindow.png" style="width: 50%; border: 3px solid white;margin-bottom: 10px" />
 </div>
-<p>The typical application of forward accessibility is the assessment of the residents’ travel time to the locations of their possible employment.</p>
-<div class="line-block">
-<div class="line">Backward accessibility is based on the travel time TO each of the selected buildings FROM all other locations in the city.</div>
-</div>
-<p>The typical application of backward accessibility is the assessment of the travel time that will take urban residents to reach each of the attractions in the city center.</p>
+<p>Figure 1. The menu of the Accessibility Calculator</p></section>
+<section id="constructing-databases">
+<h2><span class="section-number">2.6. </span>Constructing Databases<a class="headerlink" href="#constructing-databases" title="Link to this heading"></a></h2>
+<p>To accelerate data access for accessibility computations and fix the data inconsistencies, all three datasets necessary for computations are translated into the internal databases. You can build different databases for different versions of the infrastructure or transit network development, assess accessibility for each of them, and compare the results. The databases are usually constructed for large areas, or even the entire country. We recommend working with the datasets that represent areas containing 0.5-1M buildings.</p>
 </section>
-<section id="area-and-map-regimes-of-accessibility-computation">
-<h2><span class="section-number">2.6. </span>AREA and MAP regimes of accessibility computation<a class="headerlink" href="#area-and-map-regimes-of-accessibility-computation" title="Link to this heading">¶</a></h2>
-<ul class="simple">
-<li><p>The Forward <strong>AREA</strong> regime assesses travel time for the travelers who start their trip from one or a few selected building(s).</p></li>
-<li><p>The Backward <strong>AREA</strong> regime assesses travel time for the travelers who finish their trip at one or a few selected building(s).</p></li>
-</ul>
-<p>The AREA-based assessment included detailed description of each OD trip.</p>
-<ul class="simple">
-<li><p>The Forward <strong>MAP</strong> regime assesses what can be accessed, in a given time, from each of the buildings in the city region - the number of accessible buildings and their total capacity for work, commerce, or leisure.</p></li>
-<li><p>The Backward <strong>MAP</strong> regime assesses from where each building in the city region can be accessed in a given time - the number of buildings from which it can be accessed and the aggregate parameters of these buildings, like total population numbers.</p></li>
-</ul>
-<p>The MAP-based assessment is performed at a predefined time resolution of, typically, 5 minutes.</p>
-</section>
-<section id="adjustment-of-the-start-or-arrival-time-to-the-transit-timetable">
-<h2><span class="section-number">2.7. </span>Adjustment of the start or arrival time to the transit timetable<a class="headerlink" href="#adjustment-of-the-start-or-arrival-time-to-the-transit-timetable" title="Link to this heading">¶</a></h2>
-<div class="line-block">
-<div class="line">The modern PT users are aware of the time the bus ariives to the stop they plan to start from, or to the final stops of their trip, and plan their trips accordingly.</div>
+<section id="from-accessibility-versus-to-accessibility">
+<h2><span class="section-number">2.7. </span>From-accessibility versus To-accessibility<a class="headerlink" href="#from-accessibility-versus-to-accessibility" title="Link to this heading"></a></h2>
+<p>From-accessibility is based on the travel time from each of the selected buildings to all other locations in the city (Figure 2 left). The typical application of from-accessibility is the assessment of the residents’ travel time to the locations of their possible employment.
+<span style="display: block; margin-top: 5px;"></span>
+To-accessibility is based on the travel time to each of the selected buildings from all other locations in the city (Figure 2 right). The typical application of to-accessibility is the assessment of the residents’ travel time to shops and attractions in the city center.</p>
+<div style="display: flex; justify-content: center; align-items: center; height: 100%;">
+    <img src="_images/forward-backward.png" style="width: 70%; border: 3px solid white;margin-bottom: 20px" />
 </div>
-<p>To assess the accessibility for these informed users we modify the <a class="reference internal" href="glossary.html#term-RAPTOR-Algorithm"><span class="xref std std-term">RAPTOR algorithm</span></a> to account for their schedule-based start or finish of the trip.</p>
+<p>Figure 2. From-accessibility (left) versus To-accessibility (right)</p><p><span style="display: block; margin-top: 5px;"></span></p>
+</section>
+<section id="service-area-of-several-facilities-versus-accessibility-of-all-buildings-in-the-region">
+<h2><span class="section-number">2.8. </span>Service area of several facilities versus accessibility of all buildings in the region<a class="headerlink" href="#service-area-of-several-facilities-versus-accessibility-of-all-buildings-in-the-region" title="Link to this heading"></a></h2>
+<p>From- and To-accessibility computations can be performed to assess the service area of several facilities located in the buildings or aggregate measures of accessibility for all buildings in the region of interest – <em>region accessibility</em>. In both cases, origins and destinations can be all or just selected buildings. In the latter case, the selected buildings will be stored as a layer as a part of the results.
+<span style="display: block; margin-top: 5px;"></span>
+<em>The service area</em> consists of buildings that can be served by at least one of the facilities.</p>
+<ul class="simple">
+<li><p>The “From” service area of the set of facilities includes all buildings that can be reached in maximum travel time or faster, from at least one of the facilities in this set. If the building can be reached from several facilities, then the trip with the minimal travel time is considered.</p></li>
+<li><p>The “To” service area of the set of facilities, includes all buildings from which at least one of the facilities can be reached in maximum travel time or faster. If several facilities can be reached, then the trip with minimal travel time is considered.</p></li>
+</ul>
+<p>The details of each leg of the fastest trips are stored as attributes of the served building and the thematic map presents the total travel time from the facilities to the served building or from the served building to the facility. Importantly, the service area of <em>every</em> facility is also stored. The user can exploit this file for computing other measures of accessibility, like the area from where the residents can reach more than half of the facilities in the center of the city in a maximum travel time.
+<span style="display: block; margin-top: 5px;"></span>
+<em>The region accessibility</em> represents aggregate measures of accessibility for each building in the region.</p>
+<ul class="simple">
+<li><p>The default aggregate measure of the from-accessibility for the region’s building is the number of other buildings accessible from it. Other measures, like the number of shops, or jobs, accessible from the building can be calculated if the information on jobs or use at a building resolution is available.</p></li>
+<li><p>The default aggregate measure of the to-accessibility for the region’s building is the number of buildings from which it is accessible. Other measures, like the total population that can reach the building, can be calculated if the information on the population at a building resolution is available.</p></li>
+</ul>
+<p>The accessibility of a region is computed at a time resolution that is defined by the user. All aggregate measures are stored as attributes of the region’s buildings, for each time interval.</p>
+</section>
+<section id="adjustment-of-the-trips-start-or-arrival-time-to-the-transit-timetable">
+<h2><span class="section-number">2.9. </span>Adjustment of the trip’s start or arrival time to the transit timetable<a class="headerlink" href="#adjustment-of-the-trips-start-or-arrival-time-to-the-transit-timetable" title="Link to this heading"></a></h2>
+<p>Modern transit users are aware of the time the bus or train arrives at the stop they plan to start from, or to the final stops of their trip, and plan their trips accordingly. To assess the accessibility for these informed users we modify the <a class="reference internal" href="glossary.html#term-RAPTOR-Algorithm"><span class="xref std std-term">RAPTOR algorithm</span></a> to account for the schedule-based trip’s start or finish. Schedule-defined accessibility can be chosen for each of the From/To and Location/Region regimes.</p>
+<p><span style="display: block; margin-top: 5px;"></span></p>
 </section>
 <section id="car-speed-for-accessibility-computation">
-<h2><span class="section-number">2.8. </span>Car speed for accessibility computation<a class="headerlink" href="#car-speed-for-accessibility-computation" title="Link to this heading">¶</a></h2>
-<p>The assessment of car accessibility is based on the traffic speed of the OD route.
-We assume that the traffic speed is defined by the type of the road - a highway, major city street, neighborhood secondary street, etc.
-The average speed for every road type is provided by a user-defined table of average speeds by the road type.</p>
-<div class="line-block">
-<div class="line">For example:</div>
+<span id="car-speed-by-link-type"></span><h2><span class="section-number">2.10. </span>Car speed for accessibility computation<a class="headerlink" href="#car-speed-for-accessibility-computation" title="Link to this heading"></a></h2>
+<p>To compute car accessibility, one must know traffic speed along the route. In the current version of the plugin, the traffic speed is defined by the type of road - a highway, major city street, neighborhood secondary street, etc., and the hour of the day. The free flow traffic speeds V<sub>p</sub>, by the road link types p, is given in the <code class="docutils literal notranslate"><span class="pre">car_speed_by_link_type.csv</span></code> table (Figure 3, left).
+The effect of the hour of the day is reflected by the Congestion Delay Index (CDI) - a ratio of the average, for the hour of a day, speed to the free flow speed, and stored in the <code class="docutils literal notranslate"><span class="pre">cdi_index.csv</span></code> table (Figure 3, right). Both tables are stored in the system folder and can be edited by the user.</p>
+<p>The speed V<sub>p</sub>(t) on the link of a type p at the hour t is calculated as V<sub>p</sub>(t)  = V<sub>p</sub>*CDI<sub>t</sub>.</p>
+<style>
+    .custom-table {
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+    .custom-table th, .custom-table td {
+        border: 1px solid #d3d3d3;
+        padding: 8px;
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    .custom-table th {
+        background-color: white;
+        font-weight: normal;
+    }
+
+    .custom-table tr:nth-child(even) {
+        background-color: #f0f8ff;
+    }
+
+    .custom-table tr:nth-child(odd) {
+        background-color: white;
+    }
+</style>
+
+<div style="display: flex; justify-content: space-between;margin-bottom: 10px">
+
+    <div style="margin-right: 10px;">
+
+        <table class="custom-table">
+            <tr>
+                <th style="width: 150px;">link type</th>
+                <th style="width: 150px;">speed (km/h)</th>
+            </tr>
+            <tr>
+                <td>busway</td>
+                <td>18</td>
+            </tr>
+            <tr>
+                <td>cycleway</td>
+                <td>15</td>
+            </tr>
+            <tr>
+                <td>footway</td>
+                <td>3</td>
+            </tr>
+            <tr>
+                <td>motorway_link</td>
+                <td>40</td>
+            </tr>
+            <tr>
+                <td>...</td>
+                <td>...</td>
+            </tr>
+        </table>
+    </div>
+
+
+    <div>
+
+        <table class="custom-table">
+            <tr>
+                <th style="width: 150px;">hour</th>
+                <th style="width: 100px;">cdi</th>
+            </tr>
+            <tr>
+                <td>0</td>
+                <td>1.0</td>
+            </tr>
+            <tr>
+                <td>...</td>
+                <td>...</td>
+            </tr>
+            <tr>
+                <td>5</td>
+                <td>0.9</td>
+            </tr>
+            <tr>
+                <td>6</td>
+                <td>0.65</td>
+            </tr>
+            <tr>
+                <td>...</td>
+                <td>...</td>
+            </tr>
+        </table>
+    </div>
 </div>
-<table class="docutils align-default">
-<tbody>
-<tr class="row-odd"><td><p>Type of the road</p></td>
-<td><p>The default speed value, km/h</p></td>
-</tr>
-<tr class="row-even"><td><p>busway</p></td>
-<td><p>18</p></td>
-</tr>
-<tr class="row-odd"><td><p>cycleway</p></td>
-<td><p>15</p></td>
-</tr>
-<tr class="row-even"><td><p>footway</p></td>
-<td><p>3</p></td>
-</tr>
-<tr class="row-odd"><td><p>living_street</p></td>
-<td><p>20</p></td>
-</tr>
-<tr class="row-even"><td><p>motorway</p></td>
-<td><p>60</p></td>
-</tr>
-<tr class="row-odd"><td><p>motorway_link</p></td>
-<td><p>40</p></td>
-</tr>
-<tr class="row-even"><td><p>…</p></td>
-<td><p>…</p></td>
-</tr>
-</tbody>
-</table>
-</section>
-<section id="comparing-accessibility-scenarios">
-<h2><span class="section-number">2.9. </span>Comparing accessibility scenarios<a class="headerlink" href="#comparing-accessibility-scenarios" title="Link to this heading">¶</a></h2>
-<div class="line-block">
-<div class="line">The study of accessibility does not end with assessment of <strong>AREA</strong> or <strong>MAP</strong> accessibility. Typically, we compare accessibility for different scenarios of urban transportation development.</div>
-</div>
-<div class="line-block">
-<div class="line">The ACCESSIBILITY plugin includes three options for this comparison:</div>
-</div>
-<blockquote>
-<div><ul class="simple">
-<li><p>Relative accessibility, is typically used for assessing the ratio of the PT and Car travel times.</p></li>
-<li><p>Accessibility difference, is typically used for comparing scenarios of the PT scheduling or road network development.</p></li>
-<li><p>Relative accessibility difference, combines two above measure, estimating the difference between accessibility in two scenarios divided the accessibility in the first of them.</p></li>
+<p>Figure 3. Free flow speeds by the link types (left) and the CDI index, by hours of the day (right)</p></section>
+<section id="comparison-of-accessibility-computations-for-different-scenarios">
+<h2><span class="section-number">2.11. </span>Comparison of accessibility computations for different scenarios<a class="headerlink" href="#comparison-of-accessibility-computations-for-different-scenarios" title="Link to this heading"></a></h2>
+<p>Typically, the accessibility is computed for different scenarios of urban transportation development, and then the outputs for these scenarios are compared.
+<span style="display: block; margin-top: 5px;"></span>
+Let the scenarios be S<sub>1</sub> and S<sub>2</sub> and accessibility for each of them is already computed. The Accessibility Calculator includes three options for comparison scenarios’ outputs:</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>Relative accessibility:</dt><dd><p>The ratio R<sub>1,2</sub>= S<sub>1</sub>/S<sub>2</sub> of the outputs of S<sub>1</sub> and S<sub>2</sub>, by buildings.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Accessibility difference:</dt><dd><p>The difference D<sub>1,2</sub>= S<sub>1</sub>– S<sub>2</sub> of the outputs of S<sub>1</sub> and S<sub>2</sub>, by buildings.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Relative accessibility difference:</dt><dd><p>The relative difference RD<sub>1,2</sub>= (S<sub>1</sub>– S<sub>2</sub>)/S<sub>2</sub> of the outputs of S<sub>1</sub> and S<sub>2</sub>, by buildings.</p>
+</dd>
+</dl>
+</li>
 </ul>
-</div></blockquote>
-<p>To compare two scenarios, accessibility for each of them must be ready.</p>
+<p>Note that scenarios S<sub>1</sub> and S<sub>2</sub> must be comparable, i.e.,  both must be for the same single location or, in the case of region accessibility, for the overlapping regions. The Accessibility Calculator tests the comparability of the scenarios, and either reports incomparability or performs the comparison.</p>
 </section>
 <section id="visualization-of-accessibility-computations">
-<h2><span class="section-number">2.10. </span>Visualization of accessibility computations<a class="headerlink" href="#visualization-of-accessibility-computations" title="Link to this heading">¶</a></h2>
-<p>The results of the accessibility computations are stored as buildings’ attributes. It can be</p>
-<blockquote>
-<div><ul class="simple">
-<li><p>In the <strong>AREA</strong> regime - the travel time to, or from a certain building</p></li>
-<li><p>In the <strong>MAP</strong> regime - the number and the aggregate parameters of buildings that can be accessed from a certain O-building, or from which a certain D-building can be accessed</p></li>
+<h2><span class="section-number">2.12. </span>Visualization of accessibility computations<a class="headerlink" href="#visualization-of-accessibility-computations" title="Link to this heading"></a></h2>
+<p>The Accessibility Calculator results are always presented as thematic maps. These maps are based on one of the coverages that are supplied together with the plugin (Figure 4):</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="glossary.html#term-Voronoi-diagram"><span class="xref std std-term">Voronoi polygons</span></a> that are constructed based on the buildings’ foundations,</p></li>
+<li><p><a class="reference internal" href="glossary.html#term-H3"><span class="xref std std-term">H3 hexagons</span></a> of the h11, h10, h9, and h8 scales.</p></li>
 </ul>
-</div></blockquote>
-<p>These results are presented as thematic maps.
-These maps can be built based on the buildings themselves, but the gaps between buildings prevent clear view of the phenomenon.
-The better view can be constructed based on the continuous coverages and ACCESSIBILITY plugin employ covereges of two kinds:</p>
-<blockquote>
-<div><ul class="simple">
-<li><p><a class="reference internal" href="glossary.html#term-Voronoi-diagram"><span class="xref std std-term">Voronoi polygons</span></a> constructed based on the buildings’ foundations (left map below)</p></li>
-<li><p><a class="reference internal" href="glossary.html#term-H3"><span class="xref std std-term">H3 hexagons</span></a> LINK, of the h11, h10, h9 and h8 scales LINK (right map below, h11 hexagons).</p></li>
-</ul>
-</div></blockquote>
 <div style="display: flex; justify-content: space-between;">
-    <img src="_images/visual3.png" style="width: 45%; border: 1px solid black;" />
-    <img src="_images/visual2.png" style="width: 45%; border: 1px solid black;" />
-</div><div class="line-block">
-<div class="line">More information <a class="reference internal" href="visualization.html"><span class="doc">here</span></a></div>
+    <img src="_images/sample/visual1.png" style="width: 32%; border: 0px solid black;margin-bottom: 10px" />
+    <img src="_images/sample/visual2.png" style="width: 32%;
+    border: 0px solid black;margin-bottom: 20px" />
+    <img src="_images/sample/visual3.png" style="width: 32%; border: 0px solid black;margin-bottom: 10px" />
 </div>
+<p>Figure 4: Left to right – The 45-min transit service maps from the Gesher theater in the center of the Yafo area, Tel Aviv, presented with the Voronoi polygons, h3-10, and h3-9 hexagons</p><p><span style="display: block; margin-top: 5px;"></span></p>
+<p>Accessibility Calculator visualization options are considered in <a class="reference internal" href="visualization.html"><span class="doc">section 9</span></a>.</p>
 </section>
 </section>
 
